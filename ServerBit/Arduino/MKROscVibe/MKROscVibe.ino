@@ -1,16 +1,25 @@
 /*
 
  This example connects to an unencrypted WiFi network.
- Then it prints the  MAC address of the WiFi shield,
- the IP address obtained, and other network details.
+ Then to a broadcasting OSC server in Processing
+ Then it accepts commands to control LED and vibration patterns using the Adafruit_DRV2605
+ Based on Oscuino
 
  Circuit:
  * WiFi shield attached
 
+Created 2019-02-26
+by p_sanches
+
+Based on tutorials:
  created 13 July 2010
  by dlf (Metodo2 srl)
  modified 31 May 2012
  by Tom Igoe
+
+
+
+ 
  */
 #include <SPI.h>
 #include <WiFi101.h>
