@@ -1,5 +1,7 @@
 /**
- * SOMA BIT broadcasting server 
+ * SOMA BITS broadcasting server 
+ * Created 2019-02-26
+ * by p_sanches
  *
  * Based on:
  *
@@ -11,6 +13,7 @@
  * all connected clients. 
  * an example for a client is located in the oscP5broadcastClient exmaple.
  * oscP5 website at http://www.sojamo.de/oscP5
+ *
  */
  
 import oscP5.*;
