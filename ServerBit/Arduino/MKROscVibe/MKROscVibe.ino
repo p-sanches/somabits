@@ -14,12 +14,24 @@
  */
 #include <SPI.h>
 #include <WiFi101.h>
+#include <WiFiUdp.h>
+#include <OSCMessage.h>
 
 #include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
+
+unsigned int localPort = 12000;      // local port to listen on
+
+char packetBuffer[255]; //buffer to hold incoming packet
+
+WiFiUDP Udp;
+
+const IPAddress serverIp(192,168,1,63);
+const unsigned int serverPort = 32000;
+
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -40,7 +52,7 @@ void setup() {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to network:
-    status = WiFi.begin(ssid);
+    status = WiFi.begin(ssid, pass);
 
     // wait 10 seconds for connection:
     delay(10000);
@@ -51,12 +63,50 @@ void setup() {
   printCurrentNet();
   printWiFiData();
 
+  Serial.print("\nStarting listening on port:");
+  Serial.print(localPort);
+  // if you get a connection, report back via serial:
+  Udp.begin(localPort);
+
+  Serial.print("\nConnecting to server bit at ");
+  Serial.print(serverIp);Serial.print(":");Serial.println(serverPort);
+  
+  //register with server
+  connectToServer();
+  delay(50);
 }
 
 void loop() {
-  // check the network connection once every 10 seconds:
-  delay(10000);
-  printCurrentNet();
+  // if there's data available, read a packet
+  int packetSize = Udp.parsePacket();
+  if (packetSize)
+  {
+    Serial.print("Received packet of size ");
+    Serial.println(packetSize);
+    Serial.print("From ");
+    IPAddress remoteIp = Udp.remoteIP();
+    Serial.print(remoteIp);
+    Serial.print(", port ");
+    Serial.println(Udp.remotePort());
+
+    // read the packet into packetBufffer
+    int len = Udp.read(packetBuffer, 255);
+    if (len > 0) packetBuffer[len] = 0;
+    Serial.println("Contents:");
+    Serial.println(packetBuffer);
+  }
+}
+
+void connectToServer(){
+
+    OSCMessage msg("/server/startConnection/");
+  
+    Udp.beginPacket(serverIp, serverPort);
+    msg.send(Udp); // send the bytes to the SLIP stream
+ 
+    Udp.endPacket();
+
+  msg.empty(); // free space occupied by message
 }
 
 void printWiFiData() {

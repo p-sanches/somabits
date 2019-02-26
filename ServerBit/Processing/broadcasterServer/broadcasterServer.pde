@@ -19,7 +19,7 @@ int myListeningPort = 32000;
 /* the broadcast port is the port the clients should listen for incoming messages from the server*/
 int myBroadcastPort = 12000;
 
-String myConnectPattern = "/server/startConnection/";
+  String myConnectPattern = "/server/startConnection/";
 String myDisconnectPattern = "/server/endConnection/";
 
 
@@ -46,6 +46,7 @@ void oscEvent(OscMessage theOscMessage) {
    */
   else {
     oscP5.send(theOscMessage, myNetAddressList);
+    //println("Broadcasting msg");
   }
 }
 
