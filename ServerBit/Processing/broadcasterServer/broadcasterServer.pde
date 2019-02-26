@@ -1,4 +1,8 @@
 /**
+ * SOMA BIT broadcasting server 
+ *
+ * Based on:
+ *
  * oscP5broadcaster by andreas schlegel
  * an osc broadcast server.
  * osc clients can connect to the server by sending a connect and
