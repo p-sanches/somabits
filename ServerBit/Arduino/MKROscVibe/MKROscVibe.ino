@@ -16,6 +16,14 @@
 #include <WiFi101.h>
 #include <WiFiUdp.h>
 #include <OSCMessage.h>
+#include <OSCBundle.h>
+#include <OSCBoards.h>
+#include <Wire.h>
+#include "Adafruit_DRV2605.h"
+
+boolean effectMode = false;
+
+Adafruit_DRV2605 drv;
 
 #include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
@@ -33,12 +41,30 @@ const IPAddress serverIp(192,168,1,63);
 const unsigned int serverPort = 32000;
 
 
+uint8_t effect = 1; //Pre-made vibe Effects
+
+
 void setup() {
+
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+
+  //Initialize actuators
+
+  //initialize LED
+  pinMode(LED_BUILTIN, OUTPUT); 
+  
+  //initializeVibe
+  drv.begin();
+  drv.selectLibrary(1);
+  drv.useLRA();
+  // I2C trigger by sending 'go' command 
+  // default, internal trigger when sending GO command
+  drv.setMode(DRV2605_MODE_INTTRIG); 
+
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
@@ -77,25 +103,135 @@ void setup() {
 }
 
 void loop() {
-  // if there's data available, read a packet
-  int packetSize = Udp.parsePacket();
-  if (packetSize)
-  {
-    Serial.print("Received packet of size ");
-    Serial.println(packetSize);
-    Serial.print("From ");
-    IPAddress remoteIp = Udp.remoteIP();
-    Serial.print(remoteIp);
-    Serial.print(", port ");
-    Serial.println(Udp.remotePort());
+//   //if there's data available, read a packet
+//  int packetSize = Udp.parsePacket();
+//  if (packetSize)
+//  {
+//    Serial.print("Received packet of size ");
+//    Serial.println(packetSize);
+//    Serial.print("From ");
+//    IPAddress remoteIp = Udp.remoteIP();
+//    Serial.print(remoteIp);
+//    Serial.print(", port ");
+//    Serial.println(Udp.remotePort());
+//
+//    // read the packet into packetBufffer
+//    int len = Udp.read(packetBuffer, 255);
+//    if (len > 0) packetBuffer[len] = 0;
+//    Serial.println("Contents:");
+//    Serial.println(packetBuffer);
+//  }
 
-    // read the packet into packetBufffer
-    int len = Udp.read(packetBuffer, 255);
-    if (len > 0) packetBuffer[len] = 0;
-    Serial.println("Contents:");
-    Serial.println(packetBuffer);
+
+    OSCMessage bundleIN;
+   int size;
+ 
+   if( (size = Udp.parsePacket())>0)
+   {
+
+         while(size--)
+           bundleIN.fill(Udp.read());
+    
+        if(!bundleIN.hasError())
+        {
+            bundleIN.dispatch("/server/led", routeLED);
+            bundleIN.dispatch("/server/vibeeffect", routeVibeEffect);
+        }
+   }
+}
+
+//called whenever an OSCMessage's address matches "/led/"
+void routeLED(OSCMessage &msg){
+  Serial.println("LED COntrol");
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)){
+    //get that float
+    float data = msg.getFloat(0);
+
+    Serial.println(data);
+
+    if (data==0) 
+      digitalWrite(LED_BUILTIN, LOW);
+    else if(data==1) digitalWrite(LED_BUILTIN, HIGH);
   }
 }
+
+//called whenever an OSCMessage's address matches "/led/"
+void routeVibeEffect(OSCMessage &msg){
+  Serial.println("Vibe Effect");
+  setEffectMode();
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)){
+    //get that float
+    float data = msg.getFloat(0);
+
+    Serial.println(data);
+    effect = data;
+  }
+}
+
+void setEffectMode(){
+  if(!effectMode){
+    effectMode=true;
+    drv.setMode(DRV2605_MODE_INTTRIG); 
+  }
+}
+
+void setRTMode(){
+
+  if(effectMode){
+    effectMode=false;
+    drv.setMode(DRV2605_MODE_REALTIME); 
+  }
+}
+
+//called whenever an OSCMessage's address matches "/led/"
+void routeVibeIntensityRT(OSCMessage &msg){
+  Serial.println("Vibe Intensity");
+  setRTMode(); 
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)){
+    //get that float
+    float data = msg.getFloat(0);
+
+    Serial.println(data);
+    vibeIntensityRT = data;
+  }
+}
+
+//called whenever an OSCMessage's address matches "/led/"
+void routeVibeDelayRT(OSCMessage &msg){
+  Serial.println("Vibe Delay");
+  setRTMode();
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)){
+    //get that float
+    float data = msg.getFloat(0);
+
+    Serial.println(data);
+    vibeDelayRT = data;
+  }
+}
+
+void playVibeEffect(){
+  // set the effect to play
+  drv.setWaveform(0, effect);  // play effect 
+  drv.setWaveform(1, 0);       // end waveform
+
+  // play the effect!
+  drv.go();
+}
+
+int vibeIntensityRT=0;
+int vibeDelayRT=0;
+
+void playVibeRT(){
+  drv.setRealtimeValue(vibeIntensityRT);
+  delay(vibeDelayRT);
+}
+
+
+
 
 void connectToServer(){
 

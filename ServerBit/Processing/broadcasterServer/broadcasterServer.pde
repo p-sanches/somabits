@@ -45,11 +45,19 @@ void oscEvent(OscMessage theOscMessage) {
    * message to all addresses in the netAddresList. 
    */
   else {
+    printOSCMessage(theOscMessage);
     oscP5.send(theOscMessage, myNetAddressList);
     //println("Broadcasting msg");
   }
 }
 
+/* incoming osc message are forwarded to the oscEvent method. */
+void printOSCMessage(OscMessage theOscMessage) {
+  /* print the address pattern and the typetag of the received OscMessage */
+  print("### received an osc message.");
+  print(" addrpattern: "+theOscMessage.addrPattern());
+  println(" typetag: "+theOscMessage.typetag());
+}
 
  private void connect(String theIPaddress) {
      if (!myNetAddressList.contains(theIPaddress, myBroadcastPort)) {
