@@ -434,8 +434,7 @@ uint8_t *effects[effects_size]={EFFECT_PULSE, //0
                                 EFFECT_PURR_ERM2,      //5 
                                 EFFECT_HEART,     //6 
                                 EFFECT_PULSE_ECHO,      //7 doesnt work
-                                EFFECT_RANDOM_VIBRATION, //8
-                                EFFECT_CONST_VIBE};    //9
+                                EFFECT_RANDOM_VIBRATION};    //9
 
 
 uint8_t rtp_current[100]={0};
