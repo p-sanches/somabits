@@ -21,9 +21,16 @@
 #include <Wire.h>
 #include "Adafruit_DRV2605.h"
 
-boolean effectMode = false;
 
 Adafruit_DRV2605 drv;
+
+uint8_t effect = 1; //Pre-made vibe Effects
+boolean effectMode = true;
+
+
+int vibeIntensityRT=0;
+int vibeDelayRT=0;
+
 
 #include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
@@ -39,9 +46,6 @@ WiFiUDP Udp;
 
 const IPAddress serverIp(192,168,1,63);
 const unsigned int serverPort = 32000;
-
-
-uint8_t effect = 1; //Pre-made vibe Effects
 
 
 void setup() {
@@ -123,7 +127,7 @@ void loop() {
 //  }
 
 
-    OSCMessage bundleIN;
+   OSCMessage bundleIN;
    int size;
  
    if( (size = Udp.parsePacket())>0)
@@ -136,8 +140,15 @@ void loop() {
         {
             bundleIN.dispatch("/server/led", routeLED);
             bundleIN.dispatch("/server/vibeeffect", routeVibeEffect);
+            bundleIN.dispatch("/server/vibeintensity", routeVibeIntensityRT);
+            bundleIN.dispatch("/server/vibedelay", routeVibeDelayRT);
         }
    }
+
+   if(effectMode)
+      playVibeEffect();
+   else
+      playVibeRT();
 }
 
 //called whenever an OSCMessage's address matches "/led/"
@@ -220,13 +231,14 @@ void playVibeEffect(){
 
   // play the effect!
   drv.go();
+  delay(20);
 }
 
-int vibeIntensityRT=0;
-int vibeDelayRT=0;
 
 void playVibeRT(){
   drv.setRealtimeValue(vibeIntensityRT);
+  delay(10);
+  drv.setRealtimeValue(0);
   delay(vibeDelayRT);
 }
 
