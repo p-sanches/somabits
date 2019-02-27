@@ -34,7 +34,7 @@ Based on tutorials:
 Adafruit_DRV2605 drv;
 
 uint8_t effect = 1; //Pre-made vibe Effects
-boolean effectMode = true;
+boolean effectMode = false;
 
 
 int vibeIntensityRT=0;
@@ -53,7 +53,7 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192,168,1,63);
+const IPAddress serverIp(192,168,1,102);
 const unsigned int serverPort = 32000;
 
 
@@ -91,7 +91,7 @@ void setup() {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to network:
-    status = WiFi.begin(ssid, pass);
+    status = WiFi.begin(ssid);
 
     // wait 10 seconds for connection:
     delay(10000);
@@ -136,7 +136,7 @@ void loop() {
 //  }
 
 
-   OSCMessage bundleIN;
+   OSCBundle bundleIN;
    int size;
  
    if( (size = Udp.parsePacket())>0)
@@ -147,10 +147,10 @@ void loop() {
     
         if(!bundleIN.hasError())
         {
-            bundleIN.dispatch("/server/led", routeLED);
-            bundleIN.dispatch("/server/vibeeffect", routeVibeEffect);
-            bundleIN.dispatch("/server/vibeintensity", routeVibeIntensityRT);
-            bundleIN.dispatch("/server/vibedelay", routeVibeDelayRT);
+            bundleIN.dispatch("/sensor/led", routeLED);
+            bundleIN.dispatch("/sensor/vibeeffect", routeVibeEffect);
+            bundleIN.dispatch("/sensor/vibeintensity", routeVibeIntensityRT);
+            bundleIN.dispatch("/sensor/vibedelay", routeVibeDelayRT);
         }
    }
 
@@ -256,7 +256,7 @@ void playVibeRT(){
 
 void connectToServer(){
 
-    OSCMessage msg("/server/startConnection/");
+    OSCMessage msg("/actuator/startConnection/");
   
     Udp.beginPacket(serverIp, serverPort);
     msg.send(Udp); // send the bytes to the SLIP stream
