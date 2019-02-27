@@ -31,6 +31,8 @@ if __name__ == "__main__":
     dispatcher.map("/oscControl/slider4", print)
     dispatcher.map("/oscControl/toggle1", print)
     dispatcher.map("/toggle1", print)
+    # Test UNO Wifi Board
+    dispatcher.map("/test", print)
 
     server = osc_server.ThreadingOSCUDPServer(
         (args.ip, args.port), dispatcher)
