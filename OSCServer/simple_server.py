@@ -28,6 +28,9 @@ if __name__ == "__main__":
     dispatcher = dispatcher.Dispatcher()
     dispatcher.map("/light", print)
     dispatcher.map("/accelerometer", print)
+    dispatcher.map("/oscControl/slider4", print)
+    dispatcher.map("/oscControl/toggle1", print)
+    dispatcher.map("/toggle1", print)
 
     server = osc_server.ThreadingOSCUDPServer(
         (args.ip, args.port), dispatcher)
