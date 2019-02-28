@@ -18,7 +18,8 @@
  
 import oscP5.*;
 import netP5.*;
-import java.util.Map;
+import java.io.*; 
+import java.util.*; 
 
 
 OscP5 oscP5;
@@ -78,11 +79,12 @@ void oscEvent(OscMessage theOscMessage) {
     
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     sensorInputs.put(theOscMessage.addrPattern(), theOscMessage.arguments());
-    printAllSensorInputs();
+    //printAllSensorInputs();
    
     
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
-    //trainWekinator(theOscMessage);
+    //trainWekinatorMsg(theOscMessage);
+    trainWekinatorWithAllSensors();
     
     //printOSCMessage(theOscMessage);
     //oscP5.send(theOscMessage, ActuatorNetAddressList);
@@ -111,7 +113,6 @@ void sendAllSensorData(){
   /* send the osc bundle, containing 2 osc messages, to a remote location. */
   oscP5.send(myBundle, ActuatorNetAddressList);
   
- 
 }
 
 void printAllSensorInputs(){
@@ -155,7 +156,7 @@ if (SensorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
  }
  
  
-  private void connectActuator(String theIPaddress) {
+private void connectActuator(String theIPaddress) {
      if (!ActuatorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
        ActuatorNetAddressList.add(new NetAddress(theIPaddress, myBroadcastPort));
        println("### adding "+theIPaddress+" to the actuator list.");
@@ -176,11 +177,47 @@ if (ActuatorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
      }
        println("### Actuators: currently there are "+ActuatorNetAddressList.list().size());
  }
+
+void trainWekinatorWithAllSensors() {
+  OscMessage wekaMsg = new OscMessage("/wek/inputs");
+  int i = 0;
+  float[] args = new float[sensorInputs.size()];
+  
+  println("### Training WEKA with all sensors (" + sensorInputs.size()+"):");
+     // Using an enhanced loop to iterate over each entry
+     Iterator entries = sensorInputs.entrySet().iterator();
+     
+      //while (entries.hasNext()) {
+      //    Map.Entry entry = (Map.Entry) entries.next();
+      //    String key = (String)entry.getKey();
+      //    Float value = (Float)entry.getValue();
+      //    print("["+(i)+"] ");
+      //    print(key + " is ");
+      //    println(value);
+      //    wekaMsg.add(value);
+      //}
+      
+      for (Map.Entry me : sensorInputs.entrySet()) {
+        print("["+(i)+"] ");
+        print(me.getKey() + " is ");
+        println(me.getValue());
+        
+        wekaMsg.add((Object[])me.getValue());
+        //args[i] = (me.getValue())[0];
+        i++;
+      }
+
+  //wekaMsg.add(args);
+  
+  printOSCMessage(wekaMsg);
  
+  oscP5.send(wekaMsg, wekinator);
+}
  
-void trainWekinator(OscMessage msg) {
+void trainWekinatorMsg(OscMessage msg) {
   OscMessage wekaMsg = new OscMessage("/wek/inputs");
   wekaMsg.setArguments(msg.arguments());
+  printOSCMessage(wekaMsg);
  
   oscP5.send(wekaMsg, wekinator);
 }
