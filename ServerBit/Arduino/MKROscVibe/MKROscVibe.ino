@@ -38,7 +38,7 @@ boolean effectMode = false;
 
 
 int vibeIntensityRT=0;
-int vibeDelayRT=0;
+int vibeDelayRT=1;
 
 
 #include "arduino_secrets.h" 
@@ -75,8 +75,8 @@ void setup() {
   drv.selectLibrary(1);
   drv.useLRA();
   // I2C trigger by sending 'go' command 
-  // default, internal trigger when sending GO command
-  drv.setMode(DRV2605_MODE_INTTRIG); 
+  // default: realtime
+  drv.setMode(DRV2605_MODE_REALTIME); 
 
 
   // check for the presence of the shield:
@@ -147,16 +147,16 @@ void loop() {
     
         if(!bundleIN.hasError())
         {
-            bundleIN.dispatch("/sensor/led", routeLED);
-            bundleIN.dispatch("/sensor/vibeeffect", routeVibeEffect);
-            bundleIN.dispatch("/sensor/vibeintensity", routeVibeIntensityRT);
-            bundleIN.dispatch("/sensor/vibedelay", routeVibeDelayRT);
+            bundleIN.dispatch("/actuator/led", routeLED);
+            bundleIN.dispatch("/actuator/vibeeffect", routeVibeEffect);
+            bundleIN.dispatch("/actuator/vibeintensity", routeVibeIntensityRT);
+            bundleIN.dispatch("/actuator/vibedelay", routeVibeDelayRT);
         }
    }
 
-   if(effectMode)
-      playVibeEffect();
-   else
+//   if(effectMode)
+//      playVibeEffect();
+//   else
       playVibeRT();
 }
 

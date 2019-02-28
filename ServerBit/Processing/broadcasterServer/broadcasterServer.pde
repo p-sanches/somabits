@@ -75,24 +75,40 @@ void oscEvent(OscMessage theOscMessage) {
    */
    //check if sender is on sensor list (TBD: currently any OSC command is just blindly forwarded to the actuators without checking)
 
-  else {
+  else if(theOscMessage.addrPattern().contains("/sensor")){
     
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     sensorInputs.put(theOscMessage.addrPattern(), theOscMessage.arguments());
     //printAllSensorInputs();
    
-    
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
     //trainWekinatorMsg(theOscMessage);
     trainWekinatorWithAllSensors();
     
     //printOSCMessage(theOscMessage);
     //oscP5.send(theOscMessage, ActuatorNetAddressList);
-    sendAllSensorData();
+    //sendAllSensorData();
+  }
+  else if(theOscMessage.addrPattern().contains("/actuator")){
+    sendOneActuatorData(theOscMessage);
+    //printOSCMessage(theOscMessage);
   }
 }
 
-void sendAllSensorData(){
+void sendOneActuatorData(OscMessage theOscMessage){
+  
+    /* create an osc bundle */
+  OscBundle myBundle = new OscBundle();
+  myBundle.add(theOscMessage);
+ 
+  
+  myBundle.setTimetag(myBundle.now() + 10000);
+  /* send the osc bundle, containing 1 osc messages, to all actuators. */
+  oscP5.send(myBundle, ActuatorNetAddressList);
+  
+}
+
+void sendAllRawSensorData(){
   
     /* create an osc bundle */
   OscBundle myBundle = new OscBundle();
@@ -128,7 +144,7 @@ void printAllSensorInputs(){
 /* incoming osc message are forwarded to the oscEvent method. */
 void printOSCMessage(OscMessage theOscMessage) {
   /* print the address pattern and the typetag of the received OscMessage */
-  print("### received an osc message.");
+  print("### Printing an osc message.");
   print(" addrpattern: "+theOscMessage.addrPattern());
   println(" typetag: "+theOscMessage.typetag());
 }
