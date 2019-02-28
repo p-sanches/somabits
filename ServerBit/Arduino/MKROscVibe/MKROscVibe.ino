@@ -107,8 +107,7 @@ void setup() {
   // if you get a connection, report back via serial:
   Udp.begin(localPort);
 
-  Serial.print("\nConnecting to server bit at ");
-  Serial.print(serverIp);Serial.print(":");Serial.println(serverPort);
+  
   
   //register with server
   connectToServer();
@@ -135,6 +134,15 @@ void loop() {
 //    Serial.println(packetBuffer);
 //  }
 
+  char incomingByte = 0;   // for incoming serial data
+  if (Serial.available() > 0) {
+        // read the incoming byte:
+        incomingByte = Serial.read();
+        if(incomingByte=='c'){
+          connectToServer();
+          delay(50);
+        }
+    }
 
    OSCBundle bundleIN;
    int size;
@@ -255,6 +263,9 @@ void playVibeRT(){
 
 
 void connectToServer(){
+
+    Serial.print("\nConnecting to server bit at ");
+    Serial.print(serverIp);Serial.print(":");Serial.println(serverPort);
 
     OSCMessage msg("/actuator/startConnection/");
   
