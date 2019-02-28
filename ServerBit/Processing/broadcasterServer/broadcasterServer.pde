@@ -3,6 +3,9 @@
  * Created 2019-02-26
  * by p_sanches
  *
+ * /sensor/[sid]/[anypath] [float]
+ * /actuator/[sid]/[anypath] [float]
+ *
  * Based on:
  *
  * oscP5broadcaster by andreas schlegel
@@ -48,11 +51,14 @@ String ActuatorDisconnectPattern = "/actuator/endConnection/";
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
   wekinator = new NetAddress("127.0.0.1",6448);
+  
+  connectActuator("127.0.0.1");
+  
   frameRate(25);
 }
 
 void draw() {
-  background(0);
+  //background(0);
 }
 
 void oscEvent(OscMessage theOscMessage) {
@@ -79,11 +85,11 @@ void oscEvent(OscMessage theOscMessage) {
     
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     sensorInputs.put(theOscMessage.addrPattern(), theOscMessage.arguments());
-    //printAllSensorInputs();
+    printAllSensorInputs();
    
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
     //trainWekinatorMsg(theOscMessage);
-    trainWekinatorWithAllSensors();
+    //trainWekinatorWithAllSensors();
     
     //printOSCMessage(theOscMessage);
     //oscP5.send(theOscMessage, ActuatorNetAddressList);
@@ -91,7 +97,7 @@ void oscEvent(OscMessage theOscMessage) {
   }
   else if(theOscMessage.addrPattern().contains("/actuator")){
     sendOneActuatorData(theOscMessage);
-    //printOSCMessage(theOscMessage);
+    printOSCMessage(theOscMessage);
   }
 }
 
@@ -147,6 +153,7 @@ void printOSCMessage(OscMessage theOscMessage) {
   print("### Printing an osc message.");
   print(" addrpattern: "+theOscMessage.addrPattern());
   println(" typetag: "+theOscMessage.typetag());
+  //println(" args: "+theOscMessage.arguments());
 }
 
  private void connectSensor(String theIPaddress) {
