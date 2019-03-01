@@ -53,7 +53,7 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192,168,1,63);
+const IPAddress serverIp(192,168,1,103);
 const unsigned int serverPort = 32000;
 
 
@@ -91,7 +91,7 @@ void setup() {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to network:
-    status = WiFi.begin(ssid, pass);
+    status = WiFi.begin(ssid);
 
     // wait 10 seconds for connection:
     delay(10000);

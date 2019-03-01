@@ -89,7 +89,7 @@ void oscEvent(OscMessage theOscMessage) {
    
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
     //trainWekinatorMsg(theOscMessage);
-    //trainWekinatorWithAllSensors();
+    trainWekinatorWithAllSensors();
     
     //printOSCMessage(theOscMessage);
     //oscP5.send(theOscMessage, ActuatorNetAddressList);
@@ -149,11 +149,18 @@ void printAllSensorInputs(){
 
 /* incoming osc message are forwarded to the oscEvent method. */
 void printOSCMessage(OscMessage theOscMessage) {
+  int i = 0;
   /* print the address pattern and the typetag of the received OscMessage */
   print("### Printing an osc message.");
   print(" addrpattern: "+theOscMessage.addrPattern());
-  println(" typetag: "+theOscMessage.typetag());
+  print(" typetag: "+theOscMessage.typetag());
   //println(" args: "+theOscMessage.arguments());
+  while(i<theOscMessage.arguments().length) {
+        print(" ["+(i)+"] ");
+        print(theOscMessage.arguments()[i]);
+        i++;
+      }
+   println(" ## Ending of message");
 }
 
  private void connectSensor(String theIPaddress) {
@@ -210,27 +217,28 @@ void trainWekinatorWithAllSensors() {
      // Using an enhanced loop to iterate over each entry
      Iterator entries = sensorInputs.entrySet().iterator();
      
-      //while (entries.hasNext()) {
-      //    Map.Entry entry = (Map.Entry) entries.next();
-      //    String key = (String)entry.getKey();
-      //    Float value = (Float)entry.getValue();
-      //    print("["+(i)+"] ");
-      //    print(key + " is ");
-      //    println(value);
-      //    wekaMsg.add(value);
-      //}
-      
-      for (Map.Entry me : sensorInputs.entrySet()) {
-        print("["+(i)+"] ");
-        print(me.getKey() + " is ");
-        println(me.getValue());
-        
-        wekaMsg.add((Object[])me.getValue());
-        //args[i] = (me.getValue())[0];
-        i++;
+      while (entries.hasNext()) {
+          Map.Entry entry = (Map.Entry) entries.next();
+          String key = (String)entry.getKey();
+          Object[] value = (Object[])entry.getValue();
+          print("["+(i)+"] ");
+          print(key + " is ");
+          println(value);
+          args[i]=(float)value[0];
+          i++;
       }
+      
+      //for (Map.Entry me : sensorInputs.entrySet()) {
+      //  print("["+(i)+"] ");
+      //  print(me.getKey() + " is ");
+      //  println(me.getValue());
+        
+      //  wekaMsg.add((Object[])me.getValue());
+      //  //args[i] = (me.getValue())[0];
+      //  i++;
+      //}
 
-  //wekaMsg.add(args);
+  wekaMsg.add(args);
   
   printOSCMessage(wekaMsg);
  
