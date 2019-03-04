@@ -1,18 +1,22 @@
 /*
 
- This example connects to an unencrypted Wifi network.
- Then it prints the  MAC address of the Wifi module,
- the IP address obtained, and other network details.
+  This example connects to an encrypted Wifi network.
+  Then it prints the  MAC address of the Wifi module,
+  the IP address obtained, and other network details.
 
- created 13 July 2010
- by dlf (Metodo2 srl)
- modified 31 May 2012
- by Tom Igoe
- */
+  created 13 July 2010
+  by dlf (Metodo2 srl)
+  modified 31 May 2012
+  by Tom Igoe
+*/
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <WiFiUdp.h>
 #include <OSCMessage.h>
+#include <OSCBundle.h>
+#include <OSCBoards.h>
+#include "SparkFunLSM6DS3.h"
+#include "Wire.h"
 
 #include "arduino_secrets.h"
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
@@ -20,12 +24,18 @@ char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
+OSCErrorCode error;
+unsigned int ledState = LOW; 
+
+
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP Udp;
 
-IPAddress server_ip(192, 168, 11, 130);
-const unsigned int server_port = 5005;
+IPAddress server_ip(192,168,11,103);   //change it to your server IP address
+const unsigned int server_port = 5008;
 const unsigned int local_port = 5006;
+
+LSM6DS3 myIMU(SPI_MODE, SPIIMU_SS); // SPI Chip Select
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -65,25 +75,61 @@ void setup() {
   Serial.println("\nStarting connection to server...");
   Udp.begin(local_port);
 
+  myIMU.begin();
+  pinMode(LED_BUILTIN, OUTPUT);
+
 }
 
+
+void led(OSCMessage &msg) {
+  ledState = msg.getInt(0);
+  digitalWrite(LED_BUILTIN, ledState);
+  Serial.print("/led: ");
+  Serial.println(ledState);
+}
+
+
 void loop() {
-  // check the network connection once every 10 seconds:
-  delay(10000);
-  //printCurrentNet();
   
+  OSCMessage send_msg("/acc");
+  OSCMessage recieve_msg;
+ 
+
   Serial.print("Sending packet to ");
   Serial.print(server_ip);
   Serial.print(":");
   Serial.println(server_port);
 
-  OSCMessage msg("/test");
-  msg.add("hello, osc.");
 
+  send_msg.add("/X").add(myIMU.readFloatAccelX());
+  send_msg.add("/Y").add(myIMU.readFloatAccelY());
+  send_msg.add("/Z").add(myIMU.readFloatAccelZ());
+ 
   Udp.beginPacket(server_ip, server_port);
-  msg.send(Udp); // send the bytes to the SLIP stream
+  send_msg.send(Udp); // send the bytes to the SLIP stream
   Udp.endPacket(); // mark the end of the OSC Packet
-  msg.empty(); // free space occupied by message
+  send_msg.empty(); // free space occupied by message
+
+  //// Recieving ////
+
+  int size = Udp.parsePacket();
+
+  if (size > 0) {
+    
+    while (size--) {
+      recieve_msg.fill(Udp.read());
+    }
+    
+    if (!recieve_msg.hasError()) {
+      recieve_msg.dispatch("/led", led);
+    } else {
+      error = recieve_msg.getError();
+      Serial.print("error: ");
+      Serial.println(error);
+    }
+  }
+
+  delay(10); 
 }
 
 void printWifiData() {
