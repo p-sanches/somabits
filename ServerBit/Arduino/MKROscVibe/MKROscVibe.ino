@@ -34,11 +34,11 @@ Based on tutorials:
 Adafruit_DRV2605 drv;
 
 uint8_t effect = 1; //Pre-made vibe Effects
-boolean effectMode = true;
+boolean effectMode = false;
 
 
 int vibeIntensityRT=0;
-int vibeDelayRT=0;
+int vibeDelayRT=1;
 
 
 #include "arduino_secrets.h" 
@@ -53,7 +53,7 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192,168,1,63);
+const IPAddress serverIp(192,168,1,103);
 const unsigned int serverPort = 32000;
 
 
@@ -75,8 +75,8 @@ void setup() {
   drv.selectLibrary(1);
   drv.useLRA();
   // I2C trigger by sending 'go' command 
-  // default, internal trigger when sending GO command
-  drv.setMode(DRV2605_MODE_INTTRIG); 
+  // default: realtime
+  drv.setMode(DRV2605_MODE_REALTIME); 
 
 
   // check for the presence of the shield:
@@ -91,7 +91,7 @@ void setup() {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to network:
-    status = WiFi.begin(ssid, pass);
+    status = WiFi.begin(ssid);
 
     // wait 10 seconds for connection:
     delay(10000);
@@ -107,8 +107,7 @@ void setup() {
   // if you get a connection, report back via serial:
   Udp.begin(localPort);
 
-  Serial.print("\nConnecting to server bit at ");
-  Serial.print(serverIp);Serial.print(":");Serial.println(serverPort);
+  
   
   //register with server
   connectToServer();
@@ -135,8 +134,17 @@ void loop() {
 //    Serial.println(packetBuffer);
 //  }
 
+  char incomingByte = 0;   // for incoming serial data
+  if (Serial.available() > 0) {
+        // read the incoming byte:
+        incomingByte = Serial.read();
+        if(incomingByte=='c'){
+          connectToServer();
+          delay(50);
+        }
+    }
 
-   OSCMessage bundleIN;
+   OSCBundle bundleIN;
    int size;
  
    if( (size = Udp.parsePacket())>0)
@@ -147,16 +155,16 @@ void loop() {
     
         if(!bundleIN.hasError())
         {
-            bundleIN.dispatch("/server/led", routeLED);
-            bundleIN.dispatch("/server/vibeeffect", routeVibeEffect);
-            bundleIN.dispatch("/server/vibeintensity", routeVibeIntensityRT);
-            bundleIN.dispatch("/server/vibedelay", routeVibeDelayRT);
+            bundleIN.dispatch("/actuator/led", routeLED);
+            bundleIN.dispatch("/actuator/vibeeffect", routeVibeEffect);
+            bundleIN.dispatch("/actuator/vibeintensity", routeVibeIntensityRT);
+            bundleIN.dispatch("/actuator/vibedelay", routeVibeDelayRT);
         }
    }
 
-   if(effectMode)
-      playVibeEffect();
-   else
+//   if(effectMode)
+//      playVibeEffect();
+//   else
       playVibeRT();
 }
 
@@ -256,7 +264,10 @@ void playVibeRT(){
 
 void connectToServer(){
 
-    OSCMessage msg("/server/startConnection/");
+    Serial.print("\nConnecting to server bit at ");
+    Serial.print(serverIp);Serial.print(":");Serial.println(serverPort);
+
+    OSCMessage msg("/actuator/startConnection/");
   
     Udp.beginPacket(serverIp, serverPort);
     msg.send(Udp); // send the bytes to the SLIP stream
