@@ -1,4 +1,4 @@
-#Arduino Uno Wifi OSC Client
+# Arduino Uno Wifi OSC Client
 This is the example for sending IMU (accelerometer) values to server at address "/acc" and recieve message from server at address "/led" to turn on/off the built-in LED of the Arduino
 
 
