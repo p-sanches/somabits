@@ -52,8 +52,8 @@ unsigned int localPort = 12000;      // local port to listen on
 char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
-
-const IPAddress serverIp(192,168,1,103);
+pr
+const IPAddress serverIp(192,168,1,101);
 const unsigned int serverPort = 32000;
 
 

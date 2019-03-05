@@ -107,7 +107,6 @@ void sendOneActuatorData(OscMessage theOscMessage){
   OscBundle myBundle = new OscBundle();
   myBundle.add(theOscMessage);
  
-  
   myBundle.setTimetag(myBundle.now() + 10000);
   /* send the osc bundle, containing 1 osc messages, to all actuators. */
   oscP5.send(myBundle, ActuatorNetAddressList);
