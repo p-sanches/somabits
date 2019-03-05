@@ -2,7 +2,7 @@
 This is the example for sending build-in IMU (accelerometer) values of Arduino Wifi Rev2 to server at address <b>"/acc"</b> over OSC and recieve message from server at address <b>"/led"</b> to turn on/off the built-in LED of the Arduino Wifi Rev2.
 
 
-Use the OSC library from Adrian Freed (version 1.3.5), which is available in the library manager of Arduino. 
+First install "WiFiNINA" which is a Wifi library for Arduino Wifi Rev2. Use the OSC library from Adrian Freed (version 1.3.5), which is available in the library manager of Arduino. 
 In this library, open the file `SLIPEncodedSerial.h` and uncomment line 11: `#include <HardwareSerial.h>`.
 
 Do not forget to create the arduino_sectrets.h with your credentials. It looks as follows:
