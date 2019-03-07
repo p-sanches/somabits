@@ -17,7 +17,7 @@ Your server IP is changed now. Just to verify it, refresh the page.
 
 You can see that the server IP is changed now. 
 
-![picture](interface1.png)
+![picture](interface4.png)
 
 
 
