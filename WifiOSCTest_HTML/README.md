@@ -1,4 +1,4 @@
-# Arduino Uno Wifi OSC Client with HTML
+# Arduino Uno Wifi OSC Client with Webpage
 
 This example works same as <b>WiFiOSCTest</b> except that it also provides a user web interface to change the server IP address on the Arduino.
 
