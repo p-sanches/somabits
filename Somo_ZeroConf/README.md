@@ -1,5 +1,5 @@
 # SOMA Server
-SOMA Server is a server-side application which can automatically discover all the SOMA devices in a network. After discovering it, SOMA Server can route sensors and actuators to respective devices based on the user-supplied routing information.
+SOMA Server is a server-side application which can automatically discover all the SOMA devices in a network. After discovering, SOMA Server can route sensors and actuators values to respective devices based on the user-supplied routing information using OSC protocol.
 
 ## Usage
 
