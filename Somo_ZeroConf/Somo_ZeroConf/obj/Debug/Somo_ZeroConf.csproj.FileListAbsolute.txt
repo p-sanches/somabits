@@ -1,0 +1,14 @@
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\bin\Debug\Somo_ZeroConf.exe.config
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\bin\Debug\Somo_ZeroConf.exe
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\bin\Debug\Somo_ZeroConf.pdb
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\bin\Debug\Mono.Zeroconf.dll
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\bin\Debug\Mono.Zeroconf.Providers.Bonjour.dll
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.Form1.resources
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.Properties.Resources.resources
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.csproj.GenerateResource.cache
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.csproj.CoreCompileInputs.cache
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.csproj.CopyComplete
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.exe
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.pdb
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.csprojAssemblyReference.cache
+F:\E_drive\ERCIM\Soma Pixel\SomaProject\Somo_ZeroConf\Somo_ZeroConf\obj\Debug\Somo_ZeroConf.Form2.resources

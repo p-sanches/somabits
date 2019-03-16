@@ -99,9 +99,9 @@ void setup() {
   // Bonjour in the "Bookmarks" preferences in Safari).
 
   // FIXME: Ugly hack
-  uint8_t* s1 = "sensor1=/light";
+  uint8_t* s1 = "sensor1=/light:0-127";
   char s2[30] = "sensor2=/accelerometer";
-  char a1[30] = "actuator1=/sound";
+  char a1[30] = "actuator1=/sound:0-255";
 
 
   char txt[100] = {'\0'};
