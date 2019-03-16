@@ -94,7 +94,7 @@ namespace Somo_ZeroConf
             //
 
             DataGridViewCheckBoxColumn chk = new DataGridViewCheckBoxColumn(); 
-            chk.HeaderText = "Selected";
+            chk.HeaderText = "Select";
             chk.Name = "Checkbox";
             chk.Width = 110;
             dataGridView1.Columns.Add(chk);

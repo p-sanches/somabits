@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Somo_ZeroConf")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("SOMA Server")]
+[assembly: AssemblyDescription("SOMA Server for SOMA Project")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Somo_ZeroConf")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("RISE")]
+[assembly: AssemblyProduct("SOMA Server")]
+[assembly: AssemblyCopyright("RISE Copyright ©  2019")]
+[assembly: AssemblyTrademark("RISE, Sweden")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("66662299-1111-9999-4567-999933334444")]
+[assembly: Guid("44163333-1155-9977-4567-999933334144")]
 
 // Version information for an assembly consists of the following four values:
 //
