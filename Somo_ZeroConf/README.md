@@ -16,6 +16,7 @@ Click on the name of the device to check the attached sensors and actuators
 SOMA Server is developed on top of Visual Studio 2017 using .Net Framework.
  
 SOMA Server uses Mono.Zeroconf for the discovery of devices which is a Zero Configuration Networking library for .NET
+
 The easiest way to get started is to use the NuGet package.
 
 > Install-Package [Mono.Zeroconf](https://www.nuget.org/packages/Mono.Zeroconf/)
