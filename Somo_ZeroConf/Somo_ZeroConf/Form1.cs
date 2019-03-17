@@ -14,8 +14,11 @@ namespace Somo_ZeroConf
     public partial class Form1 : Form
     {
         public DataSet devices = new DataSet();  //Contains tables for each device with components info
+        public DataSet devices_selected = new DataSet();  //Contains tables for selected device with components info
         public DataTable device_info = new DataTable(); // Contains basic info of all the available devices
-        
+        public DataTable device_info_selected = new DataTable(); // Contains basic info of selected devices
+
+
 
         public Form1()
         {
@@ -23,6 +26,11 @@ namespace Somo_ZeroConf
             device_info.Columns.Add("IP", typeof(System.Net.IPAddress));
             device_info.Columns.Add("Port", typeof(System.Int16));
             device_info.Columns.Add("Attached Sensors/Actuators", typeof(System.Int16));
+
+            device_info_selected.Columns.Add("Name", typeof(string));
+            device_info_selected.Columns.Add("IP", typeof(System.Net.IPAddress));
+            device_info_selected.Columns.Add("Port", typeof(System.Int16));
+            device_info_selected.Columns.Add("Attached Sensors/Actuators", typeof(System.Int16));
             InitializeComponent();
             
         }
@@ -96,7 +104,7 @@ namespace Somo_ZeroConf
             DataGridViewCheckBoxColumn chk = new DataGridViewCheckBoxColumn(); 
             chk.HeaderText = "Select";
             chk.Name = "Checkbox";
-            chk.Width = 110;
+            chk.Width = dataGridView1.Width- dataGridView1.Columns[0].Width- dataGridView1.Columns[1].Width- dataGridView1.Columns[2].Width- dataGridView1.Columns[3].Width-45;
             dataGridView1.Columns.Add(chk);
             
            
@@ -126,7 +134,17 @@ namespace Somo_ZeroConf
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //For Martina
+            for(int i=0;i< device_info.Rows.Count;i++)
+            {
+                DataGridViewCheckBoxCell checkCell =(DataGridViewCheckBoxCell)dataGridView1.Rows[i].Cells["Select"];
+                if ((bool)checkCell.Value == true)
+                {
+                    device_info_selected.Rows.Add(device_info.Rows[i]); // Now we have info for selected devices
+                    devices_selected.Tables.Add(devices.Tables[device_info.Rows[i].Field<string>("Name")]); // and their components
+                }
+            }
+
+            //OSC part for Martina
         }
     }
 }
