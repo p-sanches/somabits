@@ -126,7 +126,7 @@ void setup() {
 
   Serial.println(txt);
 
-  int success = mdns.addServiceRecord("Arduino with Accelerometer._http",
+  int success = mdns.addServiceRecord("Arduino with Accelerometer._osc",
                         3333,
                         MDNSServiceUDP,
                         txt);
@@ -140,7 +140,7 @@ void setup() {
   // We specify the function that the mDNS library will call when it
   // discovers a service instance. In this case, we will call the function
   // named "serviceFound".
-  //mdns.setServiceFoundCallback(serviceFound);
+  mdns.setServiceFoundCallback(serviceFound);
 
   // We specify the function that the mDNS library will call when it
   // resolves a host name. In this case, we will call the function named
@@ -161,7 +161,7 @@ void loop() {
   // OR NOTHING WILL WORK! Preferably, call it once per loop().
   mdns.run();
 
-  char hostName[512] = "mdns_test_server";
+  //char hostName[512] = "Arduino";
 
   // You can use the "isResolvingName()" function to find out whether the
   // mDNS library is currently resolving a host name.
@@ -183,16 +183,16 @@ void loop() {
   }
 
 
-  char serviceName[256] = "_http";
+  char serviceName[256] = "_osc";
   
   // You can use the "isDiscoveringService()" function to find out whether the
   // mDNS library is currently discovering service instances.
   // If so, we skip this input, since we want our previous request to continue.
   if (!mdns.isDiscoveringService()) {
-    //if (length > 0) {    
-      //Serial.print("Discovering services of type '");
-      //Serial.print(serviceName);
-      //Serial.println("' via Multi-Cast DNS (Bonjour)...");
+    //if (length > 0) {
+      Serial.print("Discovering services of type '");
+      Serial.print(serviceName);
+      Serial.println("' via Multi-Cast DNS (Bonjour)...");
 
       // Now we tell the mDNS library to discover the service. Below, I have
       // hardcoded the TCP protocol, but you can also specify to discover UDP
@@ -203,10 +203,10 @@ void loop() {
       // seconds, so if you search for longer than that, you will receive
       // duplicate instances.
 
-      //mdns.startDiscoveringService(serviceName,
-      //                             MDNSServiceUDP,
-      //                             5000);
-    //}  
+      mdns.startDiscoveringService(serviceName,
+                                   MDNSServiceUDP,
+                                   5000);
+    //}
   }
 }
 
