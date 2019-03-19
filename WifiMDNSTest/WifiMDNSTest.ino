@@ -126,7 +126,7 @@ void setup() {
 
   Serial.println(txt);
 
-  int success = mdns.addServiceRecord("Arduino with Accelerometer._osc",
+  int success = mdns.addServiceRecord("Arduino with Accelerometer2._osc",
                         3333,
                         MDNSServiceUDP,
                         txt);

@@ -15,8 +15,7 @@ TYPE = '_osc._udp.local.'
 NAME = 'Server'
 
 def on_service_state_change(
-    zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange,
-) -> None:
+    zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange,) -> None:
     print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
 
     if state_change is ServiceStateChange.Added:
