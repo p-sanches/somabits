@@ -80,7 +80,7 @@ void setup() {
   // Arduino via the host name "arduino.local", provided that your operating
   // system is mDNS/Bonjour-enabled (such as MacOS X).
   // Always call this before any other method!
-  mdns.begin(WiFi.localIP(), "arduino_1");
+  mdns.begin(WiFi.localIP(), "arduino_2");
 
   // Now let's register the service we're offering (a web service) via Bonjour!
   // To do so, we call the addServiceRecord() method. The first argument is the
@@ -126,7 +126,7 @@ void setup() {
 
   Serial.println(txt);
 
-  int success = mdns.addServiceRecord("Arduino with Accelerometer._http",
+  int success = mdns.addServiceRecord("Arduino with Accelerometer2._http",
                         3333,
                         MDNSServiceUDP,
                         txt);
