@@ -37,23 +37,18 @@ def myhandler(interface, protocol, name, stype, domain, flags):
             # local service, skip
             pass
 
-    server.ResolveService(interface, protocol, name, stype,
-        domain, avahi.PROTO_UNSPEC, dbus.UInt32(0),
-        reply_handler=service_resolved, error_handler=print_error)
+    server.ResolveService(interface, protocol, name, stype, domain, avahi.PROTO_UNSPEC, dbus.UInt32(0), reply_handler=service_resolved, error_handler=print_error)
+    #print protocol
+    #print interface
+    #print name
+    #print stype
+
+
 
 
 loop = DBusGMainLoop()
-
 bus = dbus.SystemBus(mainloop=loop)
-
-server = dbus.Interface( bus.get_object(avahi.DBUS_NAME, '/'),
-        'org.freedesktop.Avahi.Server')
-
-sbrowser = dbus.Interface(bus.get_object(avahi.DBUS_NAME,
-        server.ServiceBrowserNew(avahi.IF_UNSPEC,
-            avahi.PROTO_UNSPEC, TYPE, 'local', dbus.UInt32(0))),
-        avahi.DBUS_INTERFACE_SERVICE_BROWSER)
-
+server = dbus.Interface( bus.get_object(avahi.DBUS_NAME, '/'), 'org.freedesktop.Avahi.Server')
+sbrowser = dbus.Interface(bus.get_object(avahi.DBUS_NAME, server.ServiceBrowserNew(avahi.IF_UNSPEC, avahi.PROTO_UNSPEC, TYPE, 'local', dbus.UInt32(0))), avahi.DBUS_INTERFACE_SERVICE_BROWSER)
 sbrowser.connect_to_signal("ItemNew", myhandler)
-
 gobject.MainLoop().run()

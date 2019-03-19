@@ -22,7 +22,7 @@ if __name__ == '__main__':
     info = ServiceInfo(type_="_osc._udp.local.",
                        #name="Paul's Test Web Site._http._udp.local.",
                        #name="PythonDevice._osc._udp.local."
-                       name="PythonDeviceServer._osc._udp.local.",
+                       name="Server._osc._udp.local.",
                        address=socket.inet_aton("192.168.11.172"),
                        port=80,
                        weight=0,
