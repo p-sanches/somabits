@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>776</width>
+    <height>508</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Soma</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>761</width>
+      <height>481</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <widget class="QWidget" name="tab">
+     <attribute name="icon">
+      <iconset>
+       <normaloff>C:/Users/lenovo/Downloads/Google-Noto-Emoji-Objects-62971-gear.ico</normaloff>C:/Users/lenovo/Downloads/Google-Noto-Emoji-Objects-62971-gear.ico</iconset>
+     </attribute>
+     <attribute name="title">
+      <string>Control</string>
+     </attribute>
+     <widget class="QPushButton" name="discover_button">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>111</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Discover</string>
+      </property>
+     </widget>
+     <widget class="QPlainTextEdit" name="plainTextEdit">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>370</y>
+        <width>741</width>
+        <height>71</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QTableView" name="tableView">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>741</width>
+        <height>321</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="icon">
+      <iconset>
+       <normaloff>C:/Users/lenovo/Downloads/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico</normaloff>C:/Users/lenovo/Downloads/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico</iconset>
+     </attribute>
+     <attribute name="title">
+      <string>Forwarding</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_3">
+     <attribute name="icon">
+      <iconset>
+       <normaloff>C:/Users/lenovo/Downloads/Oxygen-Icons.org-Oxygen-Apps-preferences-system-windows.ico</normaloff>C:/Users/lenovo/Downloads/Oxygen-Icons.org-Oxygen-Apps-preferences-system-windows.ico</iconset>
+     </attribute>
+     <attribute name="title">
+      <string>Applications</string>
+     </attribute>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
