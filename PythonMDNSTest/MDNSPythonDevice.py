@@ -19,15 +19,16 @@ if __name__ == '__main__':
 
     desc = {'sensor1': '/light', 'sensor2': '/accelerometer', 'actuator1': '/sound'}
 
-    info = ServiceInfo(type_="_http._udp.local.",
+    info = ServiceInfo(type_="_osc._udp.local.",
                        #name="Paul's Test Web Site._http._udp.local.",
-                       name="Server._http._udp.local.",
+                       #name="PythonDevice._osc._udp.local."
+                       name="PythonDeviceServer._osc._udp.local.",
                        address=socket.inet_aton("192.168.11.172"),
                        port=80,
                        weight=0,
                        priority=0,
                        properties=desc,
-                       server="mdns_test_server.local.")
+                       server="PythonDevice.local.")
 
     zeroconf = Zeroconf()
     print("Registration of a service, press Ctrl-C to exit...")
