@@ -3,3 +3,4 @@ WifiMDNSTest/.project
 WifiMDNSTest/.cproject
 venv/
 Somo_ZeroConf/.vscode/
+PythonMDNSTest/__pycache__/

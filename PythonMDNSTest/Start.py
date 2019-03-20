@@ -4,6 +4,8 @@ import socket
 import numpy as np
 import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import (Qt, pyqtSignal)
+
 
 from gui import Ui_MainWindow
 
@@ -13,60 +15,107 @@ from zeroconf import ServiceBrowser, ServiceStateChange, Zeroconf
 
 TYPE = '_osc._udp.local.'
 NAME = 'Server'
-Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server', 'Select'])
+Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server'])
 
 
 class StartQT5(QtWidgets.QMainWindow):
-
-    def __init__(self, parent=None):
-        QtWidgets.QApplication.__init__(self, parent)
+    def __init__(self):
+        super(StartQT5, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
-        # here we connect signals with our slots
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
 
+    def close(self, app):
+        #self.zeroconf.close()
+        #self.neighbor_discovery
+        print("Closing App")
+        #self.neighbor_discovery.close()
+        #return app.exec_()
 
-
-    def on_service_state_change(self,zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange, ) -> None:
+    def on_device_found(self, zeroconf, service_type, name, state_change):
         global Table_info
-        print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
         self.ui.plainTextEdit.appendPlainText("Service %s of type %s state changed: %s" % (name, service_type, state_change))
 
         if state_change is ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
             if info:
                 cb = QtWidgets.QCheckBox('hello', self)
-                local_device = pd.DataFrame({'Address':socket.inet_ntoa(cast(bytes, info.address)), 'Port':cast(int, info.port), 'Server':info.server, 'Select':cb}, index=[info.server])
+                local_device = pd.DataFrame(
+                    {'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),
+                     'Server': info.server}, index=[info.server])
                 Table_info =Table_info.append(local_device)
-                print("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
                 self.ui.plainTextEdit.appendPlainText("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
-                print("  Weight: %d, priority: %d" % (info.weight, info.priority))
                 self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d" % (info.weight, info.priority))
-                print("  Server: %s" % (info.server,))
                 self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
                 if info.properties:
-                    print("  Properties are:")
                     self.ui.plainTextEdit.appendPlainText("  Properties are:")
                     for key, value in info.properties.items():
-                        print("    %s: %s" % (key, value))
                         self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
                 else:
                     print("  No properties")
             else:
                 print("  No info")
-            print('\n')
+            #print('\n')
             self.ui.plainTextEdit.appendPlainText('\n')
-            print(Table_info)
+            # print(Table_info)
             model = PandasModel(Table_info)
             #self.tableView.setModel(model)
             self.ui.tableView.setModel(model)
 
 
-    def zeroconf_start(self):
-        zeroconf = Zeroconf()
-        browser = ServiceBrowser(zeroconf, TYPE, handlers=[self.on_service_state_change])
 
+
+
+    def zeroconf_start(self):
+        discovery = NeighborDiscovery()
+        discovery.neighbor_signal.connect(self.on_device_found)
+
+        #zeroconf = Zeroconf()
+        #browser = ServiceBrowser(zeroconf, TYPE, handlers=[self.on_service_state_change])
+
+class NeighborDiscovery(QtCore.QThread):
+    neighbor_signal = QtCore.pyqtSignal(object, object, object, object)
+
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+        self.zeroconf = Zeroconf()
+        self.browser = ServiceBrowser(self.zeroconf, TYPE, handlers=[self.on_service_state_change])
+
+    def on_service_state_change(self,zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange, ) -> None:
+        #global Table_info
+        #logging_queue = []
+        #print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
+        #logging_queue.append("Service %s of type %s state changed: %s" % (name, service_type, state_change))
+
+        if state_change is ServiceStateChange.Added:
+            info = zeroconf.get_service_info(service_type, name)
+            if info:
+                #cb = QtWidgets.QCheckBox('hello', self)
+                local_device = pd.DataFrame({'Address':socket.inet_ntoa(cast(bytes, info.address)), 'Port':cast(int, info.port), 'Server':info.server}, index=[info.server])
+                #Table_info =Table_info.append(local_device)
+                print("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
+                #self.ui.plainTextEdit.appendPlainText("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
+                print("  Weight: %d, priority: %d" % (info.weight, info.priority))
+                #self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d" % (info.weight, info.priority))
+                print("  Server: %s" % (info.server,))
+                #self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
+                if info.properties:
+                    print("  Properties are:")
+                    #self.ui.plainTextEdit.appendPlainText("  Properties are:")
+                    for key, value in info.properties.items():
+                        print("    %s: %s" % (key, value))
+                        #self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
+                else:
+                    print("  No properties")
+            else:
+                print("  No info")
+            print('\n')
+            #self.ui.plainTextEdit.appendPlainText('\n')
+            #print(Table_info)
+            #model = PandasModel(Table_info)
+            #self.tableView.setModel(model)
+            #self.ui.tableView.setModel(model)
+            self.neighbor_signal.emit(zeroconf, service_type, name, state_change)
 
 
 class PandasModel(QtCore.QAbstractTableModel):
@@ -138,3 +187,4 @@ if __name__ == "__main__":
     myapp = StartQT5()
     myapp.show()
     sys.exit(app.exec_())
+    #sys.exit(myapp.close(app))
