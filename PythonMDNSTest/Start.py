@@ -36,26 +36,29 @@ class StartQT5(QtWidgets.QMainWindow):
 
 
     def handleCheckboxClicked(self):
-        global Table_info_selected
-        global Table_info
+        #global Table_info_selected
+        #global Table_info
         Checkbox = QtWidgets.qApp.focusWidget()
-        index = self.ui.tableView.indexAt(Checkbox.pos())
+        #index = self.ui.tableView.indexAt(Checkbox.pos())
 # <<<<<<< HEAD
 #         print(index)
-#         print(Checkbox.accessibleName())
-#         if Checkbox.isChecked():
-#             pass
+        #print(Checkbox.accessibleName())
+        if Checkbox.isChecked():
+            self.discovery.register_service(Checkbox.accessibleName())
+            #pass
 #             # register device
-#             # if index.isValid():
+            #if index.isValid():
 #             #     print(Table_info.loc[Table_info.iloc[index.row(), 2]])
 #             #     print(index.row())
-#             #     print(Table_info[index.row()])
+#                 print(Table_info["Address"].isin([Checkbox.accessibleName()]))
+#                 print(Table_info)
+#                 print(Table_info.loc[Checkbox.accessibleName()])
 #                 #Table_info_selected = Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(), 2]],
 #                 #                                                 ignore_index=False)
 #
-#         else:
-#             # unregister device
-#             pass
+        else:
+            # unregister device
+            pass
 #
 #
 #         # global Table_info
@@ -67,11 +70,11 @@ class StartQT5(QtWidgets.QMainWindow):
 #         # if index.isValid():
 #         #     Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),2]], ignore_index=False)
 # =======
-        if index.isValid():
-            print(index.row(), index.column())
-            print(Table_info.iloc[index.row(),0])
-            Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),0]], ignore_index=False)
-            print(Table_info_selected)
+        #if index.isValid():
+            #print(index.row(), index.column())
+            #print(Table_info.iloc[index.row(),0])
+            #Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),0]], ignore_index=False)
+            #print(Table_info_selected)
 #>>>>>>> master
 
 
@@ -146,14 +149,14 @@ class StartQT5(QtWidgets.QMainWindow):
             self.ui.tableView.setModel(model)
             for index in range(model.rowCount()):
                 self.Checkbox = QtWidgets.QCheckBox(' ')
-                self.Checkbox.setAccessibleName(name)
+                self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
                 self.Checkbox.clicked.connect(self.handleCheckboxClicked)
                 item = model.index(index, 3);
                 self.ui.tableView.setIndexWidget(item, self.Checkbox)
 
     def zeroconf_start(self):
-        discovery = NeighborDiscovery()
-        discovery.neighbor_signal.connect(self.on_device_found)
+        self.discovery = NeighborDiscovery()
+        self.discovery.neighbor_signal.connect(self.on_device_found)
 
 
 class NeighborDiscovery(QtCore.QThread):
@@ -166,6 +169,24 @@ class NeighborDiscovery(QtCore.QThread):
 
     def on_service_state_change(self,zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange, ) -> None:
         self.neighbor_signal.emit(zeroconf, service_type, name, state_change)
+
+    def register_service(self, ip):
+
+        TXT_record = {'server': socket.gethostbyname(socket.gethostname())}
+        TXT_record.update({"device": ip})
+
+        info = ServiceInfo(type_="_osc._udp.local.",
+                           name=NAME + "." + TYPE,
+                           address=socket.inet_aton("192.168.11.172"),
+                           port=80,
+                           weight=0,
+                           priority=0,
+                           properties=TXT_record,
+                           server=NAME + ".local.")
+
+        print("Registration of a service")
+        self.zeroconf.register_service(info)
+
 
 
 class PandasModel(QtCore.QAbstractTableModel):
