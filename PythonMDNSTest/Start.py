@@ -129,7 +129,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
                         value_str = str(value)
                         d, e, f = value_str.split("'")
-                        g, h = value_str.split(":")
+                        g, h = e.split(":")
 
                         print(g)
 
