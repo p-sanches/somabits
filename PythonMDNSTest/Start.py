@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal)
+import ifaddr
 
 
 from gui import Ui_MainWindow
@@ -12,6 +13,7 @@ from gui import Ui_MainWindow
 from typing import cast
 from time import sleep
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
+from typing import List
 
 TYPE = '_osc._udp.local.'
 NAME = 'Server'
@@ -25,7 +27,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
-        self.ui.save_button.clicked.connect(self.save_button_clicked)
+        #self.ui.save_button.clicked.connect(self.save_button_clicked)
 
     def close(self, app):
         #self.zeroconf.close()
@@ -36,69 +38,12 @@ class StartQT5(QtWidgets.QMainWindow):
 
 
     def handleCheckboxClicked(self):
-        #global Table_info_selected
-        #global Table_info
         Checkbox = QtWidgets.qApp.focusWidget()
-        #index = self.ui.tableView.indexAt(Checkbox.pos())
-# <<<<<<< HEAD
-#         print(index)
-        #print(Checkbox.accessibleName())
         if Checkbox.isChecked():
             self.discovery.register_service(Checkbox.accessibleName())
-            #pass
-#             # register device
-            #if index.isValid():
-#             #     print(Table_info.loc[Table_info.iloc[index.row(), 2]])
-#             #     print(index.row())
-#                 print(Table_info["Address"].isin([Checkbox.accessibleName()]))
-#                 print(Table_info)
-#                 print(Table_info.loc[Checkbox.accessibleName()])
-#                 #Table_info_selected = Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(), 2]],
-#                 #                                                 ignore_index=False)
-#
         else:
             # unregister device
             pass
-#
-#
-#         # global Table_info
-#         # global Table_info_selected
-#         # Checkbox = QtWidgets.qApp.focusWidget()
-#         # # or button = self.sender()
-#         # #index = self.table.indexAt(button.pos())
-#         # index = self.ui.tableView.indexAt(Checkbox.pos())
-#         # if index.isValid():
-#         #     Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),2]], ignore_index=False)
-# =======
-        #if index.isValid():
-            #print(index.row(), index.column())
-            #print(Table_info.iloc[index.row(),0])
-            #Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),0]], ignore_index=False)
-            #print(Table_info_selected)
-#>>>>>>> master
-
-
-    def save_button_clicked(self,zeroconf):
-        global Table_info
-        global Table_info_selected
-        TXT_record = {'server': 'hello'}
-        print(len(Table_info_selected.index))
-
-        for index in range(len(Table_info_selected.index)):
-            TXT_record.update({'name' + str(index): Table_info_selected.iloc[index, 0]})
-        print(TXT_record)
-
-        info = ServiceInfo(type_="_osc._udp.local.",
-                           name=NAME + "." + TYPE,
-                           address=socket.inet_aton("192.168.11.172"),
-                           port=80,
-                           weight=0,
-                           priority=0,
-                           properties=TXT_record,
-                           server=NAME + ".local.")
-
-        print("Registration of a service")
-        zeroconf.register_service(info)
 
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
@@ -171,8 +116,7 @@ class NeighborDiscovery(QtCore.QThread):
         self.neighbor_signal.emit(zeroconf, service_type, name, state_change)
 
     def register_service(self, ip):
-
-        TXT_record = {'server': socket.gethostbyname(socket.gethostname())}
+        TXT_record = {'server': self.get_local_ip()}
         TXT_record.update({"device": ip})
 
         info = ServiceInfo(type_="_osc._udp.local.",
@@ -186,6 +130,23 @@ class NeighborDiscovery(QtCore.QThread):
 
         print("Registration of a service")
         self.zeroconf.register_service(info)
+
+    def unregister_service(self, ip):
+        info = self.browser.services.fromkeys(ip)
+        print(info)
+
+    def get_all_addresses(self) -> List[str]:
+        return list(set(
+            addr.ip
+            for iface in ifaddr.get_adapters()
+            for addr in iface.ips
+            if addr.is_IPv4 and addr.network_prefix != 32  # Host only netmask 255.255.255.255
+        ))
+
+    def get_local_ip(self, starts_with="192"):
+        list_ip = self.get_all_addresses()
+        local_ip = [i for i in list_ip if i.startswith(starts_with)]
+        return local_ip[0]
 
 
 
