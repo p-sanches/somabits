@@ -62,6 +62,8 @@ class StartQT5(QtWidgets.QMainWindow):
             #self.tableView.setModel(model)
             self.ui.tableView.setModel(model)
 
+    #def update_table_view(self):
+
 
 
 
@@ -84,7 +86,7 @@ class NeighborDiscovery(QtCore.QThread):
     def on_service_state_change(self,zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange, ) -> None:
         #global Table_info
         #logging_queue = []
-        #print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
+        print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
         #logging_queue.append("Service %s of type %s state changed: %s" % (name, service_type, state_change))
 
         if state_change is ServiceStateChange.Added:
