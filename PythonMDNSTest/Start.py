@@ -15,8 +15,8 @@ from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 
 TYPE = '_osc._udp.local.'
 NAME = 'Server'
-Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Select'])
-Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server'])
+Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address'])
+Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address'])
 
 
 class StartQT5(QtWidgets.QMainWindow):
@@ -36,33 +36,43 @@ class StartQT5(QtWidgets.QMainWindow):
 
 
     def handleCheckboxClicked(self):
+        global Table_info_selected
+        global Table_info
         Checkbox = QtWidgets.qApp.focusWidget()
         index = self.ui.tableView.indexAt(Checkbox.pos())
-        print(index)
-        print(Checkbox.accessibleName())
-        if Checkbox.isChecked():
-            pass
-            # register device
-            # if index.isValid():
-            #     print(Table_info.loc[Table_info.iloc[index.row(), 2]])
-            #     print(index.row())
-            #     print(Table_info[index.row()])
-                #Table_info_selected = Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(), 2]],
-                #                                                 ignore_index=False)
-
-        else:
-            # unregister device
-            pass
-
-
-        # global Table_info
-        # global Table_info_selected
-        # Checkbox = QtWidgets.qApp.focusWidget()
-        # # or button = self.sender()
-        # #index = self.table.indexAt(button.pos())
-        # index = self.ui.tableView.indexAt(Checkbox.pos())
-        # if index.isValid():
-        #     Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),2]], ignore_index=False)
+# <<<<<<< HEAD
+#         print(index)
+#         print(Checkbox.accessibleName())
+#         if Checkbox.isChecked():
+#             pass
+#             # register device
+#             # if index.isValid():
+#             #     print(Table_info.loc[Table_info.iloc[index.row(), 2]])
+#             #     print(index.row())
+#             #     print(Table_info[index.row()])
+#                 #Table_info_selected = Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(), 2]],
+#                 #                                                 ignore_index=False)
+#
+#         else:
+#             # unregister device
+#             pass
+#
+#
+#         # global Table_info
+#         # global Table_info_selected
+#         # Checkbox = QtWidgets.qApp.focusWidget()
+#         # # or button = self.sender()
+#         # #index = self.table.indexAt(button.pos())
+#         # index = self.ui.tableView.indexAt(Checkbox.pos())
+#         # if index.isValid():
+#         #     Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),2]], ignore_index=False)
+# =======
+        if index.isValid():
+            print(index.row(), index.column())
+            print(Table_info.iloc[index.row(),0])
+            Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),0]], ignore_index=False)
+            print(Table_info_selected)
+#>>>>>>> master
 
 
     def save_button_clicked(self,zeroconf):
@@ -72,7 +82,7 @@ class StartQT5(QtWidgets.QMainWindow):
         print(len(Table_info_selected.index))
 
         for index in range(len(Table_info_selected.index)):
-            TXT_record.update({'name' + str(index): Table_info_selected.iloc[index, 2]})
+            TXT_record.update({'name' + str(index): Table_info_selected.iloc[index, 0]})
         print(TXT_record)
 
         info = ServiceInfo(type_="_osc._udp.local.",
@@ -90,23 +100,43 @@ class StartQT5(QtWidgets.QMainWindow):
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
         global Table_info
-        self.ui.plainTextEdit.appendPlainText("Service %s of type %s state changed: %s" % (name, service_type, state_change))
+        self.ui.plainTextEdit.appendPlainText(
+            "Service %s of type %s state changed: %s" % (name, service_type, state_change))
 
         if state_change is ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
             if info:
-                local_device = pd.DataFrame(
-                    {'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server,'Select':""}, index=[info.server])
-                Table_info =Table_info.append(local_device)
-                self.ui.plainTextEdit.appendPlainText("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
+
+                self.ui.plainTextEdit.appendPlainText(
+                    "  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
                 self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d" % (info.weight, info.priority))
                 self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
+                device_type = []
+                device_address = []
+
                 if info.properties:
                     self.ui.plainTextEdit.appendPlainText("  Properties are:")
+
                     for key, value in info.properties.items():
                         self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
+                        key_str = str(key)
+                        a, b, c = key_str.split("'")
+                        print(b)
+
+                        value_str = str(value)
+                        d, e, f = value_str.split("'")
+                        print(e)
+
+                        device_type.append(b)
+                        device_address.append(e)
                 else:
                     print("  No properties")
+
+                local_device = pd.DataFrame(
+                    {'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),
+                     'Server': info.server, 'Select': "", 'Device Type': [device_type],
+                     'Device Address': [device_address]}, index=[socket.inet_ntoa(cast(bytes, info.address))])
+                Table_info = Table_info.append(local_device)
             else:
                 print("  No info")
 
@@ -119,7 +149,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.Checkbox.setAccessibleName(name)
                 self.Checkbox.clicked.connect(self.handleCheckboxClicked)
                 item = model.index(index, 3);
-                self.ui.tableView.setIndexWidget(item,self.Checkbox)
+                self.ui.tableView.setIndexWidget(item, self.Checkbox)
 
     def zeroconf_start(self):
         discovery = NeighborDiscovery()
