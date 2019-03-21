@@ -132,11 +132,11 @@ class StartQT5(QtWidgets.QMainWindow):
                 else:
                     print("  No properties")
 
-                local_device = pd.DataFrame(
-                    {'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),
-                     'Server': info.server, 'Select': "", 'Device Type': [device_type],
-                     'Device Address': [device_address]}, index=[socket.inet_ntoa(cast(bytes, info.address))])
-                Table_info = Table_info.append(local_device)
+
+                if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
+                    local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Select': "", 'Device Type': [device_type],'Device Address': [device_address]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
+                    Table_info = Table_info.append(local_device)
+
             else:
                 print("  No info")
 
