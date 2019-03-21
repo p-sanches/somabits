@@ -27,18 +27,42 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.save_button_clicked)
 
+    def close(self, app):
+        #self.zeroconf.close()
+        #self.neighbor_discovery
+        print("Closing App")
+        #self.neighbor_discovery.close()
+        #return app.exec_()
+
+
     def handleCheckboxClicked(self):
-        global Table_info
-        global Table_info_selected
         Checkbox = QtWidgets.qApp.focusWidget()
-        # or button = self.sender()
-        #index = self.table.indexAt(button.pos())
         index = self.ui.tableView.indexAt(Checkbox.pos())
-        if index.isValid():
-            print(index.row(), index.column())
-            print(Table_info.iloc[index.row(),2])
-            Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),2]], ignore_index=False)
-            print(Table_info_selected)
+        print(index)
+        print(Checkbox.accessibleName())
+        if Checkbox.isChecked():
+            pass
+            # register device
+            # if index.isValid():
+            #     print(Table_info.loc[Table_info.iloc[index.row(), 2]])
+            #     print(index.row())
+            #     print(Table_info[index.row()])
+                #Table_info_selected = Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(), 2]],
+                #                                                 ignore_index=False)
+
+        else:
+            # unregister device
+            pass
+
+
+        # global Table_info
+        # global Table_info_selected
+        # Checkbox = QtWidgets.qApp.focusWidget()
+        # # or button = self.sender()
+        # #index = self.table.indexAt(button.pos())
+        # index = self.ui.tableView.indexAt(Checkbox.pos())
+        # if index.isValid():
+        #     Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),2]], ignore_index=False)
 
 
     def save_button_clicked(self,zeroconf):
@@ -61,18 +85,8 @@ class StartQT5(QtWidgets.QMainWindow):
                            server=NAME + ".local.")
 
         print("Registration of a service")
-        #zeroconf.register_service(info)
+        zeroconf.register_service(info)
 
-
-
-
-
-    def close(self, app):
-        #self.zeroconf.close()
-        #self.neighbor_discovery
-        print("Closing App")
-        #self.neighbor_discovery.close()
-        #return app.exec_()
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
         global Table_info
@@ -101,26 +115,16 @@ class StartQT5(QtWidgets.QMainWindow):
             model = PandasModel(Table_info)
             self.ui.tableView.setModel(model)
             for index in range(model.rowCount()):
-                self.Checkbox = QtWidgets.QCheckBox('Select')
+                self.Checkbox = QtWidgets.QCheckBox(' ')
+                self.Checkbox.setAccessibleName(name)
                 self.Checkbox.clicked.connect(self.handleCheckboxClicked)
                 item = model.index(index, 3);
                 self.ui.tableView.setIndexWidget(item,self.Checkbox)
-
-
-
-
-    #def update_table_view(self):
-
-
-
-
 
     def zeroconf_start(self):
         discovery = NeighborDiscovery()
         discovery.neighbor_signal.connect(self.on_device_found)
 
-        #zeroconf = Zeroconf()
-        #browser = ServiceBrowser(zeroconf, TYPE, handlers=[self.on_service_state_change])
 
 class NeighborDiscovery(QtCore.QThread):
     neighbor_signal = QtCore.pyqtSignal(object, object, object, object)
@@ -131,40 +135,7 @@ class NeighborDiscovery(QtCore.QThread):
         self.browser = ServiceBrowser(self.zeroconf, TYPE, handlers=[self.on_service_state_change])
 
     def on_service_state_change(self,zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange, ) -> None:
-        #global Table_info
-        #logging_queue = []
-        print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
-        #logging_queue.append("Service %s of type %s state changed: %s" % (name, service_type, state_change))
-
-        if state_change is ServiceStateChange.Added:
-            info = zeroconf.get_service_info(service_type, name)
-            if info:
-                #cb = QtWidgets.QCheckBox('hello', self)
-                local_device = pd.DataFrame({'Address':socket.inet_ntoa(cast(bytes, info.address)), 'Port':cast(int, info.port), 'Server':info.server}, index=[info.server])
-                #Table_info =Table_info.append(local_device)
-                print("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
-                #self.ui.plainTextEdit.appendPlainText("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
-                print("  Weight: %d, priority: %d" % (info.weight, info.priority))
-                #self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d" % (info.weight, info.priority))
-                print("  Server: %s" % (info.server,))
-                #self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
-                if info.properties:
-                    print("  Properties are:")
-                    #self.ui.plainTextEdit.appendPlainText("  Properties are:")
-                    for key, value in info.properties.items():
-                        print("    %s: %s" % (key, value))
-                        #self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
-                else:
-                    print("  No properties")
-            else:
-                print("  No info")
-            print('\n')
-            #self.ui.plainTextEdit.appendPlainText('\n')
-            #print(Table_info)
-            #model = PandasModel(Table_info)
-            #self.tableView.setModel(model)
-            #self.ui.tableView.setModel(model)
-            self.neighbor_signal.emit(zeroconf, service_type, name, state_change)
+        self.neighbor_signal.emit(zeroconf, service_type, name, state_change)
 
 
 class PandasModel(QtCore.QAbstractTableModel):
