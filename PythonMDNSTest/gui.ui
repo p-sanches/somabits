@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>537</width>
+    <width>732</width>
     <height>514</height>
    </rect>
   </property>
@@ -32,7 +32,7 @@
       <widget class="QWidget" name="tab">
        <attribute name="icon">
         <iconset>
-         <normaloff>../Soma Server/PythonMDNSTest/resx/Google-Noto-Emoji-Objects-62971-gear.ico</normaloff>../Soma Server/PythonMDNSTest/resx/Google-Noto-Emoji-Objects-62971-gear.ico</iconset>
+         <normaloff>resx/Google-Noto-Emoji-Objects-62971-gear.ico</normaloff>resx/Google-Noto-Emoji-Objects-62971-gear.ico</iconset>
        </attribute>
        <attribute name="title">
         <string>Control</string>
@@ -63,7 +63,7 @@
       <widget class="QWidget" name="tab_2">
        <attribute name="icon">
         <iconset>
-         <normaloff>../Soma Server/PythonMDNSTest/resx/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico</normaloff>../Soma Server/PythonMDNSTest/resx/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico</iconset>
+         <normaloff>resx/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico</normaloff>resx/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico</iconset>
        </attribute>
        <attribute name="title">
         <string>Forwarding</string>
@@ -72,7 +72,7 @@
       <widget class="QWidget" name="tab_3">
        <attribute name="icon">
         <iconset>
-         <normaloff>../Soma Server/PythonMDNSTest/resx/Oxygen-Icons.org-Oxygen-Apps-preferences-system-windows.ico</normaloff>../Soma Server/PythonMDNSTest/resx/Oxygen-Icons.org-Oxygen-Apps-preferences-system-windows.ico</iconset>
+         <normaloff>resx/Oxygen-Icons.org-Oxygen-Apps-preferences-system-windows.ico</normaloff>resx/Oxygen-Icons.org-Oxygen-Apps-preferences-system-windows.ico</iconset>
        </attribute>
        <attribute name="title">
         <string>Applications</string>
