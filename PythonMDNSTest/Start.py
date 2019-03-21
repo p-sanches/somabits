@@ -11,11 +11,12 @@ from gui import Ui_MainWindow
 
 from typing import cast
 from time import sleep
-from zeroconf import ServiceBrowser, ServiceStateChange, Zeroconf
+from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 
 TYPE = '_osc._udp.local.'
 NAME = 'Server'
-Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server'])
+Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Select'])
+Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server'])
 
 
 class StartQT5(QtWidgets.QMainWindow):
@@ -24,6 +25,47 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
+        self.ui.save_button.clicked.connect(self.save_button_clicked)
+
+    def handleCheckboxClicked(self):
+        global Table_info
+        global Table_info_selected
+        Checkbox = QtWidgets.qApp.focusWidget()
+        # or button = self.sender()
+        #index = self.table.indexAt(button.pos())
+        index = self.ui.tableView.indexAt(Checkbox.pos())
+        if index.isValid():
+            print(index.row(), index.column())
+            print(Table_info.iloc[index.row(),2])
+            Table_info_selected=Table_info_selected.append(Table_info.loc[Table_info.iloc[index.row(),2]], ignore_index=False)
+            print(Table_info_selected)
+
+
+    def save_button_clicked(self,zeroconf):
+        global Table_info
+        global Table_info_selected
+        TXT_record = {'server': 'hello'}
+        print(len(Table_info_selected.index))
+
+        for index in range(len(Table_info_selected.index)):
+            TXT_record.update({'name' + str(index): Table_info_selected.iloc[index, 2]})
+        print(TXT_record)
+
+        info = ServiceInfo(type_="_osc._udp.local.",
+                           name=NAME + "." + TYPE,
+                           address=socket.inet_aton("192.168.11.172"),
+                           port=80,
+                           weight=0,
+                           priority=0,
+                           properties=TXT_record,
+                           server=NAME + ".local.")
+
+        print("Registration of a service")
+        #zeroconf.register_service(info)
+
+
+
+
 
     def close(self, app):
         #self.zeroconf.close()
@@ -39,10 +81,8 @@ class StartQT5(QtWidgets.QMainWindow):
         if state_change is ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
             if info:
-                cb = QtWidgets.QCheckBox('hello', self)
                 local_device = pd.DataFrame(
-                    {'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),
-                     'Server': info.server}, index=[info.server])
+                    {'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server,'Select':""}, index=[info.server])
                 Table_info =Table_info.append(local_device)
                 self.ui.plainTextEdit.appendPlainText("  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
                 self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d" % (info.weight, info.priority))
@@ -55,12 +95,19 @@ class StartQT5(QtWidgets.QMainWindow):
                     print("  No properties")
             else:
                 print("  No info")
-            #print('\n')
+
             self.ui.plainTextEdit.appendPlainText('\n')
-            # print(Table_info)
+
             model = PandasModel(Table_info)
-            #self.tableView.setModel(model)
             self.ui.tableView.setModel(model)
+            for index in range(model.rowCount()):
+                self.Checkbox = QtWidgets.QCheckBox('Select')
+                self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+                item = model.index(index, 3);
+                self.ui.tableView.setIndexWidget(item,self.Checkbox)
+
+
+
 
 
 
