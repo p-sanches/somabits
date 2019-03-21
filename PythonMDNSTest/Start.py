@@ -15,8 +15,8 @@ from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 
 TYPE = '_osc._udp.local.'
 NAME = 'Server'
-Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address'])
-Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address'])
+Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
+Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
 
 
 class StartQT5(QtWidgets.QMainWindow):
@@ -116,6 +116,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
                 device_type = []
                 device_address = []
+                device_range = []
 
                 if info.properties:
                     self.ui.plainTextEdit.appendPlainText("  Properties are:")
@@ -124,20 +125,23 @@ class StartQT5(QtWidgets.QMainWindow):
                         self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
                         key_str = str(key)
                         a, b, c = key_str.split("'")
-                        print(b)
+
 
                         value_str = str(value)
                         d, e, f = value_str.split("'")
-                        print(e)
+                        g, h = value_str.split(":")
+
+                        print(g)
 
                         device_type.append(b)
-                        device_address.append(e)
+                        device_address.append(g)
+                        device_range.append(h)
                 else:
                     print("  No properties")
 
 
                 if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
-                    local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Select': "", 'Device Type': [device_type],'Device Address': [device_address]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
+                    local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Select': "", 'Device Type': [device_type],'Device Address': [device_address],'Device Range': [device_range]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
                     Table_info = Table_info.append(local_device)
 
             else:
