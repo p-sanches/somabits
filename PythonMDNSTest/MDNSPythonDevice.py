@@ -17,7 +17,7 @@ if __name__ == '__main__':
         assert sys.argv[1:] == ['--debug']
         logging.getLogger('zeroconf').setLevel(logging.DEBUG)
 
-    desc = {'sensor1': '/light', 'sensor2': '/accelerometer', 'actuator1': '/sound'}
+    desc = {'sensor1': '/light:0-127', 'sensor2': '/accelerometer', 'actuator1': '/sound'}
 
     info = ServiceInfo(type_="_osc._udp.local.",
                        #name="Paul's Test Web Site._http._udp.local.",
