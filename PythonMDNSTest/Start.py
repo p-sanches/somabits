@@ -110,8 +110,6 @@ class StartQT5(QtWidgets.QMainWindow):
 
             self.ui.plainTextEdit.appendPlainText('\n')
 
-        if state_change is ServiceStateChange.Removed:
-            print("Service Removed")
 
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
@@ -144,17 +142,16 @@ class NeighborDiscovery(QtCore.QThread):
                            priority=0,
                            properties=TXT_record,
                            server=name + ".local.")
-        print(info)
+
         print("Registration of a service %s" % (name))
         self.zeroconf.register_service(info)
 
     def unregister_service(self, ip, name_):
-        print(name_)
         name = NAME + "_" + name_
         info = self.zeroconf.get_service_info(TYPE, name)
-        print(info)
-        self.zeroconf.unregister_service(info)
-        print("Unregistering service %s with IP %s" % (name, ip))
+        if info:
+            self.zeroconf.unregister_service(info)
+            print("Unregistering service %s with IP %s" % (name, ip))
 
 
     def get_all_addresses(self) -> List[str]:
