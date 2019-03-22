@@ -42,8 +42,7 @@ class StartQT5(QtWidgets.QMainWindow):
         if Checkbox.isChecked():
             self.discovery.register_service(Checkbox.accessibleName())
         else:
-            # unregister device
-            print("I should unregister the service")
+            self.discovery.unregister_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
 
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
@@ -100,6 +99,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 for index in range(model.rowCount()):
                     self.Checkbox = QtWidgets.QCheckBox(' ')
                     self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
+                    self.Checkbox.setAccessibleDescription(name)
                     self.Checkbox.clicked.connect(self.handleCheckboxClicked)
                     item = model.index(index, 3);
                     self.ui.tableView.setIndexWidget(item, self.Checkbox)
@@ -136,9 +136,10 @@ class NeighborDiscovery(QtCore.QThread):
         print("Registration of a service")
         self.zeroconf.register_service(info)
 
-    def unregister_service(self, ip):
-        info = self.browser.services.fromkeys(ip)
-        print(info)
+    def unregister_service(self, ip, name):
+        info = self.zeroconf.get_service_info(TYPE, name)
+        print("Unregistering service %s with IP %s" % (name, ip))
+
 
     def get_all_addresses(self) -> List[str]:
         return list(set(
