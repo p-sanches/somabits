@@ -48,6 +48,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
         global Table_info
+        update_tableView = True
         self.ui.plainTextEdit.appendPlainText(
             "Service %s of type %s state changed: %s" % (name, service_type, state_change))
 
@@ -85,16 +86,17 @@ class StartQT5(QtWidgets.QMainWindow):
                 if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
                     local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Select': "", 'Device Type': [device_type],'Device Address': [device_address],'Device Range': [device_range]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
                     Table_info = Table_info.append(local_device)
+                else:
+                    update_tableView = False
 
             else:
                 print("  No info")
 
             self.ui.plainTextEdit.appendPlainText('\n')
 
-            if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
+            if update_tableView:
                 model = PandasModel(Table_info)
                 self.ui.tableView.setModel(model)
-                print(range(model.rowCount()))
                 for index in range(model.rowCount()):
                     self.Checkbox = QtWidgets.QCheckBox(' ')
                     self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
