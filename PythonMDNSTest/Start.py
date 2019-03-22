@@ -70,19 +70,15 @@ class StartQT5(QtWidgets.QMainWindow):
                         self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
                         key_str = str(key).split("'")[1]
                         device_type.append(key_str)
-                        if any("server:" not in s for s in key_str):
-                            # TODO Fixme (Martina does)
-                            value_str = str(value)
-                            print(value_str)
-
-                            d, e, f = value_str.split("'")
-                            g, h = e.split(":")
-                            device_address.append(g)
-                            device_range.append(h)
-                            print(g)
+                        if ":" in str(value):
+                            # the device has sensor values
+                            value_str = str(value).split("'")[1].split(':')
+                            device_address.append(value_str[0])
+                            device_range.append(value_str[1])
                         else:
-                            pass
-
+                            # the device does not have sensor values
+                            value_str = str(value).split("'")[1]
+                            device_address.append(value_str)
                 else:
                     print("  No properties")
 
