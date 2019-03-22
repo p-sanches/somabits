@@ -43,7 +43,7 @@ class StartQT5(QtWidgets.QMainWindow):
             self.discovery.register_service(Checkbox.accessibleName())
         else:
             # unregister device
-            pass
+            print("I should unregister the service")
 
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
@@ -82,7 +82,6 @@ class StartQT5(QtWidgets.QMainWindow):
                 else:
                     print("  No properties")
 
-
                 if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
                     local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Select': "", 'Device Type': [device_type],'Device Address': [device_address],'Device Range': [device_range]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
                     Table_info = Table_info.append(local_device)
@@ -92,14 +91,16 @@ class StartQT5(QtWidgets.QMainWindow):
 
             self.ui.plainTextEdit.appendPlainText('\n')
 
-            model = PandasModel(Table_info)
-            self.ui.tableView.setModel(model)
-            for index in range(model.rowCount()):
-                self.Checkbox = QtWidgets.QCheckBox(' ')
-                self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
-                self.Checkbox.clicked.connect(self.handleCheckboxClicked)
-                item = model.index(index, 3);
-                self.ui.tableView.setIndexWidget(item, self.Checkbox)
+            if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
+                model = PandasModel(Table_info)
+                self.ui.tableView.setModel(model)
+                print(range(model.rowCount()))
+                for index in range(model.rowCount()):
+                    self.Checkbox = QtWidgets.QCheckBox(' ')
+                    self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
+                    self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+                    item = model.index(index, 3);
+                    self.ui.tableView.setIndexWidget(item, self.Checkbox)
 
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
@@ -151,10 +152,10 @@ class NeighborDiscovery(QtCore.QThread):
         return local_ip[0]
 
 
-
 class PandasModel(QtCore.QAbstractTableModel):
     def __init__(self, df = pd.DataFrame(), parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent=parent)
+        #QtCore.QAbstractTableModel.__init__(self, parent=parent)
+        QtCore.QAbstractTableModel.__init__(self)
         self._df = df
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
