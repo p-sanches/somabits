@@ -21,9 +21,14 @@ pd.set_option('display.width', 1000)
 
 TYPE = '_osc._udp.local.'
 NAME = 'Server'
+#<<<<<<< HEAD
 #Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
 #TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
-Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
+#Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
+#=======
+#Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Device Count','Device Type','Device Address','Device Range'])
+#Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Device Count','Device Type','Device Address','Device Range'])
+#>>>>>>> master
 
 
 class StartQT5(QtWidgets.QMainWindow):
@@ -31,8 +36,11 @@ class StartQT5(QtWidgets.QMainWindow):
         super(StartQT5, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.tableWidget.setColumnCount(5)
+        self.ui.tableWidget.setHorizontalHeaderLabels(['Name', 'IP Address', 'Server', 'Device Count', 'Select'])
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
-        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
+        #self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
+        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server', 'Device Count', 'Device Type', 'Device Address', 'Device Range', '*'])
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
@@ -84,6 +92,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 else:
                     print("  No properties")
 
+#<<<<<<< HEAD
                 # FIXME: Just for debugging we show the server
                 #if (socket.inet_ntoa(cast(bytes, info.address)) not in TABLE_INFO.index): #or (info.server not in TABLE_INFO['Server']):
                 if (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_INFO["Address"].to_list()):
@@ -92,25 +101,53 @@ class StartQT5(QtWidgets.QMainWindow):
                     # 'Server': info.server, 'Select': "", 'Device Type': [device_type],'Device Address': [device_address],'Device Range': [device_range]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
                     #TABLE_INFO.ix[socket.inet_ntoa(cast(bytes, info.address))] = [socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server, False, device_type, device_address, device_range]
                     self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
-                        socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server, False,
-                        device_type, device_address, device_range]
+                        socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
+                        len(device_type), device_type, device_address, device_range, ""]
                     #Table_info = Table_info.append(local_device)
                     print(self.TABLE_INFO)
                     #print(self.TABLE_INFO[self.TABLE_INFO.Address])
+# #=======
+#                 if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
+#                     local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Device Count': len(device_type), 'Device Type': [device_type],'Device Address': [device_address],'Device Range': [device_range]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
+#                     Table_info = Table_info.append(local_device)
+#                     numRows = self.ui.tableWidget.rowCount()
+#
+#
+#
+#
+#                     self.ui.tableWidget.insertRow(numRows)
+#                     # Add text to the row
+#                     self.ui.tableWidget.setItem(numRows, 0, QtWidgets.QTableWidgetItem(info.name))
+#                     self.ui.tableWidget.setItem(numRows, 1, QtWidgets.QTableWidgetItem(socket.inet_ntoa(cast(bytes, info.address))))
+#                     self.ui.tableWidget.setItem(numRows, 2, QtWidgets.QTableWidgetItem(info.server))
+#                     self.ui.tableWidget.setItem(numRows, 3, QtWidgets.QTableWidgetItem(str(len(device_type))))
+#
+#
+# >>>>>>> master
                     self.Checkbox = QtWidgets.QCheckBox(' ')
                     self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
                     self.Checkbox.setAccessibleDescription(name)
                     self.Checkbox.clicked.connect(self.handleCheckboxClicked)
 
+##<<<<<<< HEAD
                     checkBoxWidget = QtWidgets.QWidget()
                     layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
                     layoutCheckBox.addWidget(self.Checkbox)
                     layoutCheckBox.setAlignment(Qt.AlignCenter);
 
-                    item = self.model.index(self.model.rowCount() - 1, 3)
+                    item = self.model.index(self.model.rowCount() - 1, self.model.columnCount()-1)
                     self.ui.tableView.setIndexWidget(item, self.Checkbox)
 
                     self.model.insertRows()
+# =======
+#                     checkBoxWidget= QtWidgets.QWidget()
+#                     layoutCheckBox =  QtWidgets.QHBoxLayout(checkBoxWidget)
+#                     layoutCheckBox.addWidget(self.Checkbox)
+#                     layoutCheckBox.setAlignment(Qt.AlignCenter);
+#
+#                     self.ui.tableWidget.setCellWidget(numRows, 4, self.Checkbox)
+#
+# >>>>>>> master
                 else:
                     update_tableView = False
 
@@ -119,6 +156,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
             self.ui.plainTextEdit.appendPlainText('\n')
 
+#<<<<<<< HEAD
             #if update_tableView:
             #    model = PandasModel(Table_info)
             #    self.ui.tableView.setModel(model)
@@ -139,6 +177,14 @@ class StartQT5(QtWidgets.QMainWindow):
             #print(self.model.rowCount())
         if state_change is ServiceStateChange.Removed:
             print("Service Removed")
+#=======
+            # if update_tableView:
+            #     model = PandasModel(Table_info)
+            #     self.ui.tableView.setModel(model)
+
+
+
+#>>>>>>> master
 
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
