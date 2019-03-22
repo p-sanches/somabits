@@ -17,8 +17,8 @@ from typing import List
 
 TYPE = '_osc._udp.local.'
 NAME = 'Server'
-Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
-Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Select','Device Type','Device Address','Device Range'])
+Table_info = pd.DataFrame(columns=['Address', 'Port', 'Server','Device Count','Device Type','Device Address','Device Range'])
+Table_info_selected = pd.DataFrame(columns=['Address', 'Port', 'Server','Device Count','Device Type','Device Address','Device Range'])
 
 
 class StartQT5(QtWidgets.QMainWindow):
@@ -26,6 +26,8 @@ class StartQT5(QtWidgets.QMainWindow):
         super(StartQT5, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.tableWidget.setColumnCount(5)
+        self.ui.tableWidget.setHorizontalHeaderLabels(['Name', 'IP Address', 'Server', 'Device Count', 'Select'])
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         #self.ui.save_button.clicked.connect(self.save_button_clicked)
 
@@ -83,8 +85,33 @@ class StartQT5(QtWidgets.QMainWindow):
                     print("  No properties")
 
                 if socket.inet_ntoa(cast(bytes, info.address)) not in Table_info.index:
-                    local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Select': "", 'Device Type': [device_type],'Device Address': [device_address],'Device Range': [device_range]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
+                    local_device = pd.DataFrame({'Address': socket.inet_ntoa(cast(bytes, info.address)), 'Port': cast(int, info.port),'Server': info.server, 'Device Count': len(device_type), 'Device Type': [device_type],'Device Address': [device_address],'Device Range': [device_range]}, index = [socket.inet_ntoa(cast(bytes, info.address))])
                     Table_info = Table_info.append(local_device)
+                    numRows = self.ui.tableWidget.rowCount()
+
+
+
+
+                    self.ui.tableWidget.insertRow(numRows)
+                    # Add text to the row
+                    self.ui.tableWidget.setItem(numRows, 0, QtWidgets.QTableWidgetItem(info.name))
+                    self.ui.tableWidget.setItem(numRows, 1, QtWidgets.QTableWidgetItem(socket.inet_ntoa(cast(bytes, info.address))))
+                    self.ui.tableWidget.setItem(numRows, 2, QtWidgets.QTableWidgetItem(info.server))
+                    self.ui.tableWidget.setItem(numRows, 3, QtWidgets.QTableWidgetItem(str(len(device_type))))
+
+
+                    self.Checkbox = QtWidgets.QCheckBox(' ')
+                    self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
+                    self.Checkbox.setAccessibleDescription(name)
+                    self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+
+                    checkBoxWidget= QtWidgets.QWidget()
+                    layoutCheckBox =  QtWidgets.QHBoxLayout(checkBoxWidget)
+                    layoutCheckBox.addWidget(self.Checkbox)
+                    layoutCheckBox.setAlignment(Qt.AlignCenter);
+
+                    self.ui.tableWidget.setCellWidget(numRows, 4, self.Checkbox)
+
                 else:
                     update_tableView = False
 
@@ -96,13 +123,9 @@ class StartQT5(QtWidgets.QMainWindow):
             if update_tableView:
                 model = PandasModel(Table_info)
                 self.ui.tableView.setModel(model)
-                for index in range(model.rowCount()):
-                    self.Checkbox = QtWidgets.QCheckBox(' ')
-                    self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
-                    self.Checkbox.setAccessibleDescription(name)
-                    self.Checkbox.clicked.connect(self.handleCheckboxClicked)
-                    item = model.index(index, 3);
-                    self.ui.tableView.setIndexWidget(item, self.Checkbox)
+
+
+
 
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
