@@ -100,12 +100,12 @@ class StartQT5(QtWidgets.QMainWindow):
                     if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
                         pass  # ignore own server message
 
-                    if('Server' in str(info.server)):  # if its a Server side message other than our own
+                    elif('Server' in str(info.server)):  # if its a Server side message other than our own
                         self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
                         if (device_address[1] in self.TABLE_INFO["Address"].to_list()): # If device IP address already exist in TABLE_INFO, remove it
                             self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
                             self.model.removeRows(device_address[1])
-                            
+
 
 
                     elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()): # If IP address is not in TABLE_NOT_ACCESSIBLE
