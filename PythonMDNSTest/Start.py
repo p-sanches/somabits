@@ -34,6 +34,17 @@ class StartQT5(QtWidgets.QMainWindow):
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
 
+    def resizeEvent(self, event):
+        tableSize = self.ui.tableView.width()  # Retrieves your QTableView width
+        sideHeaderWidth = self.ui.tableView.verticalHeader().width()  # Retrieves the left header width
+        tableSize -= sideHeaderWidth  # Perform a substraction to only keep all the columns width
+        numberOfColumns = self.model.columnCount()  # Retrieves the number of columns
+
+        for columnNum in range(self.model.columnCount()):  # For each column
+            self.ui.tableView.setColumnWidth(columnNum,
+                                     int(tableSize / numberOfColumns))  # Set the width = tableSize / nbColumns
+        super(StartQT5, self).resizeEvent(event)  # Restores the original behaviour of the resize event
+
     def handleCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
         if Checkbox.isChecked():
