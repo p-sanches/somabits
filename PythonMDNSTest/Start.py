@@ -52,8 +52,8 @@ class StartQT5(QtWidgets.QMainWindow):
             self.discovery.register_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
         else:
             self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != Checkbox.accessibleName()]
-            self.TABLE_INFO.index = self.TABLE_INFO.index + 1  # shifting index
-            self.TABLE_INFO = self.TABLE_INFO.sort_index()  # sorting by index
+            #self.TABLE_INFO.index = self.TABLE_INFO.index + 1  # shifting index
+            #self.TABLE_INFO = self.TABLE_INFO.sort_index()  # sorting by index
 
             self.discovery.unregister_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
 
@@ -97,14 +97,14 @@ class StartQT5(QtWidgets.QMainWindow):
                 if (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_INFO["Address"].to_list()):
 
 
-                    #if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
-                        #pass  # ignore own server message
+                    if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
+                        pass  # ignore own server message
 
                     if('Server' in str(info.server)):  # if its a Server side message other than our own
                         self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
                         if (device_address[1] in self.TABLE_INFO["Address"].to_list()): # If device IP address already exist in TABLE_INFO, remove it
                             self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
-                            # We need to update model
+                           
 
                     elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()): # If IP address is not in TABLE_NOT_ACCESSIBLE
                         self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
