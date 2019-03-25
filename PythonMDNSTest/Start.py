@@ -146,7 +146,7 @@ class NeighborDiscovery(QtCore.QThread):
 
         info = ServiceInfo(type_="_osc._udp.local.",
                            name=name + "." + TYPE,
-                           address=socket.inet_aton("192.168.11.172"),
+                           address=self.get_local_ip(),
                            port=80,
                            weight=0,
                            priority=0,
