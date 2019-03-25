@@ -100,10 +100,10 @@ class StartQT5(QtWidgets.QMainWindow):
                     if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
                         pass  # ignore own service message
 
-                    elif('Server' in str(info.server)):
-                        self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]
+                    elif('Server' in str(info.server)):  # if its a Server side message other than our own
+                        self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
 
-                    elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()):
+                    elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()): # If IP address is not in TABLE_NOT_ACCESSIBLE
                         self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
                         len(device_type), device_type, device_address, device_range, ""]
