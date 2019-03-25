@@ -97,11 +97,14 @@ class StartQT5(QtWidgets.QMainWindow):
                 if (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_INFO["Address"].to_list()):
 
 
-                    if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
-                        pass  # ignore own service message
+                    #if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
+                        #pass  # ignore own server message
 
-                    elif('Server' in str(info.server)):  # if its a Server side message other than our own
+                    if('Server' in str(info.server)):  # if its a Server side message other than our own
                         self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
+                        if (device_address[1] in self.TABLE_INFO["Address"].to_list()): # If device IP address already exist in TABLE_INFO, remove it
+                            self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
+                            # We need to update model
 
                     elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()): # If IP address is not in TABLE_NOT_ACCESSIBLE
                         self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
@@ -250,6 +253,12 @@ class PandasModel(QtCore.QAbstractTableModel):
     def insertRows(self):
         self.layoutAboutToBeChanged.emit()
         self._df.append(self._df.tail(1))
+        self._df.reset_index(inplace=True, drop=True)
+        self.layoutChanged.emit()
+
+    def deleteRows(self,row):
+        self.layoutAboutToBeChanged.emit()
+        self._df.drop(row)
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
 
