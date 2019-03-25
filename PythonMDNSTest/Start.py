@@ -53,6 +53,7 @@ class StartQT5(QtWidgets.QMainWindow):
             self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != Checkbox.accessibleName()]
             self.TABLE_INFO.index = self.TABLE_INFO.index + 1  # shifting index
             self.TABLE_INFO = self.TABLE_INFO.sort_index()  # sorting by index
+
             self.discovery.unregister_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
@@ -93,25 +94,31 @@ class StartQT5(QtWidgets.QMainWindow):
                     print("  No properties")
 
                 if (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_INFO["Address"].to_list()):
-                    self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
+
+
+                    if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
+                        pass  # ignore own service message
+
+                    else:
+                        self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
                         len(device_type), device_type, device_address, device_range, ""]
-                    print(self.TABLE_INFO)
+                        print(self.TABLE_INFO)
 
-                    self.Checkbox = QtWidgets.QCheckBox(' ')
-                    self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
-                    self.Checkbox.setAccessibleDescription(name)
-                    self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+                        self.Checkbox = QtWidgets.QCheckBox(' ')
+                        self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
+                        self.Checkbox.setAccessibleDescription(name)
+                        self.Checkbox.clicked.connect(self.handleCheckboxClicked)
 
-                    checkBoxWidget = QtWidgets.QWidget()
-                    layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
-                    layoutCheckBox.addWidget(self.Checkbox)
-                    layoutCheckBox.setAlignment(Qt.AlignCenter);
+                        checkBoxWidget = QtWidgets.QWidget()
+                        layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
+                        layoutCheckBox.addWidget(self.Checkbox)
+                        layoutCheckBox.setAlignment(Qt.AlignCenter);
 
-                    item = self.model.index(self.model.rowCount() - 1, self.model.columnCount()-1)
-                    self.ui.tableView.setIndexWidget(item, self.Checkbox)
+                        item = self.model.index(self.model.rowCount() - 1, self.model.columnCount()-1)
+                        self.ui.tableView.setIndexWidget(item, self.Checkbox)
 
-                    self.model.insertRows()
+                        self.model.insertRows()
                 else:
                     update_tableView = False
 
