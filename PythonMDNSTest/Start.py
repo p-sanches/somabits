@@ -30,6 +30,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server', 'Device Count', 'Device Type', 'Device Address', 'Device Range', '*'])
+        self.TABLE_NOT_ACCESSIBLE = pd.DataFrame(columns=['Address'])
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
@@ -99,7 +100,10 @@ class StartQT5(QtWidgets.QMainWindow):
                     if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
                         pass  # ignore own service message
 
-                    else:
+                    elif('Server' in str(info.server)):
+                        self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]
+
+                    elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()):
                         self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
                         len(device_type), device_type, device_address, device_range, ""]
