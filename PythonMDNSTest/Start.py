@@ -52,8 +52,8 @@ class StartQT5(QtWidgets.QMainWindow):
             self.discovery.register_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
         else:
             self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != Checkbox.accessibleName()]
-            #self.TABLE_INFO.index = self.TABLE_INFO.index + 1  # shifting index
-            #self.TABLE_INFO = self.TABLE_INFO.sort_index()  # sorting by index
+            self.TABLE_INFO.index = self.TABLE_INFO.index + 1  # shifting index
+            self.TABLE_INFO = self.TABLE_INFO.sort_index()  # sorting by index
 
             self.discovery.unregister_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
 
@@ -104,7 +104,9 @@ class StartQT5(QtWidgets.QMainWindow):
                         self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
                         if (device_address[1] in self.TABLE_INFO["Address"].to_list()): # If device IP address already exist in TABLE_INFO, remove it
                             self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
-                           
+                            self.model.removeRows(device_address[1])
+                            
+
 
                     elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()): # If IP address is not in TABLE_NOT_ACCESSIBLE
                         self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
@@ -256,11 +258,17 @@ class PandasModel(QtCore.QAbstractTableModel):
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
 
-    def deleteRows(self,row):
+    def removeRows(self, row):
+        print("==============")
+        print(self._df)
         self.layoutAboutToBeChanged.emit()
-        self._df.drop(row)
+        # self._df.drop([row], axis='index')
+        self._df = self._df[self._df['Address'] != row]
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
+        print("--------------")
+        print(self._df)
+        print("==============")
 
 
 
