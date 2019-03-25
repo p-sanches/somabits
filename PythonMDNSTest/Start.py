@@ -27,8 +27,7 @@ class StartQT5(QtWidgets.QMainWindow):
         super(StartQT5, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.tableWidget.setColumnCount(5)
-        self.ui.tableWidget.setHorizontalHeaderLabels(['Name', 'IP Address', 'Server', 'Device Count', 'Select'])
+
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server', 'Device Count', 'Device Type', 'Device Address', 'Device Range', '*'])
 
