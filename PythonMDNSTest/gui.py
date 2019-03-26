@@ -21,6 +21,8 @@ class Ui_MainWindow(object):
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setEnabled(True)
         self.tabWidget.setStyleSheet("background-color: rgb(19, 41, 50);\n"
+"selection-background-color: rgb(165, 194, 255);\n"
+"selection-color: rgb(219, 230, 255);\n"
 "font: 63 9pt \"Adobe Fan Heiti Std B\";\n"
 "border-color: rgb(0, 0, 0);\n"
 "gridline-color: rgb(0, 0, 0);\n"
@@ -42,7 +44,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.plainTextEdit, 7, 0, 1, 1)
         self.tableView = QtWidgets.QTableView(self.tab)
         self.tableView.setStyleSheet("background-color: rgb(214, 214, 214);\n"
-"font: 8pt \"MS Shell Dlg 2\";\n"
+"font: 9pt \"MS Shell Dlg 2\";\n"
 "border-color: rgb(0, 0, 0);")
         self.tableView.setObjectName("tableView")
         self.tableView.horizontalHeader().setStretchLastSection(True)

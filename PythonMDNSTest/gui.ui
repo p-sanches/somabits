@@ -25,6 +25,8 @@
       </property>
       <property name="styleSheet">
        <string notr="true">background-color: rgb(19, 41, 50);
+selection-background-color: rgb(165, 194, 255);
+selection-color: rgb(219, 230, 255);
 font: 63 9pt &quot;Adobe Fan Heiti Std B&quot;;
 border-color: rgb(0, 0, 0);
 gridline-color: rgb(0, 0, 0);
@@ -70,7 +72,7 @@ color: rgb(255, 255, 255);</string>
          <widget class="QTableView" name="tableView">
           <property name="styleSheet">
            <string notr="true">background-color: rgb(214, 214, 214);
-font: 8pt &quot;MS Shell Dlg 2&quot;;
+font: 9pt &quot;MS Shell Dlg 2&quot;;
 border-color: rgb(0, 0, 0);</string>
           </property>
           <attribute name="horizontalHeaderStretchLastSection">
