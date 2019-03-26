@@ -29,12 +29,29 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
+        self.ui.save_button.clicked.connect(self.start_forwarding)
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server', 'Device Count', 'Device Type', 'Device Address', 'Device Range', '*'])
         self.TABLE_NOT_ACCESSIBLE = pd.DataFrame(columns=['Address'])
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
         #self.ui.tableView.hideColumn(0)
+
+    def start_forwarding(self):
+
+        sensors = []
+        actuators = []
+        forward_table=pd.DataFrame()
+        for rows in range(len(self.TABLE_INFO)):
+            for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
+                if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
+                    sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+                else:
+                    actuators.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+
+        forward_table = pd.DataFrame(index=sensors,columns=actuators)
+        model=PandasModel(forward_table)
+        self.ui.tableView_2.setModel(model)
 
     def resizeEvent(self, event):
         tableSize = self.ui.tableView.width()  # Retrieves your QTableView width

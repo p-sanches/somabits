@@ -114,6 +114,16 @@ color: rgb(255, 255, 255);
        <attribute name="title">
         <string>Forwarding</string>
        </attribute>
+       <widget class="QTableView" name="tableView_2">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>30</y>
+          <width>821</width>
+          <height>541</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="icon">
