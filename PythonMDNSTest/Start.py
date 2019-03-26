@@ -137,7 +137,6 @@ class StartQT5(QtWidgets.QMainWindow):
 
             self.ui.plainTextEdit.appendPlainText('\n')
         elif state_change is ServiceStateChange.Removed:
-            pass
             print("Service Removed")
             #self.model.removeRows("192.168.11.172")
         #print(self.TABLE_INFO)
