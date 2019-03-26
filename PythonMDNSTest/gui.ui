@@ -25,8 +25,7 @@
       </property>
       <property name="styleSheet">
        <string notr="true">background-color: rgb(19, 41, 50);
-selection-color: rgb(19, 41, 50);
-selection-background-color: rgb(35, 77, 92);
+font: 63 9pt &quot;Adobe Fan Heiti Std B&quot;;
 border-color: rgb(0, 0, 0);
 gridline-color: rgb(0, 0, 0);
 alternate-background-color: rgb(7, 16, 20);</string>
@@ -71,6 +70,7 @@ color: rgb(255, 255, 255);</string>
          <widget class="QTableView" name="tableView">
           <property name="styleSheet">
            <string notr="true">background-color: rgb(214, 214, 214);
+font: 8pt &quot;MS Shell Dlg 2&quot;;
 border-color: rgb(0, 0, 0);</string>
           </property>
           <attribute name="horizontalHeaderStretchLastSection">
@@ -81,7 +81,8 @@ border-color: rgb(0, 0, 0);</string>
         <item row="6" column="0">
          <widget class="QLabel" name="label">
           <property name="styleSheet">
-           <string notr="true">color: rgb(255, 255, 255);</string>
+           <string notr="true">color: rgb(255, 255, 255);
+font: 63 9pt &quot;Adobe Fan Heiti Std B&quot;;</string>
           </property>
           <property name="text">
            <string>For Debugging only</string>
@@ -92,6 +93,7 @@ border-color: rgb(0, 0, 0);</string>
          <widget class="QPushButton" name="discover_button">
           <property name="styleSheet">
            <string notr="true">background-color: rgb(124, 124, 124);
+font: 63 10pt &quot;Adobe Fan Heiti Std B&quot;;
 color: rgb(255, 255, 255);
 </string>
           </property>

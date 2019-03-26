@@ -21,8 +21,7 @@ class Ui_MainWindow(object):
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setEnabled(True)
         self.tabWidget.setStyleSheet("background-color: rgb(19, 41, 50);\n"
-"selection-color: rgb(19, 41, 50);\n"
-"selection-background-color: rgb(35, 77, 92);\n"
+"font: 63 9pt \"Adobe Fan Heiti Std B\";\n"
 "border-color: rgb(0, 0, 0);\n"
 "gridline-color: rgb(0, 0, 0);\n"
 "alternate-background-color: rgb(7, 16, 20);")
@@ -43,16 +42,19 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.plainTextEdit, 7, 0, 1, 1)
         self.tableView = QtWidgets.QTableView(self.tab)
         self.tableView.setStyleSheet("background-color: rgb(214, 214, 214);\n"
+"font: 8pt \"MS Shell Dlg 2\";\n"
 "border-color: rgb(0, 0, 0);")
         self.tableView.setObjectName("tableView")
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.gridLayout.addWidget(self.tableView, 5, 0, 1, 1)
         self.label = QtWidgets.QLabel(self.tab)
-        self.label.setStyleSheet("color: rgb(255, 255, 255);")
+        self.label.setStyleSheet("color: rgb(255, 255, 255);\n"
+"font: 63 9pt \"Adobe Fan Heiti Std B\";")
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 6, 0, 1, 1)
         self.discover_button = QtWidgets.QPushButton(self.tab)
         self.discover_button.setStyleSheet("background-color: rgb(124, 124, 124);\n"
+"font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
 "color: rgb(255, 255, 255);\n"
 "")
         self.discover_button.setObjectName("discover_button")
