@@ -34,6 +34,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
+        #self.ui.tableView.hideColumn(0)
 
     def resizeEvent(self, event):
         tableSize = self.ui.tableView.width()  # Retrieves your QTableView width
@@ -112,7 +113,7 @@ class StartQT5(QtWidgets.QMainWindow):
                         self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
                         len(device_type), device_type, device_address, device_range, ""]
-                        print(self.TABLE_INFO)
+
 
                         self.Checkbox = QtWidgets.QCheckBox(' ')
                         self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
@@ -135,7 +136,9 @@ class StartQT5(QtWidgets.QMainWindow):
                 print("  No info")
 
             self.ui.plainTextEdit.appendPlainText('\n')
-
+        elif state_change is ServiceStateChange.Removed:
+            #self.model.removeRows("192.168.11.172")
+        #print(self.TABLE_INFO)
 
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
@@ -269,7 +272,6 @@ class PandasModel(QtCore.QAbstractTableModel):
         print("--------------")
         print(self._df)
         print("==============")
-
 
 
 if __name__ == "__main__":
