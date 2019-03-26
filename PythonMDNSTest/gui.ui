@@ -114,16 +114,15 @@ color: rgb(255, 255, 255);
        <attribute name="title">
         <string>Forwarding</string>
        </attribute>
-       <widget class="QTableView" name="tableView_2">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>30</y>
-          <width>821</width>
-          <height>541</height>
-         </rect>
-        </property>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QTableView" name="tableView_2">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(232, 232, 232);</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="icon">

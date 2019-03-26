@@ -53,6 +53,23 @@ class StartQT5(QtWidgets.QMainWindow):
         model=PandasModel(forward_table)
         self.ui.tableView_2.setModel(model)
 
+        for rows in range(model.rowCount()):
+            for column in range(model.columnCount()):
+                self.Checkbox = QtWidgets.QCheckBox(' ')
+                self.Checkbox.setAccessibleName('hello')
+                self.Checkbox.setAccessibleDescription('hello')
+                self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+
+                checkBoxWidget = QtWidgets.QWidget()
+                layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
+                layoutCheckBox.addWidget(self.Checkbox)
+                layoutCheckBox.setAlignment(Qt.AlignCenter);
+
+                item = model.index(rows, column )
+                self.ui.tableView_2.setIndexWidget(item, self.Checkbox)
+
+        self.ui.tableView_2.setModel(model)
+
     def resizeEvent(self, event):
         tableSize = self.ui.tableView.width()  # Retrieves your QTableView width
         sideHeaderWidth = self.ui.tableView.verticalHeader().width()  # Retrieves the left header width
