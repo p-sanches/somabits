@@ -52,94 +52,90 @@ class StartQT5(QtWidgets.QMainWindow):
         if Checkbox.isChecked():
             self.discovery.register_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
         else:
-            self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != Checkbox.accessibleName()]
-            self.TABLE_INFO.index = self.TABLE_INFO.index + 1  # shifting index
-            self.TABLE_INFO = self.TABLE_INFO.sort_index()  # sorting by index
 
             self.discovery.unregister_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
 
-    def on_device_found(self, zeroconf, service_type, name, state_change):
-        global TABLE_INFO
-        update_tableView = True
+    def handleServiceAdded(self, info, name):
         device_type = []
         device_address = []
         device_range = []
 
+        self.ui.plainTextEdit.appendPlainText(
+            "  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
+        self.ui.plainTextEdit.appendPlainText(
+            "  Weight: %d, priority: %d, ttl: %s" % (info.weight, info.priority, info.ttl))
+        self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
+
+        if info.properties:
+            self.ui.plainTextEdit.appendPlainText("  Properties are:")
+
+            for key, value in info.properties.items():
+                self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
+                key_str = str(key).split("'")[1]
+                device_type.append(key_str)
+                if ":" in str(value):
+                    # the device has sensor values
+                    value_str = str(value).split("'")[1].split(':')
+                    device_address.append(value_str[0])
+                    device_range.append(value_str[1])
+                else:
+                    # the device does not have sensor values
+                    value_str = str(value).split("'")[1]
+                    device_address.append(value_str)
+        else:
+            print("  No properties")
+
+        if (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_INFO["Address"].to_list()):
+
+            if (socket.inet_ntoa(cast(bytes, info.address)) == NeighborDiscovery().get_local_ip()):
+                pass  # ignore own server message
+
+            elif ('Server' in str(info.server)):  # if its a Server side message other than our own
+                self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [
+                    device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
+                if (device_address[1] in self.TABLE_INFO[
+                    "Address"].to_list()):  # If device IP address already exist in TABLE_INFO, remove it
+                    self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
+                    self.model.removeRows(device_address[1])
+
+            elif (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE[
+                "Address"].to_list()):  # If IP address is not in TABLE_NOT_ACCESSIBLE
+                self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
+                    socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
+                    len(device_type), device_type, device_address, device_range, ""]
+
+                self.Checkbox = QtWidgets.QCheckBox(' ')
+                self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
+                self.Checkbox.setAccessibleDescription(name)
+                self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+
+                checkBoxWidget = QtWidgets.QWidget()
+                layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
+                layoutCheckBox.addWidget(self.Checkbox)
+                layoutCheckBox.setAlignment(Qt.AlignCenter);
+
+                item = self.model.index(self.model.rowCount() - 1, self.model.columnCount() - 1)
+                self.ui.tableView.setIndexWidget(item, self.Checkbox)
+
+                self.model.insertRows()
+
+        self.ui.plainTextEdit.appendPlainText('\n')
+
+    def handleServiceRemoved(self, name):
+        pass
+
+
+    def on_device_found(self, zeroconf, service_type, name, state_change):
         self.ui.plainTextEdit.appendPlainText(
             "Service %s of type %s state changed: %s" % (name, service_type, state_change))
 
         if state_change is ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
             if info:
-                self.ui.plainTextEdit.appendPlainText(
-                    "  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
-                self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d, ttl: %s" % (info.weight, info.priority, info.ttl))
-                self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
-
-                if info.properties:
-                    self.ui.plainTextEdit.appendPlainText("  Properties are:")
-
-                    for key, value in info.properties.items():
-                        self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
-                        key_str = str(key).split("'")[1]
-                        device_type.append(key_str)
-                        if ":" in str(value):
-                            # the device has sensor values
-                            value_str = str(value).split("'")[1].split(':')
-                            device_address.append(value_str[0])
-                            device_range.append(value_str[1])
-                        else:
-                            # the device does not have sensor values
-                            value_str = str(value).split("'")[1]
-                            device_address.append(value_str)
-                else:
-                    print("  No properties")
-
-                if (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_INFO["Address"].to_list()):
-
-
-                    if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
-                        pass  # ignore own server message
-
-                    elif('Server' in str(info.server)):  # if its a Server side message other than our own
-                        self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
-                        if (device_address[1] in self.TABLE_INFO["Address"].to_list()): # If device IP address already exist in TABLE_INFO, remove it
-                            self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
-                            self.model.removeRows(device_address[1])
-
-
-
-                    elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()): # If IP address is not in TABLE_NOT_ACCESSIBLE
-                        self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
-                        socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
-                        len(device_type), device_type, device_address, device_range, ""]
-
-
-                        self.Checkbox = QtWidgets.QCheckBox(' ')
-                        self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
-                        self.Checkbox.setAccessibleDescription(name)
-                        self.Checkbox.clicked.connect(self.handleCheckboxClicked)
-
-                        checkBoxWidget = QtWidgets.QWidget()
-                        layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
-                        layoutCheckBox.addWidget(self.Checkbox)
-                        layoutCheckBox.setAlignment(Qt.AlignCenter);
-
-                        item = self.model.index(self.model.rowCount() - 1, self.model.columnCount()-1)
-                        self.ui.tableView.setIndexWidget(item, self.Checkbox)
-
-                        self.model.insertRows()
-                else:
-                    update_tableView = False
-
-            else:
-                print("  No info")
-
-            self.ui.plainTextEdit.appendPlainText('\n')
+                self.handleServiceAdded(info, name)
         elif state_change is ServiceStateChange.Removed:
             print("Service Removed")
-            #self.model.removeRows("192.168.11.172")
-        #print(self.TABLE_INFO)
+            self.handleServiceRemoved(name)
 
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
@@ -164,6 +160,8 @@ class NeighborDiscovery(QtCore.QThread):
         name = service_name.split('.')[0]
         name = NAME + "_" + name
 
+        print(name)
+
         info = ServiceInfo(type_="_osc._udp.local.",
                            name=name + "." + TYPE,
                            address=socket.inet_aton(self.get_local_ip()),
@@ -176,8 +174,11 @@ class NeighborDiscovery(QtCore.QThread):
         print("Registration of a service %s" % (name))
         self.zeroconf.register_service(info)
 
-    def unregister_service(self, ip, name_):
-        name = NAME + "_" + name_
+    def unregister_service(self, ip, service_name):
+        name = NAME + "_" + service_name
+
+        print(name)
+
         info = self.zeroconf.get_service_info(TYPE, name)
         if info:
             self.zeroconf.unregister_service(info)
