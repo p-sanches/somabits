@@ -30,6 +30,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server', 'Device Count', 'Device Type', 'Device Address', 'Device Range', '*'])
+        self.TABLE_NOT_ACCESSIBLE = pd.DataFrame(columns=['Address'])
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
@@ -98,9 +99,17 @@ class StartQT5(QtWidgets.QMainWindow):
 
 
                     if(socket.inet_ntoa(cast(bytes, info.address))== NeighborDiscovery().get_local_ip()):
-                        pass  # ignore own service message
+                        pass  # ignore own server message
 
-                    else:
+                    elif('Server' in str(info.server)):  # if its a Server side message other than our own
+                        self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
+                        if (device_address[1] in self.TABLE_INFO["Address"].to_list()): # If device IP address already exist in TABLE_INFO, remove it
+                            self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
+                            self.model.removeRows(device_address[1])
+
+
+
+                    elif(socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE["Address"].to_list()): # If IP address is not in TABLE_NOT_ACCESSIBLE
                         self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
                         len(device_type), device_type, device_address, device_range, ""]
@@ -251,6 +260,18 @@ class PandasModel(QtCore.QAbstractTableModel):
         self._df.append(self._df.tail(1))
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
+
+    def removeRows(self, row):
+        print("==============")
+        print(self._df)
+        self.layoutAboutToBeChanged.emit()
+        # self._df.drop([row], axis='index')
+        self._df = self._df[self._df['Address'] != row]
+        self._df.reset_index(inplace=True, drop=True)
+        self.layoutChanged.emit()
+        print("--------------")
+        print(self._df)
+        print("==============")
 
 
 if __name__ == "__main__":
