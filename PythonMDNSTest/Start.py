@@ -73,7 +73,7 @@ class StartQT5(QtWidgets.QMainWindow):
             if info:
                 self.ui.plainTextEdit.appendPlainText(
                     "  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
-                self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d" % (info.weight, info.priority))
+                self.ui.plainTextEdit.appendPlainText("  Weight: %d, priority: %d, ttl: %s" % (info.weight, info.priority, info.ttl))
                 self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
 
                 if info.properties:
@@ -137,6 +137,8 @@ class StartQT5(QtWidgets.QMainWindow):
 
             self.ui.plainTextEdit.appendPlainText('\n')
         elif state_change is ServiceStateChange.Removed:
+            pass
+            print("Service Removed")
             #self.model.removeRows("192.168.11.172")
         #print(self.TABLE_INFO)
 
