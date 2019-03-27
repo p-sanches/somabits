@@ -7,9 +7,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal)
 
 
-from PythonMDNSTest.gui import Ui_MainWindow
-from PythonMDNSTest.TableModel import PandasModel
-from PythonMDNSTest.ZeroConf import NeighborDiscovery
+from SomoServer.gui import Ui_MainWindow
+from SomoServer.TableModel import PandasModel
+from SomoServer.ZeroConf import NeighborDiscovery
 
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
