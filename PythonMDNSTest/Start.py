@@ -102,7 +102,6 @@ class StartQT5(QtWidgets.QMainWindow):
         if Checkbox.isChecked():
             self.discovery.register_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
         else:
-
             self.discovery.unregister_service(Checkbox.accessibleName(), Checkbox.accessibleDescription())
 
     def handleServiceAdded(self, info, name):
@@ -191,7 +190,38 @@ class StartQT5(QtWidgets.QMainWindow):
         print(self.TABLE_INFO)
 
     def handleServiceRemoved(self, name):
-        pass
+        if name in self.TABLE_INFO["ServiceName"].to_list():
+            df = self.TABLE_INFO[self.TABLE_INFO["ServiceName"] == name]
+            print(df)
+            device_to_free = [item for sublist in df['Device Address'].to_list() for item in sublist]
+
+            if df["Address"].to_list()[0] == NeighborDiscovery().get_local_ip() and 'Server' in name:
+                # This server has released the device
+                self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isSelected'] = False
+            elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
+                # Another server has released a device
+                self.TABLE_INFO.at[
+                    self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
+
+                # self.Checkbox = QtWidgets.QCheckBox(' ')
+                # self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
+                # self.Checkbox.setAccessibleDescription(info.server)
+                # self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+                #
+                # checkBoxWidget = QtWidgets.QWidget()
+                # layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
+                # layoutCheckBox.addWidget(self.Checkbox)
+                # layoutCheckBox.setAlignment(Qt.AlignCenter);
+                #
+                # item = self.model.index(self.model.rowCount() - 1, self.model.columnCount() - 1)
+                # self.ui.tableView.setIndexWidget(item, self.Checkbox)
+                #
+                # self.model.insertRows()
+            else:
+                # A device has unregistered
+                pass
+            print(df)
+        print(self.TABLE_INFO)
 
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
@@ -229,8 +259,6 @@ class NeighborDiscovery(QtCore.QThread):
         name = service_name.split('.')[0]
         name = NAME + "_" + name
 
-        print(name)
-
         info = ServiceInfo(type_="_osc._udp.local.",
                            name=name + "." + TYPE,
                            address=socket.inet_aton(self.get_local_ip()),
@@ -245,9 +273,7 @@ class NeighborDiscovery(QtCore.QThread):
         print("Registration of a service %s" % (name))
 
     def unregister_service(self, ip, service_name):
-        name = NAME + "_" + service_name
-
-        print(name)
+        name = NAME + "_" + service_name.split(".")[0] + "." + TYPE
 
         info = self.zeroconf.get_service_info(TYPE, name)
         if info:
