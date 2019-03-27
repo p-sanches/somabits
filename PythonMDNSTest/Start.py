@@ -42,7 +42,13 @@ class StartQT5(QtWidgets.QMainWindow):
     def start_forwarding(self):
 
         sensors = []
+        sensors_IP = []
+        sensors_Port = []
+        sensors_Range = []
         actuators = []
+        actuators_IP = []
+        actuators_Port = []
+        actuators_Range = []
         forward_table=pd.DataFrame()
         for rows in range(len(self.TABLE_INFO)):
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
@@ -50,8 +56,14 @@ class StartQT5(QtWidgets.QMainWindow):
                 if(self.TABLE_INFO.iloc[rows]['isSelected']==True):
                     if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
                         sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+                        sensors_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
+                        sensors_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
+                        sensors_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'])
                     else:
                         actuators.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+                        actuators_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
+                        actuators_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
+                        actuators_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'])
 
         forward_table = pd.DataFrame(index=sensors,columns=actuators)
         model=PandasModel(forward_table)
