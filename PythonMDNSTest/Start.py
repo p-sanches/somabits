@@ -30,12 +30,14 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
-        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Server', 'Device Count', 'Device Type', 'Device Address', 'Device Range', '*'])
-        self.TABLE_NOT_ACCESSIBLE = pd.DataFrame(columns=['Address'])
+        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'isSelected','isServer', 'isTaken', '*'])
+        #self.TABLE_NOT_ACCESSIBLE = pd.DataFrame(columns=['Address'])
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
-        #self.ui.tableView.hideColumn(0)
+        self.ui.tableView.hideColumn(7)
+        self.ui.tableView.hideColumn(8)
+        self.ui.tableView.hideColumn(9)
 
     def start_forwarding(self):
 
@@ -96,8 +98,10 @@ class StartQT5(QtWidgets.QMainWindow):
         device_address = []
         device_range = []
 
+        device_ip = socket.inet_ntoa(cast(bytes, info.address))
+
         self.ui.plainTextEdit.appendPlainText(
-            "  Address: %s:%d" % (socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port)))
+            "  Address: %s:%d" % (device_ip, cast(int, info.port)))
         self.ui.plainTextEdit.appendPlainText(
             "  Weight: %d, priority: %d, ttl: %s" % (info.weight, info.priority, info.ttl))
         self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
@@ -119,26 +123,35 @@ class StartQT5(QtWidgets.QMainWindow):
                     value_str = str(value).split("'")[1]
                     device_address.append(value_str)
         else:
-            print("  No properties")
+            self.ui.plainTextEdit.appendPlainText("  No properties")
 
-        if (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_INFO["Address"].to_list()):
+        if device_ip not in self.TABLE_INFO["Address"].to_list():
+            # The IP is not in TABLE_INFO yet
 
-            if (socket.inet_ntoa(cast(bytes, info.address)) == NeighborDiscovery().get_local_ip()):
-                pass  # ignore own server message
+            if device_ip == NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
+                # It is a message from this server
+                # Mark the entry of the specific device as selected
+                self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin(device_address)].tolist()[0], 'isSelected'] = True
+            elif device_ip != NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
+                # It is a message from another server
+                # Mark the entry of the specific device as taken
+                self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin(device_address)].tolist()[0], 'isTaken'] = True
+                # and update TableView
+                self.model.removeRows(device_address[1])
 
-            elif ('Server' in str(info.server)):  # if its a Server side message other than our own
-                self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [
-                    device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
-                if (device_address[1] in self.TABLE_INFO[
-                    "Address"].to_list()):  # If device IP address already exist in TABLE_INFO, remove it
-                    self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
-                    self.model.removeRows(device_address[1])
+            #elif ('Server' in str(info.server)):  # if its a Server side message other than our own
+                # self.TABLE_NOT_ACCESSIBLE.loc[len(self.TABLE_NOT_ACCESSIBLE)] = [
+                #     device_address[1]]  # Add connected device IP address to TABLE_NOT_ACCESSIBLE
+                # if (device_address[1] in self.TABLE_INFO["Address"].to_list()):  # If device IP address already exist in TABLE_INFO, remove it
+                #     self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO["Address"] != device_address[1]]
+                #     self.model.removeRows(device_address[1])
 
-            elif (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE[
-                "Address"].to_list()):  # If IP address is not in TABLE_NOT_ACCESSIBLE
+            #elif (socket.inet_ntoa(cast(bytes, info.address)) not in self.TABLE_NOT_ACCESSIBLE[
+                #"Address"].to_list()):  # If IP address is not in TABLE_NOT_ACCESSIBLE
+            else:
                 self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
-                    socket.inet_ntoa(cast(bytes, info.address)), cast(int, info.port), info.server,
-                    len(device_type), device_type, device_address, device_range, ""]
+                    device_ip, cast(int, info.port), info.server,
+                    len(device_type), device_type, device_address, device_range, False, False, False, ""]
 
                 self.Checkbox = QtWidgets.QCheckBox(' ')
                 self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
@@ -156,6 +169,8 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.model.insertRows()
 
         self.ui.plainTextEdit.appendPlainText('\n')
+
+        print(self.TABLE_INFO)
 
     def handleServiceRemoved(self, name):
         pass
@@ -207,8 +222,9 @@ class NeighborDiscovery(QtCore.QThread):
                            properties=TXT_record,
                            server=name + ".local.")
 
-        print("Registration of a service %s" % (name))
+
         self.zeroconf.register_service(info)
+        print("Registration of a service %s" % (name))
 
     def unregister_service(self, ip, service_name):
         name = NAME + "_" + service_name
