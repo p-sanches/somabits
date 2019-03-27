@@ -29,6 +29,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host Name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'ServiceName','isSelected','isServer', 'isTaken', '*'])
+        self.TABLE_FORWARDING = pd.DataFrame(columns=['Sensor Address', 'Sensor IP', 'Sensor Port', 'Sensor Range', 'Actuator Address', 'Actuator IP', 'Actuator Port','Actuator Range'])
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
@@ -38,7 +39,19 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.hideColumn(10)
 
     def ForwardCheckboxClicked(self):
-        pass
+        Checkbox = QtWidgets.qApp.focusWidget()
+        if Checkbox.isChecked():
+            sensors,sensors_IP,sensors_Port,sensors_Range = str(Checkbox.accessibleName()).split(":")
+            actuators, actuators_IP, actuators_Port, actuators_Range = str(Checkbox.accessibleDescription()).split(":")
+            self.TABLE_FORWARDING.loc[len(self.TABLE_FORWARDING)] =[sensors,sensors_IP,sensors_Port,sensors_Range,actuators, actuators_IP, actuators_Port, actuators_Range]
+            print(self.TABLE_FORWARDING)
+        else:
+            sensors, sensors_IP, sensors_Port, sensors_Range = str(Checkbox.accessibleName()).split(":")
+            actuators, actuators_IP, actuators_Port, actuators_Range = str(Checkbox.accessibleDescription()).split(":")
+            indexNames = self.TABLE_FORWARDING[(self.TABLE_FORWARDING['Sensor Address'] == sensors) & (self.TABLE_FORWARDING['Sensor IP'] == sensors_IP) & (self.TABLE_FORWARDING['Sensor Port'] == sensors_Port) & (self.TABLE_FORWARDING['Sensor Range'] == sensors_Range) & (self.TABLE_FORWARDING['Actuator Address'] == actuators) & (self.TABLE_FORWARDING['Actuator IP'] == actuators_IP) & (self.TABLE_FORWARDING['Actuator Port'] == actuators_Port) & (self.TABLE_FORWARDING['Actuator Range'] == actuators_Range)].index
+            self.TABLE_FORWARDING.drop(indexNames, inplace=True)
+            print(self.TABLE_FORWARDING)
+
 
     def start_forwarding(self):
 
@@ -59,12 +72,12 @@ class StartQT5(QtWidgets.QMainWindow):
                         sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
                         sensors_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
                         sensors_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
-                        sensors_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'])
+                        sensors_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'][devices])
                     else:
                         actuators.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
                         actuators_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
                         actuators_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
-                        actuators_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'])
+                        actuators_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'][devices])
 
         forward_table = pd.DataFrame(index=sensors,columns=actuators)
         model=PandasModel(forward_table)
@@ -75,8 +88,8 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.Checkbox = QtWidgets.QCheckBox(' ')
                 sensor_data = str(sensors[rows]) + ':' + str(sensors_IP[rows]) + ':' + str(sensors_Port[rows]) + ':' + str(sensors_Range[
                     rows])
-                actuator_data = str(actuators[rows]) + ':' + str(actuators_IP[rows]) + ':' + str(actuators_Port[rows]) + ':' + str(actuators_Range[
-                    rows])
+                actuator_data = str(actuators[column]) + ':' + str(actuators_IP[column]) + ':' + str(actuators_Port[column]) + ':' + str(actuators_Range[
+                    column])
                 self.Checkbox.setAccessibleName(sensor_data)
                 self.Checkbox.setAccessibleDescription(actuator_data)
                 self.Checkbox.clicked.connect(self.ForwardCheckboxClicked)
