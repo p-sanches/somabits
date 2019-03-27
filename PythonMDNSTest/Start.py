@@ -44,10 +44,12 @@ class StartQT5(QtWidgets.QMainWindow):
         forward_table=pd.DataFrame()
         for rows in range(len(self.TABLE_INFO)):
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
-                if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
-                    sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
-                else:
-                    actuators.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+
+                if(True):
+                    if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
+                        sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+                    else:
+                        actuators.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
 
         forward_table = pd.DataFrame(index=sensors,columns=actuators)
         model=PandasModel(forward_table)
