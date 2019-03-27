@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(888, 647)
+        MainWindow.resize(1114, 647)
         MainWindow.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0.466, y1:0, x2:0.46, y2:1, stop:0 rgba(82, 175, 210, 255), stop:1 rgba(23, 51, 61, 255));")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -43,10 +43,18 @@ class Ui_MainWindow(object):
         self.plainTextEdit.setObjectName("plainTextEdit")
         self.gridLayout.addWidget(self.plainTextEdit, 7, 0, 1, 1)
         self.tableView = QtWidgets.QTableView(self.tab)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
+        self.tableView.setSizePolicy(sizePolicy)
         self.tableView.setStyleSheet("background-color: rgb(214, 214, 214);\n"
 "font: 9pt \"MS Shell Dlg 2\";\n"
 "border-color: rgb(0, 0, 0);")
+        self.tableView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.tableView.setObjectName("tableView")
+        self.tableView.horizontalHeader().setDefaultSectionSize(130)
+        self.tableView.horizontalHeader().setMinimumSectionSize(130)
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.gridLayout.addWidget(self.tableView, 5, 0, 1, 1)
         self.label = QtWidgets.QLabel(self.tab)

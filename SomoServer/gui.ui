@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>888</width>
+    <width>1114</width>
     <height>647</height>
    </rect>
   </property>
@@ -70,11 +70,26 @@ color: rgb(255, 255, 255);</string>
         </item>
         <item row="5" column="0">
          <widget class="QTableView" name="tableView">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="styleSheet">
            <string notr="true">background-color: rgb(214, 214, 214);
 font: 9pt &quot;MS Shell Dlg 2&quot;;
 border-color: rgb(0, 0, 0);</string>
           </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>130</number>
+          </attribute>
+          <attribute name="horizontalHeaderMinimumSectionSize">
+           <number>130</number>
+          </attribute>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
