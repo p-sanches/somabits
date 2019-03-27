@@ -202,6 +202,10 @@ class StartQT5(QtWidgets.QMainWindow):
                 # Another server has released a device
                 self.TABLE_INFO.at[
                     self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
+                # Remove server from TABLE_INFO
+                self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['Address'] != df["Address"].to_list()[0]]
+
+
 
                 # self.Checkbox = QtWidgets.QCheckBox(' ')
                 # self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
@@ -220,7 +224,6 @@ class StartQT5(QtWidgets.QMainWindow):
             else:
                 # A device has unregistered
                 pass
-            print(df)
         print(self.TABLE_INFO)
 
 
@@ -259,7 +262,7 @@ class NeighborDiscovery(QtCore.QThread):
         name = service_name.split('.')[0]
         name = NAME + "_" + name
 
-        info = ServiceInfo(type_="_osc._udp.local.",
+        info = ServiceInfo(type_=TYPE,
                            name=name + "." + TYPE,
                            address=socket.inet_aton(self.get_local_ip()),
                            port=80,
