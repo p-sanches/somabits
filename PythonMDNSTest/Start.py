@@ -152,37 +152,41 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                     device_ip, cast(int, info.port), info.server,
                     len(device_type), device_type, device_address, device_range, name, False, True, False, ""]
+                self.model.removeRows(device_ip)
                 # Mark the entry of the specific device as taken
                 # First check, if the entry exists
                 if device_address[1] in self.TABLE_INFO["Address"].to_list():
-                        self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
-                else:
-                    # TODO: NOT sure what to do, but we should do something :)
-                    pass
-                # and update TableView
-                self.model.removeRows(device_address[1])
+                    self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
+                    self.model.removeRows(device_address[1])
 
             else:
-                self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
-                    device_ip, cast(int, info.port), info.server,
-                    len(device_type), device_type, device_address, device_range, name, False, False, False, ""]
+                # Check if a server has already announced to allocate the device
+                flat_device_address_list = [item for sublist in self.TABLE_INFO['Device Address'].to_list() for item in sublist]
 
-                self.Checkbox = QtWidgets.QCheckBox(' ')
-                self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
-                self.Checkbox.setAccessibleDescription(info.server)
-                self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+                if device_ip in flat_device_address_list:
+                    self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
+                        device_ip, cast(int, info.port), info.server,
+                        len(device_type), device_type, device_address, device_range, name, False, False, True, ""]
 
-                checkBoxWidget = QtWidgets.QWidget()
-                layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
-                layoutCheckBox.addWidget(self.Checkbox)
-                layoutCheckBox.setAlignment(Qt.AlignCenter);
+                else:
+                    self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
+                        device_ip, cast(int, info.port), info.server,
+                        len(device_type), device_type, device_address, device_range, name, False, False, False, ""]
 
-                item = self.model.index(self.model.rowCount() - 1, self.model.columnCount() - 1)
-                self.ui.tableView.setIndexWidget(item, self.Checkbox)
+                    self.Checkbox = QtWidgets.QCheckBox(' ')
+                    self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
+                    self.Checkbox.setAccessibleDescription(info.server)
+                    self.Checkbox.clicked.connect(self.handleCheckboxClicked)
 
-                self.model.insertRows()
+                    checkBoxWidget = QtWidgets.QWidget()
+                    layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
+                    layoutCheckBox.addWidget(self.Checkbox)
+                    layoutCheckBox.setAlignment(Qt.AlignCenter);
 
+                    item = self.model.index(self.model.rowCount() - 1, self.model.columnCount() - 1)
+                    self.ui.tableView.setIndexWidget(item, self.Checkbox)
 
+                    self.model.insertRows()
 
         print(self.TABLE_INFO)
 
