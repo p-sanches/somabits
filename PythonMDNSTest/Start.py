@@ -30,7 +30,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
-        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'isSelected','isServer', 'isTaken', '*'])
+        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host Name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'isSelected','isServer', 'isTaken', '*'])
         #self.TABLE_NOT_ACCESSIBLE = pd.DataFrame(columns=['Address'])
 
         self.model = PandasModel(self.TABLE_INFO)
@@ -47,7 +47,7 @@ class StartQT5(QtWidgets.QMainWindow):
         for rows in range(len(self.TABLE_INFO)):
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
 
-                if(True):
+                if(self.TABLE_INFO.iloc[rows]['isSelected']==True):
                     if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
                         sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
                     else:
