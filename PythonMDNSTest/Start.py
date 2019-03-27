@@ -30,8 +30,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
-        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'ServiceName','isSelected','isServer', 'isTaken', '*'])
-        #self.TABLE_NOT_ACCESSIBLE = pd.DataFrame(columns=['Address'])
+        self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host Name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'ServiceName','isSelected','isServer', 'isTaken', '*'])
 
         self.model = PandasModel(self.TABLE_INFO)
         self.ui.tableView.setModel(self.model)
@@ -43,14 +42,28 @@ class StartQT5(QtWidgets.QMainWindow):
     def start_forwarding(self):
 
         sensors = []
+        sensors_IP = []
+        sensors_Port = []
+        sensors_Range = []
         actuators = []
+        actuators_IP = []
+        actuators_Port = []
+        actuators_Range = []
         forward_table=pd.DataFrame()
         for rows in range(len(self.TABLE_INFO)):
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
-                if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
-                    sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
-                else:
-                    actuators.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+
+                if(self.TABLE_INFO.iloc[rows]['isSelected']==True):
+                    if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
+                        sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+                        sensors_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
+                        sensors_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
+                        sensors_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'])
+                    else:
+                        actuators.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
+                        actuators_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
+                        actuators_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
+                        actuators_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'])
 
         forward_table = pd.DataFrame(index=sensors,columns=actuators)
         model=PandasModel(forward_table)
