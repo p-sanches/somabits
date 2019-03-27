@@ -122,6 +122,18 @@ color: rgb(255, 255, 255);
           </property>
          </widget>
         </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(124, 124, 124);
+font: 63 10pt &quot;Adobe Fan Heiti Std B&quot;;
+color: rgb(255, 255, 255);</string>
+          </property>
+          <property name="text">
+           <string>Start OSC Service</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tab_3">

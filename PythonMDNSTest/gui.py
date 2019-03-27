@@ -72,6 +72,12 @@ class Ui_MainWindow(object):
         self.tableView_2.setStyleSheet("background-color: rgb(232, 232, 232);")
         self.tableView_2.setObjectName("tableView_2")
         self.gridLayout_3.addWidget(self.tableView_2, 0, 0, 1, 1)
+        self.pushButton = QtWidgets.QPushButton(self.tab_2)
+        self.pushButton.setStyleSheet("background-color: rgb(124, 124, 124);\n"
+"font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
+"color: rgb(255, 255, 255);")
+        self.pushButton.setObjectName("pushButton")
+        self.gridLayout_3.addWidget(self.pushButton, 1, 0, 1, 1)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap("resx/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.tabWidget.addTab(self.tab_2, icon1, "")
@@ -94,6 +100,7 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "For Debugging only"))
         self.discover_button.setText(_translate("MainWindow", "Discover"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Control"))
+        self.pushButton.setText(_translate("MainWindow", "Start OSC Service"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Forwarding"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Applications"))
 

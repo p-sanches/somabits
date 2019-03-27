@@ -39,6 +39,9 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.hideColumn(9)
         self.ui.tableView.hideColumn(10)
 
+    def ForwardCheckboxClicked(self):
+        pass
+
     def start_forwarding(self):
 
         sensors = []
@@ -72,9 +75,13 @@ class StartQT5(QtWidgets.QMainWindow):
         for rows in range(model.rowCount()):
             for column in range(model.columnCount()):
                 self.Checkbox = QtWidgets.QCheckBox(' ')
-                self.Checkbox.setAccessibleName('hello')
-                self.Checkbox.setAccessibleDescription('hello')
-                self.Checkbox.clicked.connect(self.handleCheckboxClicked)
+                sensor_data = str(sensors[rows]) + ':' + str(sensors_IP[rows]) + ':' + str(sensors_Port[rows]) + ':' + str(sensors_Range[
+                    rows])
+                actuator_data = str(actuators[rows]) + ':' + str(actuators_IP[rows]) + ':' + str(actuators_Port[rows]) + ':' + str(actuators_Range[
+                    rows])
+                self.Checkbox.setAccessibleName(sensor_data)
+                self.Checkbox.setAccessibleDescription(actuator_data)
+                self.Checkbox.clicked.connect(self.ForwardCheckboxClicked)
 
                 checkBoxWidget = QtWidgets.QWidget()
                 layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
