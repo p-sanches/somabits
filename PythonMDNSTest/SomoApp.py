@@ -20,7 +20,6 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 
-
 class StartQT5(QtWidgets.QMainWindow):
     def __init__(self):
         super(StartQT5, self).__init__()
