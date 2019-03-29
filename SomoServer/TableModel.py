@@ -7,6 +7,8 @@ class PandasModel(QtCore.QAbstractTableModel):
     # parameters: value (bool), ip (str), host (str)
     pandas_signal = QtCore.pyqtSignal(object, object, object)
 
+    # TODO: Mark rows as hidden
+
     def __init__(self, df = pd.DataFrame(), parent=None, checkbox=None, signal_values_of_interest=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._df = df
@@ -34,6 +36,10 @@ class PandasModel(QtCore.QAbstractTableModel):
                 return self._df.index.tolist()[section]
             except (IndexError, ):
                 return QtCore.QVariant()
+
+    def update(self):
+        print(self._df)
+        self.layoutChanged.emit()
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if role != QtCore.Qt.DisplayRole:
@@ -81,8 +87,6 @@ class PandasModel(QtCore.QAbstractTableModel):
     def dataChanged(self, index, value, role=QtCore.Qt.DisplayRole):
         row = self._df.index[index.row()]
         if self.signal_values_of_interest is not None:
-            print(self._df.loc[row, self.signal_values_of_interest[0]])
-            print(self._df.loc[row, self.signal_values_of_interest[1]])
             self.pandas_signal.emit(value, self._df.loc[row, self.signal_values_of_interest[0]], self._df.loc[row, self.signal_values_of_interest[1]])
 
     def flags(self, index):

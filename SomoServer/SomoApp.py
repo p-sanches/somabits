@@ -121,8 +121,6 @@ class StartQT5(QtWidgets.QMainWindow):
         super(StartQT5, self).resizeEvent(event)  # Restores the original behaviour of the resize event
 
     def handleCheckboxClicked(self, value, ip, host):
-        print(value)
-
         if value is 1:
             self.discovery.register_service(ip, host)
         elif value is 0:
@@ -170,6 +168,8 @@ class StartQT5(QtWidgets.QMainWindow):
                     len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
                 # Mark the entry of the specific device as selected
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isSelected'] = True
+                self.model.update()
+                self.ui.tableView.setRowHidden(self.model.rowCount() - 1, True)
             elif device_ip != NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
                 # It is a message from another server
                 self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
@@ -181,6 +181,8 @@ class StartQT5(QtWidgets.QMainWindow):
                 if device_address[1] in self.TABLE_INFO["Address"].to_list():
                     self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
                     self.model.removeRows(device_address[1])
+                self.model.update()
+                self.ui.tableView.setRowHidden(self.model.rowCount() - 1, True)
 
             else:
                 # Check if a server has already announced to allocate the device
@@ -193,39 +195,12 @@ class StartQT5(QtWidgets.QMainWindow):
                         len(device_type), device_type, device_address, device_range, name, False, False, True, 0]
 
                 else:
-                    #ds = {'Address': device_ip, 'Port': cast(int, info.port), 'Host Name': info.server, 'Device Count': len(device_type), 'Device Type': device_type, 'Device Address': device_address, 'Device Range': device_range, 'ServiceName': name, 'isSelected': False, 'isServer': False, 'isTaken': False, '*': False}
-                    #self.TABLE_INFO.append(ds, ignore_index=True)
-                    #self.TABLE_INFO.append(ds, ignore_index=True)
                     ds = [device_ip, cast(int, info.port), info.server, len(device_type), device_type, device_address, device_range, name, False, False, False, 0]
                     self.TABLE_INFO.loc[len(self.TABLE_INFO)] = ds
-                    #self.ui.tableView.openPersistentEditor(self.model.index(self.model.rowCount(), 11))
-                    #self.TABLE_INFO.loc[len(self.TABLE_INFO)] = ds#[
-                        #device_ip, cast(int, info.port), info.server,
-                        #len(device_type), device_type, device_address, device_range, name, False, False, False, False]
 
-                    # self.Checkbox = QtWidgets.QCheckBox(' ')
-                    # self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
-                    # self.Checkbox.setAccessibleDescription(info.server)
-                    # self.Checkbox.clicked.connect(self.handleCheckboxClicked)
-                    #
-                    # checkBoxWidget = QtWidgets.QWidget()
-                    # layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
-                    # layoutCheckBox.addWidget(self.Checkbox)
-                    # layoutCheckBox.setAlignment(Qt.AlignCenter);
-                    #
-                    # item = self.model.index(self.model.rowCount() - 1, self.model.columnCount() - 1)
-                    # self.ui.tableView.setIndexWidget(item, self.Checkbox)
-                    #for i, cell in enumerate(ds):
-                    #    print(i)
-                    #    print(cell)
-                    #    print(self.model.rowCount())
-                    #    index = self.model.index(self.model.rowCount(), i, QModelIndex())
-                    #    self.model.setData(index, cell)
-                    #self.model.layoutChanged().emit()
-                    self.model.insertRows(ds)
-                    #self.ui.tableView.openPersistentEditor(self.model.index(self.model.rowCount(), 11))
+                self.model.update()
 
-        print(self.TABLE_INFO)
+        #print(self.TABLE_INFO)
 
     def handleServiceRemoved(self, name):
         if name in self.TABLE_INFO["ServiceName"].to_list():
@@ -236,12 +211,18 @@ class StartQT5(QtWidgets.QMainWindow):
             if df["Address"].to_list()[0] == NeighborDiscovery().get_local_ip() and 'Server' in name:
                 # This server has released the device
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isSelected'] = False
+                # Delete the service
+                self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['ServiceName'] != name]
+                self.model.update()
             elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
                 # Another server has released a device
                 self.TABLE_INFO.at[
                     self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
                 # Remove server from TABLE_INFO
-                self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['Address'] != df["Address"].to_list()[0]]
+                #self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['Address'] != df["Address"].to_list()[0]]
+                self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['ServiceName'] != name]
+                self.model.update()
+
 
 
                 # self.Checkbox = QtWidgets.QCheckBox(' ')
