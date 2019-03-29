@@ -120,6 +120,30 @@ class StartQT5(QtWidgets.QMainWindow):
                                      int(tableSize / numberOfColumns))  # Set the width = tableSize / nbColumns
         super(StartQT5, self).resizeEvent(event)  # Restores the original behaviour of the resize event
 
+    def update_view(self):
+        self.model.update()
+        for row in range(self.model.rowCount()):
+            self.ui.tableView.setRowHidden(row, False)
+
+        df = self.TABLE_INFO[self.TABLE_INFO["isServer"] == True]
+        rows_to_hide = df.index.values.tolist()
+        df = self.TABLE_INFO[self.TABLE_INFO["isTaken"] == True]
+        rows_to_hide.append(df.index.values.tolist())
+
+        comps = []
+        for sublist in rows_to_hide:
+            if type(sublist) is list:
+                for item in sublist:
+                    comps.append(item)
+            else:
+                comps.append(sublist)
+
+        if len(comps) > 0:
+            for row in comps:
+                self.ui.tableView.setRowHidden(row, True)
+        self.model.update()
+
+
     def handleCheckboxClicked(self, value, ip, host):
         if value is 1:
             self.discovery.register_service(ip, host)
@@ -168,22 +192,15 @@ class StartQT5(QtWidgets.QMainWindow):
                     len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
                 # Mark the entry of the specific device as selected
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isSelected'] = True
-                self.model.update()
-                self.ui.tableView.setRowHidden(self.model.rowCount() - 1, True)
             elif device_ip != NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
                 # It is a message from another server
                 self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                     device_ip, cast(int, info.port), info.server,
                     len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
-                #self.model.removeRows(device_ip)
                 # Mark the entry of the specific device as taken
                 # First check, if the entry exists
                 if device_address[1] in self.TABLE_INFO["Address"].to_list():
                     self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
-                    #self.model.removeRows(device_address[1])
-                    self.model.update()
-                    self.ui.tableView.setRowHidden(self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], True)
-
             else:
                 # Check if a server has already announced to allocate the device
                 flat_device_address_list = [item for sublist in self.TABLE_INFO['Device Address'].to_list() for item in sublist]
@@ -197,15 +214,11 @@ class StartQT5(QtWidgets.QMainWindow):
                 else:
                     ds = [device_ip, cast(int, info.port), info.server, len(device_type), device_type, device_address, device_range, name, False, False, False, 0]
                     self.TABLE_INFO.loc[len(self.TABLE_INFO)] = ds
-
-                self.model.update()
-
-        #print(self.TABLE_INFO)
+        self.update_view()
 
     def handleServiceRemoved(self, name):
         if name in self.TABLE_INFO["ServiceName"].to_list():
             df = self.TABLE_INFO[self.TABLE_INFO["ServiceName"] == name]
-            print(df)
             device_to_free = [item for sublist in df['Device Address'].to_list() for item in sublist]
 
             if df["Address"].to_list()[0] == NeighborDiscovery().get_local_ip() and 'Server' in name:
@@ -213,40 +226,17 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isSelected'] = False
                 # Delete the service
                 self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['ServiceName'] != name]
-                self.model.update()
             elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
 
                 # Another server has released a device
                 self.TABLE_INFO.at[
                     self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
                 # Remove server from TABLE_INFO
-                #self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['Address'] != df["Address"].to_list()[0]]
-                self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['ServiceName'] != name]
-                self.ui.tableView.setRowHidden(self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], False)
-                self.model.update()
-
-
-
-                # self.Checkbox = QtWidgets.QCheckBox(' ')
-                # self.Checkbox.setAccessibleName(socket.inet_ntoa(cast(bytes, info.address)))
-                # self.Checkbox.setAccessibleDescription(info.server)
-                # self.Checkbox.clicked.connect(self.handleCheckboxClicked)
-                #
-                # checkBoxWidget = QtWidgets.QWidget()
-                # layoutCheckBox = QtWidgets.QHBoxLayout(checkBoxWidget)
-                # layoutCheckBox.addWidget(self.Checkbox)
-                # layoutCheckBox.setAlignment(Qt.AlignCenter);
-                #
-                # item = self.model.index(self.model.rowCount() - 1, self.model.columnCount() - 1)
-                # self.ui.tableView.setIndexWidget(item, self.Checkbox)
-                #
-                # self.model.insertRows()
+                self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
             else:
                 # A device has unregistered
                 pass
-        print(self.TABLE_INFO)
-        #self.model.removeRows(df)
-
+        self.update_view()
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
         self.ui.plainTextEdit.appendPlainText(
