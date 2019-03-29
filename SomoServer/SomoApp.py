@@ -181,8 +181,8 @@ class StartQT5(QtWidgets.QMainWindow):
                 if device_address[1] in self.TABLE_INFO["Address"].to_list():
                     self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
                     #self.model.removeRows(device_address[1])
-                self.model.update()
-                self.ui.tableView.setRowHidden(self.model.rowCount() - 1, True)
+                    self.model.update()
+                    self.ui.tableView.setRowHidden(self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], True)
 
             else:
                 # Check if a server has already announced to allocate the device
@@ -222,6 +222,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 # Remove server from TABLE_INFO
                 #self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['Address'] != df["Address"].to_list()[0]]
                 self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['ServiceName'] != name]
+                self.ui.tableView.setRowHidden(self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], False)
                 self.model.update()
 
 
