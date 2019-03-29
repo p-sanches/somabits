@@ -175,12 +175,12 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                     device_ip, cast(int, info.port), info.server,
                     len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
-                self.model.removeRows(device_ip)
+                #self.model.removeRows(device_ip)
                 # Mark the entry of the specific device as taken
                 # First check, if the entry exists
                 if device_address[1] in self.TABLE_INFO["Address"].to_list():
                     self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
-                    self.model.removeRows(device_address[1])
+                    #self.model.removeRows(device_address[1])
                 self.model.update()
                 self.ui.tableView.setRowHidden(self.model.rowCount() - 1, True)
 
@@ -215,6 +215,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['ServiceName'] != name]
                 self.model.update()
             elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
+
                 # Another server has released a device
                 self.TABLE_INFO.at[
                     self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
