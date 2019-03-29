@@ -40,7 +40,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.hideColumn(8)
         self.ui.tableView.hideColumn(9)
         self.ui.tableView.hideColumn(10)
-        delegate = CheckBoxDelegate(self.model)
+        delegate = CheckBoxDelegate(self)
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
 
     def ForwardCheckboxClicked(self):

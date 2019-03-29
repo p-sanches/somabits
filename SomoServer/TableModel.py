@@ -37,10 +37,12 @@ class PandasModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant
+            return QtCore.QVariant()
+
         if not index.isValid():
             return QtCore.QVariant()
-        return QtCore.QVariant('{0}'.format(self._df.ix[index.row(), index.column()]))
+
+        return QtCore.QVariant(str(self._df.ix[index.row(), index.column()]))
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         row = self._df.index[index.row()]
@@ -48,11 +50,6 @@ class PandasModel(QtCore.QAbstractTableModel):
         if self.checkbox_column is not None:
             if index.column() == self.checkbox_column:
                 self.dataChanged(index, value)
-                # if value == 0:
-                #     self._df.at[row, 'isSelected'] = False
-                # else:
-                #     self._df.at[row, 'isSelected'] = True
-
         self._df.at[row, col] = value
         return True
 
@@ -94,6 +91,8 @@ class PandasModel(QtCore.QAbstractTableModel):
                 return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled
             else:
                 return QtCore.Qt.ItemIsEnabled
+        else:
+            return QtCore.Qt.ItemIsSelectable
 
 
 class CheckBoxDelegate(QtWidgets.QItemDelegate):
@@ -117,7 +116,9 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
         check_box_style_option.rect = self.getCheckBoxRect(option)
 
         self.drawCheck(painter, check_box_style_option, check_box_style_option.rect, QtCore.Qt.Unchecked if int(index.data()) == 0 else QtCore.Qt.Checked)
-        self.drawFocus(painter, option, option.rect)
+        #self.drawCheck(painter, option, option.rect, QtCore.Qt.Unchecked if int(index.data()) == 0 else QtCore.Qt.Checked)
+
+        #self.drawFocus(painter, option, option.rect)
 
     def editorEvent(self, event, model, option, index):
         """
