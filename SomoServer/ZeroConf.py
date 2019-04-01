@@ -16,7 +16,7 @@ class NeighborDiscovery(QtCore.QThread):
     def __init__(self):
         QtCore.QThread.__init__(self)
         self.zeroconf = Zeroconf()
-        self.browser = ServiceBrowser(self.zeroconf, TYPE, handlers=[self.on_service_state_change])
+        self.browser = ServiceBrowser(self.zeroconf, TYPE, handlers=[self.on_service_state_change], delay=60)
 
     def on_service_state_change(self,zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange, ) -> None:
         self.neighbor_signal.emit(zeroconf, service_type, name, state_change)
@@ -41,7 +41,7 @@ class NeighborDiscovery(QtCore.QThread):
             print(e)
 
         try:
-            self.zeroconf.register_service(info)
+            self.zeroconf.register_service(info, allow_name_change=False)
         except self.zeroconf.NonUniqueNameException as e:
             print(e)
         else:

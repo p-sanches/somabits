@@ -142,7 +142,6 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.ui.tableView.setRowHidden(row, True)
         self.model.update()
 
-
     def handleCheckboxClicked(self, value, ip, host):
         if value is 1:
             self.discovery.register_service(ip, host)
@@ -188,9 +187,10 @@ class StartQT5(QtWidgets.QMainWindow):
                 # It is a service from this server
                 # Check if service already exists (happens if two users click on the same device at the same time)
                 if info.server in self.TABLE_INFO['Host Name'].to_list():
+                    # This should not have happend. We have two services with the same name
+                    #self.discovery.unregister_service(device_ip, info.server)
                     self.ui.plainTextEdit.appendPlainText(
                         "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
-                    self.discovery.unregister_service(device_ip, info.server)
                 else:
                     self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         device_ip, cast(int, info.port), info.server,
@@ -201,9 +201,9 @@ class StartQT5(QtWidgets.QMainWindow):
                 # It is a message from another server
                 # Check if service already exists (happens if two users click on the same device at the same time)
                 if info.server in self.TABLE_INFO['Host Name'].to_list():
+                    #self.discovery.unregister_service(device_ip, info.server)
                     self.ui.plainTextEdit.appendPlainText(
                         "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
-                    self.discovery.unregister_service(device_ip, info.server)
                 else:
                     self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         device_ip, cast(int, info.port), info.server,
@@ -233,6 +233,8 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.ui.plainTextEdit.appendPlainText(
                     "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
                 self.discovery.unregister_service(device_ip, info.server)
+            else:
+                print("[WARNING] Either IP or Service are in TABLE_INFO, but not the host name: %s" % (info.server))
         self.update_view()
 
     def handleServiceRemoved(self, name):
@@ -256,7 +258,8 @@ class StartQT5(QtWidgets.QMainWindow):
 
             else:
                 # A device has unregistered
-                pass
+                print("[WARNING] A device has unregistered")
+                #pass
         self.update_view()
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
