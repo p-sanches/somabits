@@ -72,17 +72,17 @@ class PandasModel(QtCore.QAbstractTableModel):
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
 
-    def insertRows(self, ds):
-        self.layoutAboutToBeChanged.emit()
-        #self._df.append(ds, ignore_index=True)
-        #self._df.reset_index(inplace=True, drop=True)
-        self.layoutChanged.emit()
+    # def insertRows(self, ds):
+    #     self.layoutAboutToBeChanged.emit()
+    #     #self._df.append(ds, ignore_index=True)
+    #     #self._df.reset_index(inplace=True, drop=True)
+    #     self.layoutChanged.emit()
 
-    def removeRows(self, row):
-        self.layoutAboutToBeChanged.emit()
-        self._df = self._df[self._df['Address'] != row]
-        self._df.reset_index(inplace=True, drop=True)
-        self.layoutChanged.emit()
+    # def removeRows(self, row):
+    #     self.layoutAboutToBeChanged.emit()
+    #     self._df = self._df[self._df['Address'] != row]
+    #     self._df.reset_index(inplace=True, drop=True)
+    #     self.layoutChanged.emit()
 
     def dataChanged(self, index, value, role=QtCore.Qt.DisplayRole):
         row = self._df.index[index.row()]
@@ -97,6 +97,10 @@ class PandasModel(QtCore.QAbstractTableModel):
                 return QtCore.Qt.ItemIsEnabled
         else:
             return QtCore.Qt.ItemIsSelectable
+
+    def print_df(self):
+        print(id(self._df))
+        print(self._df)
 
 
 class CheckBoxDelegate(QtWidgets.QItemDelegate):

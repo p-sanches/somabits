@@ -212,8 +212,9 @@ class StartQT5(QtWidgets.QMainWindow):
                         len(device_type), device_type, device_address, device_range, name, False, False, True, 0]
 
                 else:
-                    ds = [device_ip, cast(int, info.port), info.server, len(device_type), device_type, device_address, device_range, name, False, False, False, 0]
-                    self.TABLE_INFO.loc[len(self.TABLE_INFO)] = ds
+                    self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
+                        device_ip, cast(int, info.port), info.server,
+                        len(device_type), device_type, device_address, device_range, name, False, False, False, 0]
         self.update_view()
 
     def handleServiceRemoved(self, name):
@@ -225,12 +226,12 @@ class StartQT5(QtWidgets.QMainWindow):
                 # This server has released the device
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isSelected'] = False
                 # Delete the service
-                self.TABLE_INFO = self.TABLE_INFO[self.TABLE_INFO['ServiceName'] != name]
+                self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+
             elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
 
                 # Another server has released a device
-                self.TABLE_INFO.at[
-                    self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
+                self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
                 # Remove server from TABLE_INFO
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
             else:
