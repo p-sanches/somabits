@@ -187,11 +187,17 @@ class StartQT5(QtWidgets.QMainWindow):
             # The IP is not in TABLE_INFO yet
             if device_ip == NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
                 # It is a message from this server
-                self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
-                    device_ip, cast(int, info.port), info.server,
-                    len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
-                # Mark the entry of the specific device as selected
-                self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isSelected'] = True
+                # Check if service already exists (happens if two users click on the same device at the same time)
+                if info.server in self.TABLE_INFO['Host Name'].to_list():
+                    self.ui.plainTextEdit.appendPlainText(
+                        "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
+                    self.discovery.unregister_service(device_ip, info.server)
+                else:
+                    self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
+                        device_ip, cast(int, info.port), info.server,
+                        len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
+                    # Mark the entry of the specific device as selected
+                    self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isSelected'] = True
             elif device_ip != NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
                 # It is a message from another server
                 # Check if service already exists (happens if two users click on the same device at the same time)
