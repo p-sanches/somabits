@@ -185,7 +185,7 @@ class StartQT5(QtWidgets.QMainWindow):
         if device_ip not in self.TABLE_INFO["Address"].to_list() or name not in self.TABLE_INFO["ServiceName"].to_list():
             # The IP is not in TABLE_INFO yet
             if device_ip == NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
-                # It is a message from this server
+                # It is a service from this server
                 # Check if service already exists (happens if two users click on the same device at the same time)
                 if info.server in self.TABLE_INFO['Host Name'].to_list():
                     self.ui.plainTextEdit.appendPlainText(
@@ -227,7 +227,12 @@ class StartQT5(QtWidgets.QMainWindow):
                         device_ip, cast(int, info.port), info.server,
                         len(device_type), device_type, device_address, device_range, name, False, False, False, 0]
         else:
-            pass
+            # The IP is already in TABLE_INFO
+            # Check if service already exists (happens if two users click on the same device at the same time)
+            if info.server in self.TABLE_INFO['Host Name'].to_list():
+                self.ui.plainTextEdit.appendPlainText(
+                    "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
+                self.discovery.unregister_service(device_ip, info.server)
         self.update_view()
 
     def handleServiceRemoved(self, name):
