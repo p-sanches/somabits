@@ -19,7 +19,6 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-
 class StartQT5(QtWidgets.QMainWindow):
     def __init__(self):
         super(StartQT5, self).__init__()
@@ -227,6 +226,8 @@ class StartQT5(QtWidgets.QMainWindow):
                     self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
                         device_ip, cast(int, info.port), info.server,
                         len(device_type), device_type, device_address, device_range, name, False, False, False, 0]
+        else:
+            pass
         self.update_view()
 
     def handleServiceRemoved(self, name):
