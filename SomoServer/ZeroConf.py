@@ -1,5 +1,7 @@
 import ifaddr
 import socket
+from time import sleep
+import random
 
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -28,24 +30,17 @@ class NeighborDiscovery(QtCore.QThread):
         name = service_name.split('.')[0]
         name = NAME + "_" + name
 
-        try:
-            info = ServiceInfo(type_=TYPE,
-                               name=name + "." + TYPE,
-                               address=socket.inet_aton(self.get_local_ip()),
-                               port=80,
-                               weight=0,
-                               priority=0,
-                               properties=TXT_record,
-                               server=name + ".local.")
-        except self.zeroconf.NonUniqueNameException as e:
-            print(e)
+        info = ServiceInfo(type_=TYPE,
+                           name=name + "." + TYPE,
+                           address=socket.inet_aton(self.get_local_ip()),
+                           port=80,
+                           weight=0,
+                           priority=0,
+                           properties=TXT_record,
+                           server=name + ".local.")
 
-        try:
-            self.zeroconf.register_service(info, allow_name_change=False)
-        except self.zeroconf.NonUniqueNameException as e:
-            print(e)
-        else:
-            print("Registration of a service %s" % (name))
+        self.zeroconf.register_service(info, allow_name_change=False)
+        print("Registration of a service %s" % (name))
 
     def unregister_service(self, ip, service_name):
         name = NAME + "_" + service_name.split(".")[0] + "." + TYPE
