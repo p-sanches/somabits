@@ -160,7 +160,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.plainTextEdit.appendPlainText(
             "  Address: %s:%d" % (device_ip, cast(int, info.port)))
         self.ui.plainTextEdit.appendPlainText(
-            "  Weight: %d, priority: %d, ttl: %s" % (info.weight, info.priority, info.ttl))
+            "  Weight: %d, priority: %d" % (info.weight, info.priority))
         self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
 
         if info.properties:
@@ -194,13 +194,19 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isSelected'] = True
             elif device_ip != NeighborDiscovery().get_local_ip() and 'Server' in str(info.server):
                 # It is a message from another server
-                self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
-                    device_ip, cast(int, info.port), info.server,
-                    len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
-                # Mark the entry of the specific device as taken
-                # First check, if the entry exists
-                if device_address[1] in self.TABLE_INFO["Address"].to_list():
-                    self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
+                # Check if service already exists (happens if two users click on the same device at the same time)
+                if info.server in self.TABLE_INFO['Host Name'].to_list():
+                    self.ui.plainTextEdit.appendPlainText(
+                        "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
+                    self.discovery.unregister_service(device_ip, info.server)
+                else:
+                    self.TABLE_INFO.loc[len(self.TABLE_INFO)] = [
+                        device_ip, cast(int, info.port), info.server,
+                        len(device_type), device_type, device_address, device_range, name, False, True, False, 0]
+                    # Mark the entry of the specific device as taken
+                    # First check, if the entry exists
+                    if device_address[1] in self.TABLE_INFO["Address"].to_list():
+                        self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_address[1]])].tolist()[0], 'isTaken'] = True
             else:
                 # Check if a server has already announced to allocate the device
                 flat_device_address_list = [item for sublist in self.TABLE_INFO['Device Address'].to_list() for item in sublist]
@@ -229,11 +235,13 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
 
             elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
-
                 # Another server has released a device
-                self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
+                # First check if the device exists
+                if device_to_free[1] in self.TABLE_INFO["Address"].to_list():
+                    self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
                 # Remove server from TABLE_INFO
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+
             else:
                 # A device has unregistered
                 pass
@@ -248,7 +256,6 @@ class StartQT5(QtWidgets.QMainWindow):
             if info:
                 self.handleServiceAdded(info, name)
         elif state_change is ServiceStateChange.Removed:
-            print("Service Removed")
             self.handleServiceRemoved(name)
 
     def zeroconf_start(self):
