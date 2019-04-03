@@ -1,14 +1,25 @@
-/*
+//  Copyright (C) 2010 Georg Kaindl
+//  http://gkaindl.com
+//
+//  This file is part of Arduino EthernetBonjour.
+//
+//  EthernetBonjour is free software: you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public License
+//  as published by the Free Software Foundation, either version 3 of
+//  the License, or (at your option) any later version.
+//
+//  EthernetBonjour is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with EthernetBonjour. If not, see
+//  <http://www.gnu.org/licenses/>.
+//
 
-  This example connects to an encrypted Wifi network.
-  Then it prints the  MAC address of the Wifi module,
-  the IP address obtained, and other network details.
+//  Illustrates how to discover Bonjour services on your network.
 
-  created 13 July 2010
-  by dlf (Metodo2 srl)
-  modified 31 May 2012
-  by Tom Igoe
-*/
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <WiFiUdp.h>
@@ -19,21 +30,6 @@ char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
-
-
-typedef enum _SOMA_DEVICE_TYPE_t {
-  SOMA_SERVER,
-  SOMA_DEVICE
-  // TODO: What else devices do we need?
-} SOMA_DEVICE_TYPE_t;
-
-
-typedef struct _MDNS_OSC_TEXT_t {
-  uint8_t device_type;  
-  // TODO: Add more fields that we need. E.g., if we are a device, we should send our osc paths.
-} MDNS_OSC_TEXT_t;
-
-
 WiFiUDP udp;
 MDNS mdns(udp);
 
@@ -41,7 +37,8 @@ void serviceFound(const char* type, MDNSServiceProtocol proto,
                   const char* name, IPAddress ip, unsigned short port,
                   const char* txtContent);
 
-void setup() {
+void setup()
+{
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
@@ -77,104 +74,46 @@ void setup() {
   printWifiData();
 
   Serial.println("\nStarting Service Discovery...");
-
+  
   // Initialize the mDNS library. You can now reach or ping this
   // Arduino via the host name "arduino.local", provided that your operating
   // system is mDNS/Bonjour-enabled (such as MacOS X).
   // Always call this before any other method!
   mdns.begin(WiFi.localIP(), "arduino_1");
 
-  // Now let's register the service we're offering (a web service) via Bonjour!
-  // To do so, we call the addServiceRecord() method. The first argument is the
-  // name of our service instance and its type, separated by a dot. In this
-  // case, the service type is _http. There are many other service types, use
-  // google to look up some common ones, but you can also invent your own
-  // service type, like _mycoolservice - As long as your clients know what to
-  // look for, you're good to go.
-  // The second argument is the port on which the service is running. This is
-  // port 80 here, the standard HTTP port.
-  // The last argument is the protocol type of the service, either TCP or UDP.
-  // Of course, our service is a TCP service.
-  // With the service registered, it will show up in a mDNS/Bonjour-enabled web
-  // browser. As an example, if you are using Apple's Safari, you will now see
-  // the service under Bookmarks -> Bonjour (Provided that you have enabled
-  // Bonjour in the "Bookmarks" preferences in Safari).
-  // FIXME: Ugly hack
-  uint8_t* s1 = "sensor1=/light:0-127";
-  char s2[30] = "sensor2=/accelerometer";
-  char a1[30] = "actuator1=/sound:0-255";
-
-
-  char txt[100] = {'\0'};
-
-  txt[0] = (uint8_t) strlen(s1);
-  int txt_len = 1;
-  for (uint8_t i = 0; i < strlen(s1); i++) {
-    if (s1[i] != '\0'); {
-      txt[txt_len] = s1[i];
-     txt_len++;
-    }
-  }
-
-  txt[txt_len] = (uint8_t) strlen(a1);
-  txt_len++;
-  for (uint8_t i = 0; i < strlen(a1); i++) {
-    if (a1[i] != '\0') {
-      txt[txt_len] = a1[i];
-      txt_len++;
-    }
- }
-  
-  Serial.println(txt);
-
-  int success;
-  success = mdns.addServiceRecord("Arduino with Accelerometer_1._osc",
-                        3333,
-                        MDNSServiceUDP,
-                        txt);
-
-  if (success) {
-    Serial.println("Successfully registered service");
-  } else {
-    Serial.println("Something went wrong while registering service");
-  }
-
   // We specify the function that the mDNS library will call when it
   // discovers a service instance. In this case, we will call the function
   // named "serviceFound".
-  //mdns.setServiceFoundCallback(serviceFound);
+  mdns.setServiceFoundCallback(serviceFound);
 
-  // We specify the function that the mDNS library will call when it
-  // resolves a host name. In this case, we will call the function named
-  // "nameFound".
-  //mdns.setNameResolvedCallback(nameFound);
-
-
-
-  
-
- // Serial.println("Enter a mDNS service name via the Arduino Serial Monitor "
- //                "to discover instances");
- // Serial.println("on the network.");
- // Serial.println("Examples are \"_http\", \"_afpovertcp\" or \"_ssh\" (Note "
- //                "the underscores).");
+  Serial.println("Enter a mDNS service name via the Arduino Serial Monitor "
+                 "to discover instances");
+  Serial.println("on the network.");
+  Serial.println("Examples are \"_http\", \"_afpovertcp\" or \"_ssh\" (Note "
+                 "the underscores).");
 }
 
-
-
-void loop() {
-	//char serviceName[256] = "_osc\0";
-  //har serviceName[256] = "_osc";
-  //char serviceName[256] = "PythonDevice._osc";
+void loop()
+{ 
+  char serviceName[256];
+  int length = 0;
+  
+  // read in a service name from the Arduino IDE's serial monitor.
+  while (Serial.available()) {
+    serviceName[length] = Serial.read();
+    length = (length+1) % 256;
+    delay(5);
+  }
+  serviceName[length] = '\0';
   
   // You can use the "isDiscoveringService()" function to find out whether the
   // mDNS library is currently discovering service instances.
   // If so, we skip this input, since we want our previous request to continue.
-  //if (!mdns.isDiscoveringService()) {
-    //if (length > 0) {
-   //   Serial.print("Discovering services of type '");
-    //  Serial.print(serviceName);
-     // Serial.println("' via Multi-Cast DNS (Bonjour)...");
+  if (!mdns.isDiscoveringService()) {
+    if (length > 0) {    
+      Serial.print("Discovering services of type '");
+      Serial.print(serviceName);
+      Serial.println("' via Multi-Cast DNS (Bonjour)...");
 
       // Now we tell the mDNS library to discover the service. Below, I have
       // hardcoded the TCP protocol, but you can also specify to discover UDP
@@ -185,55 +124,16 @@ void loop() {
       // seconds, so if you search for longer than that, you will receive
       // duplicate instances.
 
-     // mdns.startDiscoveringService(serviceName,
-      //                             MDNSServiceUDP,
-       //                            10000);
-    //}
-  //}
-  // This actually runs the mDNS module. YOU HAVE TO CALL THIS PERIODICALLY,
-  // OR NOTHING WILL WORK! Preferably, call it once per loop().
-  mdns.run();
-
-  //char hostName[512] = "Arduino";
-
-  // You can use the "isResolvingName()" function to find out whether the
-  // mDNS library is currently resolving a host name.
-  // If so, we skip this input, since we want our previous request to continue.
-  //if (!mdns.isResolvingName()) {
-    //if (length > 0) {    
-      //Serial.print("Resolving '");
-      //Serial.print(hostName);
-      //Serial.println("' via Multicast DNS (Bonjour)...");
-
-      // Now we tell the mDNS library to resolve the host name. We give it a
-      // timeout of 5 seconds (e.g. 5000 milliseconds) to find an answer. The
-      // library will automatically resend the query every second until it
-      // either receives an answer or your timeout is reached - In either case,
-      // the callback function you specified in setup() will be called.
-
-      //mdns.resolveName(hostName, 5000);
-    //}  
-  //}
-}
-
-// This function is called when a name is resolved via mDNS/Bonjour. We set
-// this up in the setup() function above. The name you give to this callback
-// function does not matter at all, but it must take exactly these arguments
-// (a const char*, which is the hostName you wanted resolved, and a const
-// byte[4], which contains the IP address of the host on success, or NULL if
-// the name resolution timed out).
-void nameFound(const char* name, IPAddress ip)
-{
-  if (ip != INADDR_NONE) {
-    Serial.print("The IP address for '");
-    Serial.print(name);
-    Serial.print("' is ");
-    Serial.println(ip);
-  } else {
-    Serial.print("Resolving '");
-    Serial.print(name);
-    Serial.println("' timed out.");
+      mdns.startDiscoveringService(serviceName,
+                                   MDNSServiceUDP,
+                                   0);
+    }  
   }
+
+  // This actually runs the mDNS module. YOU HAVE TO CALL THIS PERIODICALLY,
+  // OR NOTHING WILL WORK!
+  // Preferably, call it once per loop().
+  mdns.run();
 }
 
 // This function is called when a name is resolved via mMDNS/Bonjour. We set
@@ -250,8 +150,8 @@ void serviceFound(const char* type, MDNSServiceProtocol /*proto*/,
                   const char* txtContent)
 {
   if (NULL == name) {
-  Serial.print("Finished discovering services of type ");
-  Serial.println(type);
+	Serial.print("Finished discovering services of type ");
+	Serial.println(type);
   } else {
     Serial.print("Found: '");
     Serial.print(name);
@@ -259,7 +159,7 @@ void serviceFound(const char* type, MDNSServiceProtocol /*proto*/,
     Serial.print(ip);
     Serial.print(", port ");
     Serial.print(port);
-    Serial.println(" (UDP)");
+    Serial.println(" (TCP)");
 
     // Check out http://www.zeroconf.org/Rendezvous/txtrecords.html for a
     // primer on the structure of TXT records. Note that the Bonjour
@@ -287,7 +187,6 @@ void serviceFound(const char* type, MDNSServiceProtocol /*proto*/,
     }
   }
 }
-
 
 void printWifiData() {
   // print your board's IP address:
