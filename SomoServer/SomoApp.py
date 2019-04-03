@@ -16,6 +16,9 @@ from pythonosc import udp_client
 from pythonosc import dispatcher
 from pythonosc import osc_server
 
+from pythonosc.osc_server import AsyncIOOSCUDPServer
+import asyncio
+
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 from typing import List
@@ -50,13 +53,18 @@ class StartQT5(QtWidgets.QMainWindow):
 
     def start_OSC(self):
         dispatcher_osc = dispatcher.Dispatcher()
-        dispatcher.set_default_handler(self.OSC_handler)
-        server = osc_server.ThreadingOSCUDPServer((NeighborDiscovery().get_local_ip(), 3333), dispatcher_osc)
-        server.serve_forever()
+        dispatcher_osc.set_default_handler(self.OSC_handler)
+
+        server = AsyncIOOSCUDPServer(("192.168.11.103", 3333), dispatcher_osc, asyncio.get_event_loop())
+        await server.create_serve_endpoint()
+        #server = osc_server.ThreadingOSCUDPServer((NeighborDiscovery().get_local_ip(), 3333), dispatcher_osc)
+        #server.serve_forever()
+
 
     def OSC_handler(address, *args):
-        client = udp_client.SimpleUDPClient(args.ip, args.port)
-        client.send_message("/filter", 1)
+        print(f"{address}: {args}")
+        #client = udp_client.SimpleUDPClient(args.ip, args.port)
+        #client.send_message("/filter", 1)
 
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
