@@ -32,6 +32,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
         self.ui.StartOSC.clicked.connect(self.start_OSC)
+        self.btn_stop.clicked.connect(self.stop_OSC)
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host Name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'ServiceName','isSelected','isServer', 'isTaken', '*'])
         self.TABLE_INFO_CHECKBOX = 11
         self.TABLE_FORWARDING = pd.DataFrame(columns=['Sensor Address', 'Sensor IP', 'Sensor Port', 'Sensor Range', 'Actuator Address', 'Actuator IP', 'Actuator Port','Actuator Range'])
@@ -47,11 +48,24 @@ class StartQT5(QtWidgets.QMainWindow):
         delegate = CheckBoxDelegate(self)
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
 
+    def stop_OSC(self):
+        self.ui.StartOSC.setEnabled(True)
+        self.ui.tableView_2.setEnabled(True)
+        self.ui.tableView.setEnabled(True)
+        self.ui.discover_button.setEnabled(True)
+        self.ui.save_button.setEnabled(True)
+        self.ui.StopOSCButton.setEnabled(False)
+
     def start_OSC(self):
         self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(),3333,self)
         self.get_thread.start()
         self.ui.StartOSC.setEnabled(False)
         self.ui.tableView_2.setEnabled(False)
+        self.ui.tableView.setEnabled(False)
+        self.ui.discover_button.setEnabled(False)
+        self.ui.save_button.setEnabled(False)
+        self.ui.StopOSCButton.setEnabled(True)
+        self.get_thread.terminate
 
 
 
