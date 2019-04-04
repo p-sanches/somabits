@@ -11,6 +11,14 @@ from SomoServer.gui import Ui_MainWindow
 from SomoServer.TableModel import PandasModel, CheckBoxDelegate
 from SomoServer.ZeroConf import NeighborDiscovery
 
+from pythonosc import osc_message_builder
+from pythonosc import udp_client
+from pythonosc import dispatcher
+from pythonosc import osc_server
+
+from pythonosc.osc_server import AsyncIOOSCUDPServer
+import asyncio
+
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 from typing import List
@@ -27,6 +35,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
+        self.ui.StartOSC.clicked.connect(self.start_OSC)
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host Name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'ServiceName','isSelected','isServer', 'isTaken', '*'])
         self.TABLE_INFO_CHECKBOX = 11
         self.TABLE_FORWARDING = pd.DataFrame(columns=['Sensor Address', 'Sensor IP', 'Sensor Port', 'Sensor Range', 'Actuator Address', 'Actuator IP', 'Actuator Port','Actuator Range'])
@@ -41,6 +50,21 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.hideColumn(10)
         delegate = CheckBoxDelegate(self)
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
+
+    def start_OSC(self):
+        dispatcher_osc = dispatcher.Dispatcher()
+        dispatcher_osc.set_default_handler(self.OSC_handler)
+
+        server = AsyncIOOSCUDPServer(("192.168.11.103", 3333), dispatcher_osc, asyncio.get_event_loop())
+        await server.create_serve_endpoint()
+        #server = osc_server.ThreadingOSCUDPServer((NeighborDiscovery().get_local_ip(), 3333), dispatcher_osc)
+        #server.serve_forever()
+
+
+    def OSC_handler(address, *args):
+        print(f"{address}: {args}")
+        #client = udp_client.SimpleUDPClient(args.ip, args.port)
+        #client.send_message("/filter", 1)
 
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
@@ -177,6 +201,7 @@ class StartQT5(QtWidgets.QMainWindow):
                     # the device does not have sensor values
                     value_str = str(value).split("'")[1]
                     device_address.append(value_str)
+                    device_range.append('0-1')
         else:
             self.ui.plainTextEdit.appendPlainText("  No properties")
         self.ui.plainTextEdit.appendPlainText('\n')
