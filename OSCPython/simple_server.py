@@ -8,7 +8,7 @@ def filter_handler(address, *args):
 
 
 dispatcher = Dispatcher()
-dispatcher.map("/filter", filter_handler)
+dispatcher.map("/filter", filter_handler,needs_reply_address=True)
 
 ip = "192.168.11.103"
 port = 3333

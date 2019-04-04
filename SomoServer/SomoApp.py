@@ -6,6 +6,7 @@ import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal, QModelIndex)
 
+# TODO: Fix the checkbox color
 
 from SomoServer.gui import Ui_MainWindow
 from SomoServer.TableModel import PandasModel, CheckBoxDelegate
@@ -47,7 +48,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
 
     def start_OSC(self):
-        self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(),3333)
+        self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(),3333,self)
         self.get_thread.start()
         #server = osc_server.ThreadingOSCUDPServer((NeighborDiscovery().get_local_ip(), 3333), dispatcher_osc)
         #server.serve_forever()
