@@ -3,7 +3,7 @@
 This is the example for sending MDNS messages for service discovery from an Arduino Wifi Rev2 to another device which has Bonjour (MacOS, Windows) or Avahi (Linux) installed.
 
 
-First install "WiFiNINA" which is a Wifi library for Arduino Wifi Rev2 using Library Manager <b>(Tools > Manage Librariesâ€¦)</b>. Download the ArduinoMDSN code (https://github.com/arduino-libraries/ArduinoMDNS) to Arduino's library folder.
+First install "WiFiNINA" which is a Wifi library for Arduino Wifi Rev2 using Library Manager <b>(Tools > Manage Libraries…)</b>. Download the ArduinoMDSN code (https://github.com/arduino-libraries/ArduinoMDNS) to Arduino's library folder.
 
 To be able to compile the code for the Arduino Wifi Rev2, you should go to the folder, where files for the Arduino Wifi Rev2 board are located. 
 
@@ -34,10 +34,13 @@ Do not forget to create the arduino_sectrets.h with your credentials. It looks a
 #define SECRET_PASS "MyPassword"
 ``` 
 
-However, if you use the TXT record to transmit additional information like OSC paths, the packets become <b>malicious</b>. To fix this, go to `MDNS.cpp` in the ArduinoMDSN code in the function `MDNSError_t MDNS::_sendMDNSMessage(...)` and look for the line `int slen = strlen((char*)this->_serviceRecords[serviceRecord]->textContent)`. Replace this line with
-
+However, if you use the TXT record to transmit additional information like OSC paths, the packets become <b>malicious</b>. To fix this, go to `MDNS.cpp` in the ArduinoMDSN code in the function `MDNSError_t MDNS::_sendMDNSMessage(...)` and look for the line `int slen = strlen((char*)this->_serviceRecords[serviceRecord]->textContent)`. This line and the following have to look like:
 ```
-int slen = strlen((char*)this->_serviceRecords[serviceRecord]->textContent) - 1;
+int slen = strlen((char*) this->_serviceRecords[serviceRecord]->textContent);
+if (slen > 0) {
+	slen -= 1;
+}
+*((uint16_t*) buf) = ethutil_htons(slen);
 ``` 
 
 Now you are done :)
