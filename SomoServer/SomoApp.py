@@ -10,14 +10,9 @@ from PyQt5.QtCore import (Qt, pyqtSignal, QModelIndex)
 from SomoServer.gui import Ui_MainWindow
 from SomoServer.TableModel import PandasModel, CheckBoxDelegate
 from SomoServer.ZeroConf import NeighborDiscovery
+from SomoServer.OSC import getOSCMessages
 
-from pythonosc import osc_message_builder
-from pythonosc import udp_client
-from pythonosc import dispatcher
-from pythonosc import osc_server
 
-from pythonosc.osc_server import AsyncIOOSCUDPServer
-import asyncio
 
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
@@ -52,19 +47,13 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
 
     def start_OSC(self):
-        dispatcher_osc = dispatcher.Dispatcher()
-        dispatcher_osc.set_default_handler(self.OSC_handler)
-
-        server = AsyncIOOSCUDPServer(("192.168.11.103", 3333), dispatcher_osc, asyncio.get_event_loop())
-        await server.create_serve_endpoint()
+        self.get_thread = getOSCMessages("192.168.11.103",3333)
+        self.get_thread.start()
         #server = osc_server.ThreadingOSCUDPServer((NeighborDiscovery().get_local_ip(), 3333), dispatcher_osc)
         #server.serve_forever()
 
 
-    def OSC_handler(address, *args):
-        print(f"{address}: {args}")
-        #client = udp_client.SimpleUDPClient(args.ip, args.port)
-        #client.send_message("/filter", 1)
+
 
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
