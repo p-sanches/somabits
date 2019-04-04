@@ -11,18 +11,31 @@ class getOSCMessages(QThread):
         QThread.__init__(self)
         self.IP=IP
         self.Port = Port
+        self.soma= soma
         self.TABLE_FORWARDING=soma.TABLE_FORWARDING
+        self.dispatcher_osc = dispatcher.Dispatcher()
+        self.dispatcher_osc.set_default_handler(self.OSC_handler, True)
+
+        self.server = osc_server.ThreadingOSCUDPServer((self.IP, self.Port), self.dispatcher_osc)
 
     def __del__(self):
         self.wait()
 
     def run(self):
-        self.dispatcher_osc = dispatcher.Dispatcher()
-        self.dispatcher_osc.set_default_handler(self.OSC_handler,True)
 
-        self.server = osc_server.ThreadingOSCUDPServer((self.IP, self.Port), self.dispatcher_osc)
         print("Serving on {}".format(self.server.server_address))
         self.server.serve_forever()
+
+    def OSC_stop(self):
+
+        self.soma.ui.StartOSC.setEnabled(True)
+        self.soma.ui.tableView_2.setEnabled(True)
+        self.soma.ui.tableView.setEnabled(True)
+        self.soma.ui.discover_button.setEnabled(True)
+        self.soma.ui.save_button.setEnabled(True)
+        self.soma.ui.StopOSCButton.setEnabled(False)
+        self.server.server_close()
+        self.terminate()
 
     def OSC_handler(self,address, *args):
 
