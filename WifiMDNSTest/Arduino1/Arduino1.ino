@@ -68,6 +68,7 @@ void setup()
     delay(10000);
   }
 
+  
   // you're connected now, so print out the data:
   Serial.print("You're connected to the network");
   printCurrentNet();

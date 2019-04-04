@@ -32,7 +32,6 @@ int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 WiFiUDP udp;
 MDNS mdns(udp);
-WiFiServer server(80);
 
 void setup()
 {
@@ -70,7 +69,7 @@ void setup()
   printCurrentNet();
   printWifiData();
 
-  server.begin();
+  //server.begin();
   
   // Initialize the mDNS library. You can now reach or ping this
   // Arduino via the host name "arduino.local", provided that your operating
@@ -93,9 +92,15 @@ void setup()
   // browser. As an example, if you are using Apple's Safari, you will now see
   // the service under Bookmarks -> Bonjour (Provided that you have enabled
   // Bonjour in the "Bookmarks" preferences in Safari).
-  mdns.addServiceRecord("Arduino mDNS Service 1.osc",
-                         3333,
-                         MDNSServiceUDP);
+  int success = mdns.addServiceRecord("Arduino mDNS Service 1._osc",
+                        3333,
+                        MDNSServiceUDP);
+
+	if (success) {
+		Serial.println("Successfully registered service");
+	} else {
+		Serial.println("Something went wrong while registering service");
+	}
 
   // Now we'll register a second service record: This time, we specify a TXT
   // content as well, in order to point to a specific page on our server.
@@ -105,10 +110,15 @@ void setup()
   // primer.
   // What this does is that your browser will now show a second mDNS entry,
   // which will take you to another page on the Arduino web server.
-  mdns.addServiceRecord("Arduino mDNS Service 2._osc",
+  success = mdns.addServiceRecord("Arduino mDNS Service 2._osc",
                          3334,
                          MDNSServiceUDP,
                          "\x7path=/2");
+  if (success) {
+	Serial.println("Successfully registered service");
+  } else {
+	Serial.println("Something went wrong while registering service");
+  }
 }
 
 void loop()
@@ -116,56 +126,6 @@ void loop()
   // This actually runs the mDNS module. YOU HAVE TO CALL THIS PERIODICALLY,
   // OR NOTHING WILL WORK! Preferably, call it once per loop().
   mdns.run();
-
-  // The code below is just taken from the "WebServer" example in the Ethernet
-  // library. The only difference here is that this web server gets announced
-  // over mDNS, but this happens in setup(). This just displays something
-  // in the browser when you connect.
-  WiFiClient client = server.available();
-  char lastLetter = '\0';
-  char isPage2 = 0;
-  if (client) {
-    // an http request ends with a blank line
-    boolean current_line_is_blank = true;
-    while (client.connected()) {
-      if (client.available()) {
-        char c = client.read();
-        
-        if ('/' == lastLetter && '2' == c)
-          isPage2 = 1;        
-        lastLetter = c;
-
-        // if we've gotten to the end of the line (received a newline
-        // character) and the line is blank, the http request has ended,
-        // so we can send a reply
-        if (c == '\n' && current_line_is_blank) {
-          // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println();
-          
-          if (isPage2) {
-            client.println("This is the second page advertised via mDNS!");
-          } else {
-            client.println("Hello from a mDNS-enabled web-server running ");
-            client.println("on your Arduino board!");
-          }
-
-          break;
-        }
-        if (c == '\n') {
-          // we're starting a new line
-          current_line_is_blank = true;
-        } else if (c != '\r') {
-          // we've gotten a character on the current line
-          current_line_is_blank = false;
-        }
-      }
-    }
-    // give the web browser time to receive the data
-    delay(1);
-    client.stop();
-  }
 }
 
 void printWifiData() {
