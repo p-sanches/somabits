@@ -33,10 +33,26 @@ class getOSCMessages(QThread):
 
     def OSC_handler(self,address, *args):
 
+        client_IP=address[0]
+        client_Port = address[1]
+        address_client = args[0]
+        message=args[1]
         print("Client IP= %s" % (address[0]))
         print("Client Port= %s" % (address[1]))
         print("Address= %s" % (args[0]))
         print("Message= %s" % (args[1]))
-        print(self.TABLE_FORWARDING)
+
+        for rows in range(len(self.TABLE_FORWARDING)):
+            if (self.TABLE_FORWARDING.iloc[rows]['Sensor Address'] == address_client & self.TABLE_FORWARDING.iloc[rows]['Sensor IP']==client_IP):
+                sensor_range=self.TABLE_FORWARDING.iloc[rows]['Sensor Range'].split("-")
+                actuator_range = self.TABLE_FORWARDING.iloc[rows]['Actuator Range'].split("-")
+                value= self.maprange((float(sensor_range[0]), float(sensor_range[1])), (float(actuator_range[0]), float(actuator_range[1])), float(message))
+                client = udp_client.SimpleUDPClient(self.TABLE_FORWARDING.iloc[rows]['Actuator IP'], self.TABLE_FORWARDING.iloc[rows]['Actuator Port'])
+                client.send_message(self.TABLE_FORWARDING.iloc[rows]['Actuator Address'], value)
+
+    def maprange(a, b, s):
+        (a1, a2), (b1, b2) = a, b
+        return b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
+
 
 
