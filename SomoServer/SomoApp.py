@@ -47,7 +47,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
 
     def start_OSC(self):
-        self.get_thread = getOSCMessages("192.168.11.103",3333)
+        self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(),3333)
         self.get_thread.start()
         #server = osc_server.ThreadingOSCUDPServer((NeighborDiscovery().get_local_ip(), 3333), dispatcher_osc)
         #server.serve_forever()
