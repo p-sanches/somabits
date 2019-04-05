@@ -59,6 +59,8 @@ void setup() {
 
 void draw() {
   //background(0);
+  if(sensorInputs.size()>0)
+    trainWekinatorWithAllSensors();
 }
 
 void oscEvent(OscMessage theOscMessage) {
@@ -85,11 +87,11 @@ void oscEvent(OscMessage theOscMessage) {
     
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     sensorInputs.put(theOscMessage.addrPattern(), theOscMessage.arguments());
-    printAllSensorInputs();
+    //printAllSensorInputs();
    
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
     //trainWekinatorMsg(theOscMessage);
-    trainWekinatorWithAllSensors();
+    //trainWekinatorWithAllSensors();
     
     //printOSCMessage(theOscMessage);
     //oscP5.send(theOscMessage, ActuatorNetAddressList);
@@ -102,7 +104,7 @@ void oscEvent(OscMessage theOscMessage) {
   else{
    // print("## Sending OSC Message directly to Wekinator");
     //printOSCMessage(theOscMessage);
-    trainWekinatorMsg(theOscMessage);
+   // trainWekinatorMsg(theOscMessage);
     
   }
 }
@@ -214,25 +216,41 @@ if (ActuatorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
  }
 
 void trainWekinatorWithAllSensors() {
+  //println("entering");
   OscMessage wekaMsg = new OscMessage("/wek/inputs");
   int i = 0;
   float[] args = new float[sensorInputs.size()];
   
+  //println("entering trouble:"+sensorInputs.size());
+  
   println("### Training WEKA with all sensors (" + sensorInputs.size()+"):");
      // Using an enhanced loop to iterate over each entry
-     Iterator entries = sensorInputs.entrySet().iterator();
      
+     Iterator entries = sensorInputs.entrySet().iterator();
       while (entries.hasNext()) {
-          Map.Entry entry = (Map.Entry) entries.next();
-          String key = (String)entry.getKey();
-          Object[] value = (Object[])entry.getValue();
-          print("["+(i)+"] ");
-          print(key + " is ");
-          println(value);
-          args[i]=(float)value[0];
-          i++;
-      }
+            Map.Entry entry = (Map.Entry) entries.next();
+            String key = (String)entry.getKey();
+            Object[] value = (Object[])entry.getValue();
+            print("["+(i)+"] ");
+            print(key + " is ");
+            println(value);
+            args[i]=(float)value[0];
+            i++;
+        }
+    
+     //for (Map.Entry me : sensorInputs.entrySet()) {
+        
+     //   String key = (String) me.getKey();
+     //   Object[] value = (Object[])me.getValue();
+     //   print("["+(i)+"] ");
+     //   print(key + " is ");
+     //   println(value);
+     //   args[i]=(float)value[0];
+     //   i++;
+     // }
       
+      
+//println("Im REALLY out of trouble");
       //for (Map.Entry me : sensorInputs.entrySet()) {
       //  print("["+(i)+"] ");
       //  print(me.getKey() + " is ");
