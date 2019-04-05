@@ -19,7 +19,6 @@ char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
-char message[20] = {0};
 IPAddress server_ip;
 
 WiFiUDP udp;
@@ -142,9 +141,9 @@ void setup() {
   // the service under Bookmarks -> Bonjour (Provided that you have enabled
   // Bonjour in the "Bookmarks" preferences in Safari).
   // FIXME: Ugly hack
-  uint8_t* s1 = "sensor1=/light:0-127";
+  uint8_t* s1 = "sensor1=/light:0%127";
   char s2[30] = "sensor2=/accelerometer";
-  char a1[30] = "actuator1=/sound:0-255";
+  char a1[30] = "actuator1=/sound:0%255";
 
 
   char txt[100] = {'\0'};

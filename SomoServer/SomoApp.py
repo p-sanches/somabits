@@ -109,11 +109,12 @@ class StartQT5(QtWidgets.QMainWindow):
             if (self.TABLE_INFO.iloc[rows]['isServer'] == False and self.TABLE_INFO.iloc[rows]['isSelected'] == True):
                 try:
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP connection
-                    print("About to sent the servers IP to %s" % self.TABLE_INFO.iloc[rows]['Address'])
+                    print("About to sent the servers IP %s to %s" % (self.discovery.get_local_ip(), self.TABLE_INFO.iloc[rows]['Address']))
                     s.connect((self.TABLE_INFO.iloc[rows]['Address'], 5555))
                 #try:
                 #while True:
-                    s.sendall(str(self.discovery.get_local_ip()).encode())
+                    msg = str(self.discovery.get_local_ip())
+                    s.sendall(msg.encode())
                 except:
                     print("Nothing exciting happend")
                 finally:
