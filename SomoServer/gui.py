@@ -239,11 +239,17 @@ class Ui_MainWindow(object):
         self.tableView_2.setObjectName("tableView_2")
         self.gridLayout_3.addWidget(self.tableView_2, 0, 0, 1, 1)
         self.StartOSC = QtWidgets.QPushButton(self.tab_2)
-        self.StartOSC.setStyleSheet("background-color: rgb(124, 124, 124);\n"
+        self.StartOSC.setStyleSheet("background-color: rgb(170, 255, 127);\n"
 "font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
-"color: rgb(255, 255, 255);")
+"color: rgb(0, 0, 0);")
         self.StartOSC.setObjectName("StartOSC")
-        self.gridLayout_3.addWidget(self.StartOSC, 1, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.StartOSC, 2, 0, 1, 1)
+        self.StopOSCButton = QtWidgets.QPushButton(self.tab_2)
+        self.StopOSCButton.setStyleSheet("font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
+"background-color: rgb(170, 0, 0);\n"
+"color: rgb(255, 255, 255);")
+        self.StopOSCButton.setObjectName("StopOSCButton")
+        self.gridLayout_3.addWidget(self.StopOSCButton, 3, 0, 1, 1)
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap("resx/Custom-Icon-Design-Pretty-Office-13-Arrows-Sync.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.tabWidget.addTab(self.tab_2, icon2, "")
@@ -267,6 +273,7 @@ class Ui_MainWindow(object):
         self.discover_button.setText(_translate("MainWindow", "Discover"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Control"))
         self.StartOSC.setText(_translate("MainWindow", "Start OSC Service"))
+        self.StopOSCButton.setText(_translate("MainWindow", "Stop OSC Service"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Forwarding"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Applications"))
 
