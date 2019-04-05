@@ -150,23 +150,23 @@ void setup()
 
 void loop()
 { 
-	//char serviceName[256] = "_osc\n";
-	char serviceName[256];
-	int length = 0;
+	char serviceName[256] = "_osc";
+//	char serviceName[256];
+//	int length = 0;
   
   // read in a service name from the Arduino IDE's serial monitor.
-  while (Serial.available()) {
-    serviceName[length] = Serial.read();
-    length = (length+1) % 256;
-    delay(5);
-  }
-  serviceName[length] = '\0';
+//  while (Serial.available()) {
+//    serviceName[length] = Serial.read();
+//    length = (length+1) % 256;
+//    delay(5);
+//  }
+//  serviceName[length] = '\0';
   
   // You can use the "isDiscoveringService()" function to find out whether the
   // mDNS library is currently discovering service instances.
   // If so, we skip this input, since we want our previous request to continue.
   if (!mdns.isDiscoveringService()) {
-    if (length > 0) {
+//    if (length > 0) {
       Serial.print("Discovering services of type '");
       Serial.print(serviceName);
       Serial.println("' via Multi-Cast DNS (Bonjour)...");
@@ -184,7 +184,7 @@ void loop()
                                    MDNSServiceUDP,
                                    9000);
     }
-  }
+//  }
 
   // This actually runs the mDNS module. YOU HAVE TO CALL THIS PERIODICALLY,
   // OR NOTHING WILL WORK!

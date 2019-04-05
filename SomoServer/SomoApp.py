@@ -101,10 +101,28 @@ class StartQT5(QtWidgets.QMainWindow):
         actuators_Port = []
         actuators_Range = []
         forward_table=pd.DataFrame()
+
+
+
+
         for rows in range(len(self.TABLE_INFO)):
+            if (self.TABLE_INFO.iloc[rows]['isServer'] == False and self.TABLE_INFO.iloc[rows]['isSelected'] == True):
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP connection
+                    print("About to sent the servers IP to %s" % self.TABLE_INFO.iloc[rows]['Address'])
+                    s.connect((self.TABLE_INFO.iloc[rows]['Address'], 5555))
+                #try:
+                #while True:
+                    s.sendall(str(self.discovery.get_local_ip()).encode())
+                except:
+                    print("Nothing exciting happend")
+                finally:
+                    print("Sent the servers IP")
+                    #s.close()
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
 
                 if(self.TABLE_INFO.iloc[rows]['isSelected']==True):
+                    # First we send a message to inform the nodes about our IP (as long as the MDNS bug in the Arduinos exists)
                     if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
                         sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
                         sensors_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
