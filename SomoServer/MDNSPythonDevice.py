@@ -6,10 +6,28 @@
 
 import logging
 import socket
+import ifaddr
 import sys
 from time import sleep
 
 from zeroconf import ServiceInfo, Zeroconf
+from typing import List
+
+
+def get_all_addresses() -> List[str]:
+    return list(set(
+        addr.ip
+        for iface in ifaddr.get_adapters()
+        for addr in iface.ips
+        if addr.is_IPv4 and addr.network_prefix != 32  # Host only netmask 255.255.255.255
+    ))
+
+
+def get_local_ip(starts_with="192"):
+    list_ip = get_all_addresses()
+    local_ip = [i for i in list_ip if i.startswith(starts_with)]
+    return local_ip[0]
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -20,11 +38,9 @@ if __name__ == '__main__':
     desc = {'sensor1': '/light:0-127', 'sensor2': '/accelerometer', 'actuator1': '/sound'}
 
     info = ServiceInfo(type_="_osc._udp.local.",
-                       #name="Paul's Test Web Site._http._udp.local.",
                        name="PythonDevice._osc._udp.local.",
-                       #name="Server._osc._udp.local.",
-                       address=socket.inet_aton("192.168.11.172"),
-                       port=80,
+                       address=socket.inet_aton(get_local_ip()),
+                       port=3335,
                        weight=0,
                        priority=0,
                        properties=desc,
@@ -33,6 +49,24 @@ if __name__ == '__main__':
     zeroconf = Zeroconf()
     print("Registration of a service, press Ctrl-C to exit...")
     zeroconf.register_service(info)
+
+    print("Opening a TCP connection")
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print(get_local_ip())
+    s.bind((str(get_local_ip()), 5555))
+    s.listen()
+
+    conn, addr = s.accept()
+    print("Connection address:  " + str(addr))
+
+    while True:
+        data = conn.recv(20)
+        if not data:
+            break
+        print("Server IP is: " + str(data.decode()))
+    #print("Closing TCP")
+    #conn.close()
+
     try:
         while True:
             sleep(0.1)

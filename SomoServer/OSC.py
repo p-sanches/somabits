@@ -55,8 +55,8 @@ class getOSCMessages(QThread):
 
         for rows in range(len(self.TABLE_FORWARDING)):
             if (self.TABLE_FORWARDING.iloc[rows]['Sensor Address'] == address_client & self.TABLE_FORWARDING.iloc[rows]['Sensor IP']==client_IP):
-                sensor_range=self.TABLE_FORWARDING.iloc[rows]['Sensor Range'].split("-")
-                actuator_range = self.TABLE_FORWARDING.iloc[rows]['Actuator Range'].split("-")
+                sensor_range=self.TABLE_FORWARDING.iloc[rows]['Sensor Range'].split("%")
+                actuator_range = self.TABLE_FORWARDING.iloc[rows]['Actuator Range'].split("%")
                 value= self.maprange((float(sensor_range[0]), float(sensor_range[1])), (float(actuator_range[0]), float(actuator_range[1])), float(message))
                 client = udp_client.SimpleUDPClient(self.TABLE_FORWARDING.iloc[rows]['Actuator IP'], self.TABLE_FORWARDING.iloc[rows]['Actuator Port'])
                 client.send_message(self.TABLE_FORWARDING.iloc[rows]['Actuator Address'], value)
