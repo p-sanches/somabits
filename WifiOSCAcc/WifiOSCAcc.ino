@@ -82,7 +82,7 @@ void setup() {
   printWifiData();
 
   mdns.begin(WiFi.localIP(), "arduino_2");
-  uint8_t* s1 = "sensor1=/accelerometer:2%-1";
+  uint8_t* s1 = "sensor1=/accelerometer:-1%2";
 
   char txt[100] = {'\0'};
 
