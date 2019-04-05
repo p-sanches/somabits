@@ -9,3 +9,8 @@ SomoServer/__pycache__/
 WifiMDNSTest/.project
 WifiMDNSTest/.cproject
 .idea/
+WifiOSCAcc/.cproject
+WifiOSCLed/.project
+WifiOSCLed/.gitignore
+WifiOSCLed/.cproject
+WifiOSCAcc/.project
