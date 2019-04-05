@@ -32,6 +32,9 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
         self.ui.StartOSC.clicked.connect(self.start_OSC)
+        self.ui.StopOSCButton.setEnabled(False)
+        self.ui.StopOSCButton.setStyleSheet(
+            "background-color: gray;""font: 63 10pt \"Adobe Fan Heiti Std B\";""color: rgb(255, 255, 255);");
 
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host Name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'ServiceName','isSelected','isServer', 'isTaken', '*'])
         self.TABLE_INFO_CHECKBOX = 11
@@ -54,11 +57,17 @@ class StartQT5(QtWidgets.QMainWindow):
         self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(),3333,self)
         self.get_thread.start()
         self.ui.StartOSC.setEnabled(False)
+        self.ui.StartOSC.setStyleSheet("background-color: gray;""color: rgb(255, 255, 255);""font: 63 10pt \"Adobe Fan Heiti Std B\";")
         self.ui.tableView_2.setEnabled(False)
         self.ui.tableView.setEnabled(False)
         self.ui.discover_button.setEnabled(False)
+        self.ui.discover_button.setStyleSheet("background-color: gray;""font: 63 10pt \"Adobe Fan Heiti Std B\";""color: rgb(255, 255, 255);")
         self.ui.save_button.setEnabled(False)
+        self.ui.save_button.setStyleSheet("background-color: gray;\n""color: rgb(255, 255, 255);""font: 63 10pt \"Adobe Fan Heiti Std B\";")
         self.ui.StopOSCButton.setEnabled(True)
+        self.ui.StopOSCButton.setStyleSheet("font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
+                                         "background-color: rgb(170, 0, 0);\n"
+                                         "color: rgb(255, 255, 255);")
         self.ui.StopOSCButton.clicked.connect(self.get_thread.OSC_stop)
 
 

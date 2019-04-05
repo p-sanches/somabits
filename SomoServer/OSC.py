@@ -29,11 +29,16 @@ class getOSCMessages(QThread):
     def OSC_stop(self):
 
         self.soma.ui.StartOSC.setEnabled(True)
+        self.soma.ui.StartOSC.setStyleSheet("background-color: rgb(170, 255, 127);\n"
+                                    "font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
+                                    "color: rgb(0, 0, 0);")
         self.soma.ui.tableView_2.setEnabled(True)
         self.soma.ui.tableView.setEnabled(True)
         self.soma.ui.discover_button.setEnabled(True)
         self.soma.ui.save_button.setEnabled(True)
         self.soma.ui.StopOSCButton.setEnabled(False)
+        self.soma.ui.StopOSCButton.setStyleSheet(
+            "background-color: gray;""font: 63 10pt \"Adobe Fan Heiti Std B\";""color: rgb(255, 255, 255);");
         self.server.server_close()
         self.terminate()
 
