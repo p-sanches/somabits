@@ -99,6 +99,12 @@ void oscEvent(OscMessage theOscMessage) {
     sendOneActuatorData(theOscMessage);
     printOSCMessage(theOscMessage);
   }
+  else{
+   // print("## Sending OSC Message directly to Wekinator");
+    //printOSCMessage(theOscMessage);
+    trainWekinatorMsg(theOscMessage);
+    
+  }
 }
 
 void sendOneActuatorData(OscMessage theOscMessage){

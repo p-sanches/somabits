@@ -1,5 +1,9 @@
 #include <Encoder.h>
 #include <EEPROM.h>
+
+const byte interruptPin = 2;
+int val = 0;
+
 const int relay1 = 12;
 const int relay2 = 9;
 
@@ -12,14 +16,14 @@ int Inverse_PWM = 0;
 int level = 0;
 
 Encoder myEnc(2, 7); //  Set up the linear actuator encoder using pins which support interrupts, avoid using pins with LEDs attached i.e. 13
-long oldPosition  = -99999; //   intializing it with random negative value
-long oldPressure  = -99999; //   intializing it with random negative value
-int currentPosition  = -99999; //   intializing it with random negative value
+long oldPosition  = -9999; //   intializing it with random negative value
+long oldPressure  = -9999; //   intializing it with random negative value
+int currentPosition  = -9999; //   intializing it with random negative value
 int correction = 0;
 
 
-const int PressureLocal = A5;// Pressure Sensing 
-const int PressureRemote = A6;// Pressure Sensing
+//const int PressureLocal = A5;// Pressure Sensing 
+//const int PressureRemote = A6;// Pressure Sensing
 
 const int baseline = 200; //minimum pressure for anything to happen at all, arbitrary value. Could be something to calibrate
 
@@ -34,13 +38,21 @@ void setup() {
   correction = EEPROMReadInt(0); // reading the last position of motor from EEPROM to later caliberate HallEffect sensor values
   
   Serial.begin(9600);
-  getMiddlePoint();
+  //getMiddlePoint();
 
 }
 
 
 
+
+
 void loop() {
+
+  //read inputs (OSC)
+  
+
+  //gotozero();
+  
   // put your main code here, to run repeatedly:
 
   int together = -1001;
@@ -108,7 +120,7 @@ void extendActuator()
 void gotozero(){
   PWM = 255;
   while(1){
-    retractActuator();
+    extendActuator();
     EEPROMWriteInt(0, 0);
   }
 }
@@ -147,28 +159,28 @@ int EEPROMReadInt(int address)
   return ((two << 0) & 0xFFFFFF) + ((one << 8) & 0xFFFFFFFF);
 }
 
-void getMiddlePoint()
-{
-   PWM = 255;
-
-  while(1){
-    
-     long newPosition = myEnc.read()+ correction;  //check the encoder to see if the position has changed
-     EEPROMWriteInt(0, newPosition); //saving motor position in EEPROM
-      
-
-     if(newPosition > 6100)
-     {
-        retractActuator();
-     }
-     else if(newPosition < 6000)
-     {
-        extendActuator();
-     }
-     else return;
-  }
-   
- 
-  
-}
+//void getMiddlePoint()
+//{
+//   PWM = 255;
+//
+//  while(1){
+//    
+//     long newPosition = myEnc.read()+ correction;  //check the encoder to see if the position has changed
+//     EEPROMWriteInt(0, newPosition); //saving motor position in EEPROM
+//      
+//
+//     if(newPosition > 6100)
+//     {
+//        retractActuator();
+//     }
+//     else if(newPosition < 6000)
+//     {
+//        extendActuator();
+//     }
+//     else return;
+//  }
+//   
+// 
+//  
+//}
 
