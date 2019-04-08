@@ -3,10 +3,14 @@ import sys
 import socket
 import numpy as np
 import pandas as pd
+import threading
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal, QModelIndex)
 
 # TODO: Fix the checkbox color
+# TODO: Clean close of zeroconf when closing the GUI
+# TODO: Clean close of the check_service thread
 
 from SomoServer.gui import Ui_MainWindow
 from SomoServer.TableModel import PandasModel, CheckBoxDelegate
@@ -72,9 +76,6 @@ class StartQT5(QtWidgets.QMainWindow):
 
 
 
-
-
-
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
         if Checkbox.isChecked():
@@ -100,10 +101,7 @@ class StartQT5(QtWidgets.QMainWindow):
         actuators_IP = []
         actuators_Port = []
         actuators_Range = []
-        forward_table=pd.DataFrame()
-
-
-
+        forward_table = pd.DataFrame()
 
         for rows in range(len(self.TABLE_INFO)):
             if (self.TABLE_INFO.iloc[rows]['isServer'] == False and self.TABLE_INFO.iloc[rows]['isSelected'] == True):
@@ -111,18 +109,14 @@ class StartQT5(QtWidgets.QMainWindow):
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP connection
                     print("About to sent the servers IP %s to %s" % (self.discovery.get_local_ip(), self.TABLE_INFO.iloc[rows]['Address']))
                     s.connect((self.TABLE_INFO.iloc[rows]['Address'], 5555))
-                #try:
-                #while True:
                     msg = str(self.discovery.get_local_ip())
                     s.sendall(msg.encode())
                 except:
                     print("Nothing exciting happend")
                 finally:
                     print("Sent the servers IP")
-                    #s.close()
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
-
-                if(self.TABLE_INFO.iloc[rows]['isSelected']==True):
+                if(self.TABLE_INFO.iloc[rows]['isSelected'] == True):
                     # First we send a message to inform the nodes about our IP (as long as the MDNS bug in the Arduinos exists)
                     if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
                         sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
@@ -136,7 +130,7 @@ class StartQT5(QtWidgets.QMainWindow):
                         actuators_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'][devices])
 
         forward_table = pd.DataFrame(index=sensors,columns=actuators)
-        model=PandasModel(forward_table)
+        model = PandasModel(forward_table)
         self.ui.tableView_2.setModel(model)
 
         for rows in range(model.rowCount()):
@@ -194,6 +188,16 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.ui.tableView.setRowHidden(row, True)
         self.model.update()
 
+    def check_services(self):
+        threading.Timer(5.0, self.check_services).start()
+        for rows in range(len(self.TABLE_INFO)):
+            print(self.TABLE_INFO.iloc[rows]['ServiceName'])
+            info = self.discovery.zeroconf.get_service_info(self.discovery.get_soma_type(), self.TABLE_INFO.iloc[rows]['ServiceName'])
+            if info is None:
+                print("Did not find service %s" % (self.TABLE_INFO.iloc[rows]['ServiceName']))
+                self.handleServiceRemoved(self.TABLE_INFO.iloc[rows]['ServiceName'])
+                self.update_view()
+
     def handleCheckboxClicked(self, value, ip, host):
         if value is 1:
             self.discovery.register_service(ip, host)
@@ -211,7 +215,7 @@ class StartQT5(QtWidgets.QMainWindow):
             "  Address: %s:%d" % (device_ip, cast(int, info.port)))
         self.ui.plainTextEdit.appendPlainText(
             "  Weight: %d, priority: %d" % (info.weight, info.priority))
-        self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
+        self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server))
 
         if info.properties:
             self.ui.plainTextEdit.appendPlainText("  Properties are:")
@@ -241,7 +245,6 @@ class StartQT5(QtWidgets.QMainWindow):
                 # Check if service already exists (happens if two users click on the same device at the same time)
                 if info.server in self.TABLE_INFO['Host Name'].to_list():
                     # This should not have happend. We have two services with the same name
-                    #self.discovery.unregister_service(device_ip, info.server)
                     self.ui.plainTextEdit.appendPlainText(
                         "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
                 else:
@@ -311,8 +314,9 @@ class StartQT5(QtWidgets.QMainWindow):
 
             else:
                 # A device has unregistered
+                # Remove server from TABLE_INFO
+                self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
                 print("[WARNING] A device has unregistered")
-                #pass
         self.update_view()
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
@@ -321,6 +325,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         if state_change is ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
+
             if info:
                 self.handleServiceAdded(info, name)
         elif state_change is ServiceStateChange.Removed:
@@ -330,6 +335,7 @@ class StartQT5(QtWidgets.QMainWindow):
         self.discovery = NeighborDiscovery()
         self.discovery.neighbor_signal.connect(self.on_device_found)
         self.ui.discover_button.setEnabled(False)
+        self.check_services()
 
 
 if __name__ == "__main__":
