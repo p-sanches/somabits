@@ -20,6 +20,7 @@
 #include "Wire.h"
 
 #include "arduino_secrets.h"
+///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS; // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
@@ -38,13 +39,18 @@ const unsigned int tcp_port = 5555;
 WiFiServer server(tcp_port);
 WiFiClient client;
 
+//IPAddress server_ip(192, 168, 11, 103); //change it to your server IP address
 IPAddress broadcast_ip(0, 0, 0, 0);
 const unsigned int server_port = 3333;
-float interval = 1000;
-unsigned int ledState = LOW;
-unsigned long previousMillis = 0;
+//const unsigned int local_port = 3333;
+float interval1 = 1000;
+float interval2 = 1000;
+unsigned int ledState1 = LOW;
+unsigned int ledState2 = LOW;
+unsigned long previousMillis1 = 0;
+unsigned long previousMillis2 = 0;
 
-OSCMessage recieve_msg("/light");
+//OSCMessage recieve_msg("/light");
 
 
 void setup() {
@@ -93,7 +99,8 @@ void setup() {
 
 	mdns.begin(WiFi.localIP(), "arduino_led");
 
-	uint8_t* s1 = "actuator1=/light:50%1500";
+	uint8_t* s1 = "actuator1=/light1:50%1500";
+ char a1[30] = "actuator2=/light2:50%1500";
 
 	char txt[100] = { '\0' };
 
@@ -108,8 +115,17 @@ void setup() {
 		}
 	}
 
+  txt[txt_len] = (uint8_t) strlen(a1);
+  txt_len++;
+  for (uint8_t i = 0; i < strlen(a1); i++) {
+    if (a1[i] != '\0') {
+      txt[txt_len] = a1[i];
+      txt_len++;
+    }
+ }
+
 	int success;
-	success = mdns.addServiceRecord("Arduino with LEDs._osc", 3333,
+	success = mdns.addServiceRecord("Arduino with LED._osc", 3333,
 			MDNSServiceUDP, txt);
 
 	if (success) {
@@ -119,11 +135,18 @@ void setup() {
 	}
 
 	pinMode(2, OUTPUT);
+ pinMode(LED_BUILTIN, OUTPUT);
 
 }
 
-void led(OSCMessage &msg) {
-	interval = msg.getFloat(0);
+void led1(OSCMessage &msg) {
+	interval1 = msg.getFloat(0);
+	
+}
+
+void led2(OSCMessage &msg) {
+  interval2 = msg.getFloat(0);
+  
 }
 
 void loop() {
@@ -133,6 +156,8 @@ void loop() {
 		String currentLine = ""; // make a String to hold incoming data from the client
 		while (client.connected()) {        // loop while the client's connected
 			if (client.available()) { // if there's bytes to read from the client
+				Serial.println(client.remoteIP());
+				//				Serial.println(client.remotePort());
 				if (client.remoteIP() != broadcast_ip) {
 					char c = NULL;
 					do {
@@ -161,24 +186,40 @@ void loop() {
 	}
 
 	if (server_ready == true) {
-//		OSCMessage recieve_msg("/light");
+		OSCMessage recieve_msg("/light");
 
 		unsigned long currentMillis = millis();
 
-		if (currentMillis - previousMillis >= interval) {
+		if (currentMillis - previousMillis1 >= interval1) {
 			// save the last time you blinked the LED
-			previousMillis = currentMillis;
+			previousMillis1 = currentMillis;
 
 			// if the LED is off turn it on and vice-versa:
-			if (ledState == LOW) {
-				ledState = HIGH;
+			if (ledState1 == LOW) {
+				ledState1 = HIGH;
 			} else {
-				ledState = LOW;
+				ledState1 = LOW;
 			}
 
 			// set the LED with the ledState of the variable:
-			digitalWrite(2, ledState);
+			digitalWrite(2, ledState1);
 		}
+
+
+   if (currentMillis - previousMillis2 >= interval2) {
+     // save the last time you blinked the LED
+      previousMillis2 = currentMillis;
+
+      // if the LED is off turn it on and vice-versa:
+      if (ledState2 == LOW) {
+        ledState2 = HIGH;
+      } else {
+        ledState2 = LOW;
+      }
+
+      // set the LED with the ledState of the variable:
+      digitalWrite(LED_BUILTIN, ledState2);
+    }
 
 		//// Recieving ////
 
@@ -192,7 +233,8 @@ void loop() {
 				}
 
 				if (!recieve_msg.hasError()) {
-					recieve_msg.dispatch("/light", led);
+					recieve_msg.dispatch("/light1", led1);
+          recieve_msg.dispatch("/light2", led2);
 				} else {
 					error = recieve_msg.getError();
 					Serial.print("error: ");
@@ -201,6 +243,7 @@ void loop() {
 				udp_osc.flush();
 			}
 		}
+
 	}
 
 	mdns.run();
