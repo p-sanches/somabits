@@ -40,11 +40,11 @@ WiFiClient client;
 
 IPAddress broadcast_ip(0, 0, 0, 0);
 const unsigned int server_port = 3333;
-float interval = 1000;
+float interval_x, interval_y = 1000;
 unsigned int ledState = LOW;
 unsigned long previousMillis = 0;
 
-OSCMessage recieve_msg("/light");
+//OSCMessage recieve_msg("/light");
 
 
 void setup() {
@@ -122,8 +122,31 @@ void setup() {
 
 }
 
+int blink(float interval) {
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - previousMillis >= interval) {
+		// save the last time you blinked the LED
+		previousMillis = currentMillis;
+
+		// if the LED is off turn it on and vice-versa:
+		if (ledState == LOW) {
+			ledState = HIGH;
+		} else {
+			ledState = LOW;
+		}
+		// set the LED with the ledState of the variable:
+		//digitalWrite(2, ledState);
+	}
+	return ledState;
+}
+
 void led(OSCMessage &msg) {
-	interval = msg.getFloat(0);
+	interval_x = msg.getFloat(1);
+	interval_y = msg.getFloat(3);
+
+	digitalWrite(LED_BUILTIN, blink(interval_x));
+	digitalWrite(2, blink(interval_y));
 }
 
 void loop() {
@@ -161,24 +184,11 @@ void loop() {
 	}
 
 	if (server_ready == true) {
-//		OSCMessage recieve_msg("/light");
+		OSCMessage recv_msg("/light");
 
-		unsigned long currentMillis = millis();
 
-		if (currentMillis - previousMillis >= interval) {
-			// save the last time you blinked the LED
-			previousMillis = currentMillis;
 
-			// if the LED is off turn it on and vice-versa:
-			if (ledState == LOW) {
-				ledState = HIGH;
-			} else {
-				ledState = LOW;
-			}
 
-			// set the LED with the ledState of the variable:
-			digitalWrite(2, ledState);
-		}
 
 		//// Recieving ////
 
@@ -188,13 +198,13 @@ void loop() {
 		if (udp_osc.remoteIP() == server_ip) {
 			if (size > 0) {
 				while (size--) {
-					recieve_msg.fill(udp_osc.read());
+					recv_msg.fill(udp_osc.read());
 				}
 
-				if (!recieve_msg.hasError()) {
-					recieve_msg.dispatch("/light", led);
+				if (!recv_msg.hasError()) {
+					recv_msg.dispatch("/light", led);
 				} else {
-					error = recieve_msg.getError();
+					error = recv_msg.getError();
 					Serial.print("error: ");
 					Serial.println(error);
 				}

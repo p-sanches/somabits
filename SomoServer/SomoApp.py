@@ -191,10 +191,8 @@ class StartQT5(QtWidgets.QMainWindow):
     def check_services(self):
         threading.Timer(5.0, self.check_services).start()
         for rows in range(len(self.TABLE_INFO)):
-            print(self.TABLE_INFO.iloc[rows]['ServiceName'])
             info = self.discovery.zeroconf.get_service_info(self.discovery.get_soma_type(), self.TABLE_INFO.iloc[rows]['ServiceName'])
             if info is None:
-                print("Did not find service %s" % (self.TABLE_INFO.iloc[rows]['ServiceName']))
                 self.handleServiceRemoved(self.TABLE_INFO.iloc[rows]['ServiceName'])
                 self.update_view()
 

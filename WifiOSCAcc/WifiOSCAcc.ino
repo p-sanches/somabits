@@ -44,10 +44,6 @@ const unsigned int server_port = 3333;
 
 LSM6DS3 myIMU(SPI_MODE, SPIIMU_SS); // SPI Chip Select
 
-OSCMessage send_msg("/accelerometer");
-OSCMessage recieve_msg("/accelerometer");
-
-
 void printMacAddress(byte mac[]) {
 	for (int i = 5; i >= 0; i--) {
 		if (mac[i] < 16) {
@@ -212,9 +208,13 @@ void loop() {
 	}
 
 	if (server_ready == true) {
+		OSCMessage send_msg("/accelerometer");
+		OSCMessage recieve_msg("/accelerometer");
 
-		send_msg.add(myIMU.readFloatAccelX());
-		Serial.println(myIMU.readFloatAccelX());
+		send_msg.add("/X").add(myIMU.readFloatAccelX());
+		send_msg.add("/Y").add(myIMU.readFloatAccelY());
+		send_msg.add("/Z").add(myIMU.readFloatAccelZ());
+		//Serial.println(myIMU.readFloatAccelX());
 
 		udp_osc.beginPacket(server_ip, server_port);
 		send_msg.send(udp_osc); // send the bytes to the SLIP stream
