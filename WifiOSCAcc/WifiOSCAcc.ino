@@ -20,7 +20,6 @@
 #include "Wire.h"
 
 #include "arduino_secrets.h"
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS; // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
@@ -35,18 +34,20 @@ unsigned int ledState = LOW;
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP udp;
 MDNS mdns(udp);
-WiFiServer server(5555);
+const unsigned int tcp_port = 5555;
+WiFiServer server(tcp_port);
 WiFiClient client;
 
 //IPAddress server_ip(192, 168, 11, 103); //change it to your server IP address
+IPAddress broadcast_ip(0, 0, 0, 0);
 const unsigned int server_port = 3333;
 const unsigned int local_port = 3333;
 
 LSM6DS3 myIMU(SPI_MODE, SPIIMU_SS); // SPI Chip Select
 
-//void serviceFound(const char* type, MDNSServiceProtocol proto,
-//                  const char* name, IPAddress ip, unsigned short port,
-//                  const char* txtContent);
+OSCMessage send_msg("/accelerometer");
+OSCMessage recieve_msg("/accelerometer");
+
 
 void printMacAddress(byte mac[]) {
 	for (int i = 5; i >= 0; i--) {
@@ -151,7 +152,6 @@ void setup() {
 	udp.begin(local_port);
 
 	Serial.println("\nStarting Service Discovery...");
-
 	mdns.begin(WiFi.localIP(), "arduino_acc");
 
 	uint8_t* s1 = "sensor1=/accelerometer:-1%2";
@@ -184,49 +184,46 @@ void setup() {
 }
 
 void loop() {
-	mdns.run();
 
 	client = server.available();   // listen for incoming clients
 
-
 	if (client) {                             // if you get a client,
-		//Serial.println("We get the servers IP :-)"); // print a message out the serial port
 		String currentLine = ""; // make a String to hold incoming data from the client
 		while (client.connected()) {        // loop while the client's connected
-			//Serial.println("test");
 			if (client.available()) { // if there's bytes to read from the client
-				//Serial.println("there");
-				char c = NULL;
-				do {
-					c = client.read();
-					currentLine += c;    // add it to the end of the currentLine
-					server_ip_len++;
-				} while (c != -1 || c == "\n");
-				//break;
+				Serial.println(client.remoteIP());
+//				Serial.println(client.remotePort());
+				if (client.remoteIP() != broadcast_ip) {
+					char c = NULL;
+					do {
+						c = client.read();
+						currentLine += c; // add it to the end of the currentLine
+						server_ip_len++;
+					} while (c != -1 || c == "\n");
+				} else {
+					break;
+				}
 			}
-			//currentLine += "\n";
-			Serial.println(currentLine);
 		}
 		// close the connection:
+		client.flush();
+		Serial.println(client.status());
 		client.stop();
 		Serial.println("Client disonnected");
 
 		char ip_str[server_ip_len];
 		currentLine.toCharArray(ip_str, server_ip_len);
 		ip_str[server_ip_len] = '\0';
-		Serial.println(ip_str);
-		Serial.println(server_ip_len);
-
 		server_ip.fromString(ip_str);
-
 		Serial.print("Server IP: ");
 		Serial.println(server_ip);
 		server_ready = true;
 	}
 
 	if (server_ready == true) {
-		OSCMessage send_msg("/accelerometer");
-		OSCMessage recieve_msg("/accelerometer");
+
+//		OSCMessage send_msg("/accelerometer");
+//		OSCMessage recieve_msg("/accelerometer");
 
 //		Serial.print("Sending packet to ");
 //		Serial.print(server_ip);
@@ -262,7 +259,9 @@ void loop() {
 
 	}
 
-	delay(100);
+	mdns.run();
+
+	delay(10);
 }
 
 //void nameFound(const char* name, IPAddress ip)

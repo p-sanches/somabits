@@ -32,20 +32,23 @@ int server_ip_len = 0;
 OSCErrorCode error;
 
 // A UDP instance to let us send and receive packets over UDP
-WiFiUDP udp;
-MDNS mdns(udp);
-WiFiServer server(5555);
+WiFiUDP udp_mdsn;
+WiFiUDP udp_osc;
+MDNS mdns(udp_mdsn);
+const unsigned int tcp_port = 5555;
+WiFiServer server(tcp_port);
 WiFiClient client;
 
 //IPAddress server_ip(192, 168, 11, 103); //change it to your server IP address
+IPAddress broadcast_ip(0, 0, 0, 0);
 const unsigned int server_port = 3333;
-const unsigned int local_port = 3333;
-int interval = 1000;
+//const unsigned int local_port = 3333;
+float interval = 1000;
 unsigned int ledState = LOW;
 unsigned long previousMillis = 0;
 
-void serviceFound(const char* type, MDNSServiceProtocol proto, const char* name,
-		IPAddress ip, unsigned short port, const char* txtContent);
+//OSCMessage recieve_msg("/light");
+
 
 void setup() {
 	//Initialize serial and wait for port to open:
@@ -87,7 +90,7 @@ void setup() {
 	server.begin();
 
 	Serial.println("\nStarting connection to server...");
-	udp.begin(local_port);
+	udp_osc.begin(server_port);
 
 	Serial.println("\nStarting Service Discovery...");
 
@@ -123,51 +126,50 @@ void setup() {
 }
 
 void led(OSCMessage &msg) {
-	interval = msg.getInt(0);
+	interval = msg.getFloat(0);
+	Serial.println("msg");
+	Serial.println(msg.getFloat(0));
+	Serial.println(msg.getFloat(1));
 }
 
 void loop() {
-	mdns.run();
-
 	client = server.available();   // listen for incoming clients
 
 	if (client) {                             // if you get a client,
-		//Serial.println("We get the servers IP :-)"); // print a message out the serial port
 		String currentLine = ""; // make a String to hold incoming data from the client
 		while (client.connected()) {        // loop while the client's connected
-			//Serial.println("test");
 			if (client.available()) { // if there's bytes to read from the client
-				//Serial.println("there");
-				char c = NULL;
-				do {
-					c = client.read();
-					currentLine += c;    // add it to the end of the currentLine
-					server_ip_len++;
-				} while (c != -1 || c == "\n");
-				//break;
+				Serial.println(client.remoteIP());
+				//				Serial.println(client.remotePort());
+				if (client.remoteIP() != broadcast_ip) {
+					char c = NULL;
+					do {
+						c = client.read();
+						currentLine += c; // add it to the end of the currentLine
+						server_ip_len++;
+					} while (c != -1 || c == "\n");
+				} else {
+					break;
+				}
 			}
-			//currentLine += "\n";
-			Serial.println(currentLine);
 		}
 		// close the connection:
+		client.flush();
+		Serial.println(client.status());
 		client.stop();
 		Serial.println("Client disonnected");
 
 		char ip_str[server_ip_len];
 		currentLine.toCharArray(ip_str, server_ip_len);
 		ip_str[server_ip_len] = '\0';
-		Serial.println(ip_str);
-		Serial.println(server_ip_len);
-
 		server_ip.fromString(ip_str);
-
 		Serial.print("Server IP: ");
 		Serial.println(server_ip);
 		server_ready = true;
 	}
 
 	if (server_ready == true) {
-		OSCMessage recieve_msg("/accelerometer");
+		OSCMessage recieve_msg("/light");
 
 		unsigned long currentMillis = millis();
 
@@ -188,23 +190,29 @@ void loop() {
 
 		//// Recieving ////
 
-		int size = udp.parsePacket();
+		int size = udp_osc.parsePacket();
+		Serial.println(udp_osc.remoteIP());
 
-		if (size > 0) {
-			while (size--) {
-				recieve_msg.fill(udp.read());
-			}
+		if (udp_osc.remoteIP() == server_ip) {
+			if (size > 0) {
+				while (size--) {
+					recieve_msg.fill(udp_osc.read());
+				}
 
-			if (!recieve_msg.hasError()) {
-				recieve_msg.dispatch("/light", led);
-			} else {
-				error = recieve_msg.getError();
-				Serial.print("error: ");
-				Serial.println(error);
+				if (!recieve_msg.hasError()) {
+					recieve_msg.dispatch("/light", led);
+				} else {
+					error = recieve_msg.getError();
+					Serial.print("error: ");
+					Serial.println(error);
+				}
+				udp_osc.flush();
 			}
 		}
+
 	}
 
+	mdns.run();
 	delay(10);
 }
 

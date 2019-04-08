@@ -229,7 +229,7 @@ class StartQT5(QtWidgets.QMainWindow):
                     # the device does not have sensor values
                     value_str = str(value).split("'")[1]
                     device_address.append(value_str)
-                    device_range.append('0-1')
+                    device_range.append('0%1')
         else:
             self.ui.plainTextEdit.appendPlainText("  No properties")
         self.ui.plainTextEdit.appendPlainText('\n')
