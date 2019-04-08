@@ -206,6 +206,8 @@ void loop() {
 			currentLine += "\n";
 			Serial.println(currentLine);
 		}
+
+
 		// close the connection:
 		client.stop();
 		Serial.println("Client disonnected");
