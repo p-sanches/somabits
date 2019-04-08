@@ -96,7 +96,7 @@ void setup() {
 
 	mdns.begin(WiFi.localIP(), "arduino_led");
 
-	uint8_t* s1 = "actuator1=/light:100%1000";
+	uint8_t* s1 = "actuator1=/light:50%1500";
 
 	char txt[100] = { '\0' };
 
@@ -121,7 +121,7 @@ void setup() {
 		Serial.println("Something went wrong while registering service");
 	}
 
-	pinMode(LED_BUILTIN, OUTPUT);
+	pinMode(2, OUTPUT);
 
 }
 
@@ -185,7 +185,7 @@ void loop() {
 			}
 
 			// set the LED with the ledState of the variable:
-			digitalWrite(LED_BUILTIN, ledState);
+			digitalWrite(2, ledState);
 		}
 
 		//// Recieving ////
