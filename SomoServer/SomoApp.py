@@ -329,6 +329,7 @@ class StartQT5(QtWidgets.QMainWindow):
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
         self.discovery.neighbor_signal.connect(self.on_device_found)
+        self.ui.discover_button.setEnabled(False)
 
 
 if __name__ == "__main__":

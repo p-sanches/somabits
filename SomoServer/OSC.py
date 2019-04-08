@@ -43,7 +43,7 @@ class getOSCMessages(QThread):
         self.terminate()
 
     def OSC_handler(self,address, *args):
-
+1
         client_IP=address[0]
         client_Port = address[1]
         address_client = args[0]
