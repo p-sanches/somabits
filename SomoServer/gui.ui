@@ -24,7 +24,7 @@
     <normaloff>resx/s_logo.png</normaloff>resx/s_logo.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.466, y1:0, x2:0.46, y2:1, stop:0 rgba(82, 175, 210, 255), stop:1 rgba(23, 51, 61, 255));</string>
+   <string notr="true"/>
   </property>
   <property name="iconSize">
    <size>
