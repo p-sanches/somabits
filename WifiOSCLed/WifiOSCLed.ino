@@ -39,10 +39,8 @@ const unsigned int tcp_port = 5555;
 WiFiServer server(tcp_port);
 WiFiClient client;
 
-//IPAddress server_ip(192, 168, 11, 103); //change it to your server IP address
 IPAddress broadcast_ip(0, 0, 0, 0);
 const unsigned int server_port = 3333;
-//const unsigned int local_port = 3333;
 float interval1 = 1000;
 float interval2 = 1000;
 unsigned int ledState1 = LOW;
@@ -146,6 +144,7 @@ void led1(OSCMessage &msg) {
 
 void led2(OSCMessage &msg) {
   interval2 = msg.getFloat(0);
+  Serial.println("checking");
   
 }
 

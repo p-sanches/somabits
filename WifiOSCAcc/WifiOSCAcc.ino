@@ -143,7 +143,7 @@ void setup() {
 	mdns.begin(WiFi.localIP(), "arduino_acc");
 
 	uint8_t* s1 = "sensor1=/accelerometer/X:-1%2";
-	uint8_t* s2 = "sensor2=/accelerometer/Y:-1%2";
+	uint8_t* s2 = "sensor2=/accelerometer/Y:-1.05%1.11";
 	uint8_t* s3 = "sensor3=/accelerometer/Z:-1%2";
 
 	char txt[100] = { '\0' };
@@ -236,7 +236,11 @@ void loop() {
 		send_msg_x.add(myIMU.readFloatAccelX());
 		send_msg_y.add(myIMU.readFloatAccelY());
 		send_msg_z.add(myIMU.readFloatAccelZ());
-		//Serial.println(myIMU.readFloatAccelX());
+
+//		Serial.print("X: ");
+//		Serial.println(myIMU.readFloatAccelX());
+		Serial.print("Y: ");
+		Serial.println(myIMU.readFloatAccelY());
 
 		udp_osc.beginPacket(server_ip, server_port);
 		send_msg_x.send(udp_osc); // send the bytes to the SLIP stream
