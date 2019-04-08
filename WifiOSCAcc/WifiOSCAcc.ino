@@ -143,8 +143,8 @@ void setup() {
 	mdns.begin(WiFi.localIP(), "arduino_acc");
 
 	uint8_t* s1 = "sensor1=/accelerometer/X:-1%2";
-	uint8_t* s2 = "sensor1=/accelerometer/Y:-1%2";
-	uint8_t* s3 = "sensor1=/accelerometer/Y:-1%2";
+	uint8_t* s2 = "sensor2=/accelerometer/Y:-1%2";
+	uint8_t* s3 = "sensor3=/accelerometer/Z:-1%2";
 
 	char txt[100] = { '\0' };
 
