@@ -186,21 +186,12 @@
            </color>
           </brush>
          </colorrole>
-         <colorrole role="HighlightedText">
-          <brush brushstyle="SolidPattern">
-           <color alpha="255">
-            <red>255</red>
-            <green>255</green>
-            <blue>255</blue>
-           </color>
-          </brush>
-         </colorrole>
          <colorrole role="AlternateBase">
           <brush brushstyle="SolidPattern">
            <color alpha="255">
-            <red>7</red>
-            <green>16</green>
-            <blue>20</blue>
+            <red>247</red>
+            <green>247</green>
+            <blue>247</blue>
            </color>
           </brush>
          </colorrole>
@@ -365,21 +356,12 @@
            </color>
           </brush>
          </colorrole>
-         <colorrole role="HighlightedText">
-          <brush brushstyle="SolidPattern">
-           <color alpha="255">
-            <red>255</red>
-            <green>255</green>
-            <blue>255</blue>
-           </color>
-          </brush>
-         </colorrole>
          <colorrole role="AlternateBase">
           <brush brushstyle="SolidPattern">
            <color alpha="255">
-            <red>7</red>
-            <green>16</green>
-            <blue>20</blue>
+            <red>247</red>
+            <green>247</green>
+            <blue>247</blue>
            </color>
           </brush>
          </colorrole>
@@ -544,21 +526,12 @@
            </color>
           </brush>
          </colorrole>
-         <colorrole role="HighlightedText">
-          <brush brushstyle="SolidPattern">
-           <color alpha="255">
-            <red>255</red>
-            <green>255</green>
-            <blue>255</blue>
-           </color>
-          </brush>
-         </colorrole>
          <colorrole role="AlternateBase">
           <brush brushstyle="SolidPattern">
            <color alpha="255">
-            <red>7</red>
-            <green>16</green>
-            <blue>20</blue>
+            <red>240</red>
+            <green>240</green>
+            <blue>240</blue>
            </color>
           </brush>
          </colorrole>
@@ -588,17 +561,15 @@
       </property>
       <property name="styleSheet">
        <string notr="true">background-color: qlineargradient(spread:pad, x1:0.466, y1:0, x2:0.46, y2:1, stop:0 rgba(255, 255, 255, 255), stop:1 rgba(79, 176, 210, 255));
-selection-color: rgb(255, 255, 255);
+
 font: 63 9pt &quot;Adobe Fan Heiti Std B&quot;;
-border-color: rgb(0, 0, 0);
-gridline-color: rgb(0, 0, 0);
-alternate-background-color: rgb(7, 16, 20);</string>
+</string>
       </property>
       <property name="tabShape">
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="iconSize">
        <size>

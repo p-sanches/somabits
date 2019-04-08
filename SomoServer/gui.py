@@ -79,10 +79,7 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Shadow, brush)
-        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.HighlightedText, brush)
-        brush = QtGui.QBrush(QtGui.QColor(7, 16, 20))
+        brush = QtGui.QBrush(QtGui.QColor(247, 247, 247))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.AlternateBase, brush)
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 220))
@@ -139,10 +136,7 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Shadow, brush)
-        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.HighlightedText, brush)
-        brush = QtGui.QBrush(QtGui.QColor(7, 16, 20))
+        brush = QtGui.QBrush(QtGui.QColor(247, 247, 247))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.AlternateBase, brush)
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 220))
@@ -199,10 +193,7 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Shadow, brush)
-        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.HighlightedText, brush)
-        brush = QtGui.QBrush(QtGui.QColor(7, 16, 20))
+        brush = QtGui.QBrush(QtGui.QColor(240, 240, 240))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.AlternateBase, brush)
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 220))
@@ -214,11 +205,9 @@ class Ui_MainWindow(object):
         self.tabWidget.setPalette(palette)
         self.tabWidget.setAutoFillBackground(False)
         self.tabWidget.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0.466, y1:0, x2:0.46, y2:1, stop:0 rgba(255, 255, 255, 255), stop:1 rgba(79, 176, 210, 255));\n"
-"selection-color: rgb(255, 255, 255);\n"
+"\n"
 "font: 63 9pt \"Adobe Fan Heiti Std B\";\n"
-"border-color: rgb(0, 0, 0);\n"
-"gridline-color: rgb(0, 0, 0);\n"
-"alternate-background-color: rgb(7, 16, 20);")
+"")
         self.tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
         self.tabWidget.setIconSize(QtCore.QSize(20, 20))
         self.tabWidget.setObjectName("tabWidget")
@@ -299,7 +288,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
