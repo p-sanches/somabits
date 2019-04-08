@@ -44,10 +44,6 @@ const unsigned int server_port = 3333;
 
 LSM6DS3 myIMU(SPI_MODE, SPIIMU_SS); // SPI Chip Select
 
-OSCMessage send_msg("/accelerometer");
-OSCMessage recieve_msg("/accelerometer");
-
-
 void printMacAddress(byte mac[]) {
 	for (int i = 5; i >= 0; i--) {
 		if (mac[i] < 16) {
@@ -146,7 +142,9 @@ void setup() {
 	Serial.println("\nStarting Service Discovery...");
 	mdns.begin(WiFi.localIP(), "arduino_acc");
 
-	uint8_t* s1 = "sensor1=/accelerometer:-1%2";
+	uint8_t* s1 = "sensor1=/accelerometer/X:-1%2";
+	uint8_t* s2 = "sensor1=/accelerometer/Y:-1%2";
+	uint8_t* s3 = "sensor1=/accelerometer/Y:-1%2";
 
 	char txt[100] = { '\0' };
 
@@ -157,6 +155,24 @@ void setup() {
 			;
 		{
 			txt[txt_len] = s1[i];
+			txt_len++;
+		}
+	}
+
+	txt[txt_len] = (uint8_t) strlen(s2);
+	txt_len++;
+	for (uint8_t i = 0; i < strlen(s2); i++) {
+		if (s2[i] != '\0') {
+			txt[txt_len] = s2[i];
+			txt_len++;
+		}
+	}
+
+	txt[txt_len] = (uint8_t) strlen(s3);
+	txt_len++;
+	for (uint8_t i = 0; i < strlen(s3); i++) {
+		if (s3[i] != '\0') {
+			txt[txt_len] = s3[i];
 			txt_len++;
 		}
 	}
@@ -212,14 +228,28 @@ void loop() {
 	}
 
 	if (server_ready == true) {
+		OSCMessage send_msg_x("/accelerometer/X");
+		OSCMessage send_msg_y("/accelerometer/Y");
+		OSCMessage send_msg_z("/accelerometer/Z");
+		//OSCMessage recieve_msg("/accelerometer");
 
-		send_msg.add(myIMU.readFloatAccelX());
-		Serial.println(myIMU.readFloatAccelX());
+		send_msg_x.add(myIMU.readFloatAccelX());
+		send_msg_y.add(myIMU.readFloatAccelY());
+		send_msg_z.add(myIMU.readFloatAccelZ());
+		//Serial.println(myIMU.readFloatAccelX());
 
 		udp_osc.beginPacket(server_ip, server_port);
-		send_msg.send(udp_osc); // send the bytes to the SLIP stream
+		send_msg_x.send(udp_osc); // send the bytes to the SLIP stream
 		udp_osc.endPacket(); // mark the end of the OSC Packet
-		send_msg.empty(); // free space occupied by message
+		send_msg_x.empty(); // free space occupied by message
+
+		send_msg_y.send(udp_osc); // send the bytes to the SLIP stream
+		udp_osc.endPacket(); // mark the end of the OSC Packet
+		send_msg_y.empty(); // free space occupied by message
+
+		send_msg_z.send(udp_osc); // send the bytes to the SLIP stream
+		udp_osc.endPacket(); // mark the end of the OSC Packet
+		send_msg_z.empty(); // free space occupied by message
 	}
 
 	mdns.run();

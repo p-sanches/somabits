@@ -2,6 +2,8 @@
 from pythonosc import udp_client
 from pythonosc import dispatcher
 from pythonosc import osc_server
+from pythonosc import osc_bundle_builder
+from pythonosc import osc_message_builder
 from PyQt5.QtCore import QThread
 
 
@@ -22,7 +24,6 @@ class getOSCMessages(QThread):
         self.wait()
 
     def run(self):
-
         print("Serving on {}".format(self.server.server_address))
         self.server.serve_forever()
 
@@ -46,16 +47,20 @@ class getOSCMessages(QThread):
         client_IP=address[0]
         client_Port = address[1]
         address_client = args[0]
-        message=args[1]
+        msg = args[1]
 
         for rows in range(len(self.TABLE_FORWARDING)):
             if (self.TABLE_FORWARDING.iloc[rows]['Sensor Address'] == address_client and self.TABLE_FORWARDING.iloc[rows]['Sensor IP']==client_IP):
-                sensor_range=self.TABLE_FORWARDING.iloc[rows]['Sensor Range'].split("%")
+                sensor_range = self.TABLE_FORWARDING.iloc[rows]['Sensor Range'].split("%")
                 actuator_range = self.TABLE_FORWARDING.iloc[rows]['Actuator Range'].split("%")
-                value= self.maprange((float(sensor_range[0]), float(sensor_range[1])), (float(actuator_range[0]), float(actuator_range[1])), float(message))
+                # Map values
+                value = self.maprange((float(sensor_range[0]), float(sensor_range[1])),
+                                        (float(actuator_range[0]), float(actuator_range[1])), float(msg))
+                # Send values
                 client = udp_client.SimpleUDPClient(str(self.TABLE_FORWARDING.iloc[rows]['Actuator IP']), int(self.TABLE_FORWARDING.iloc[rows]['Actuator Port']))
                 client.send_message(self.TABLE_FORWARDING.iloc[rows]['Actuator Address'], value)
-                print("Value= %s" % value)
+
+                print("Value = %s" % value)
 
     def maprange(self, a, b, s):
         (a1, a2), (b1, b2) = a, b
