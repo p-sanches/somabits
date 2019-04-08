@@ -547,7 +547,7 @@ font: 63 9pt &quot;Adobe Fan Heiti Std B&quot;;</string>
          <widget class="QPushButton" name="discover_button">
           <property name="styleSheet">
            <string notr="true">background-color: rgb(124, 124, 124);
-font: 63 10pt &quot;Adobe Fan Heiti Std B&quot;;
+
 color: rgb(255, 255, 255);
 </string>
           </property>

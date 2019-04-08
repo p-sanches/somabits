@@ -210,7 +210,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.label, 6, 0, 1, 1)
         self.discover_button = QtWidgets.QPushButton(self.tab)
         self.discover_button.setStyleSheet("background-color: rgb(124, 124, 124);\n"
-"font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
+"\n"
 "color: rgb(255, 255, 255);\n"
 "")
         self.discover_button.setObjectName("discover_button")
