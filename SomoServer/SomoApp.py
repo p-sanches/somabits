@@ -32,6 +32,8 @@ class StartQT5(QtWidgets.QMainWindow):
         super(StartQT5, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        tabBar=QtWidgets.QTabBar()
+        tabBar.setStyleSheet("background-color: rgb(255, 255, 255);\n")
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
