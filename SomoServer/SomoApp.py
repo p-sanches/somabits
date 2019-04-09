@@ -88,8 +88,15 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.StopOSCButton.setEnabled(False)
         self.ui.StopOSCButton.setStyleSheet(
             "background-color: gray;""font: 63 10pt \"Adobe Fan Heiti Std B\";""color: rgb(255, 255, 255);")
+        self.get_thread.server.shutdown()
+        self.get_thread.wait(10)
+        #print("shutdown")
         self.get_thread.server.server_close()
-        self.get_thread.stop()
+        #self.get_thread.wait(10)
+        #print("server_close")
+        #self.get_thread.terminate()
+        #print("terminate")
+        #self.get_thread = None
 
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
