@@ -239,18 +239,20 @@ void loop() {
 
 //		Serial.print("X: ");
 //		Serial.println(myIMU.readFloatAccelX());
-		Serial.print("Y: ");
-		Serial.println(myIMU.readFloatAccelY());
+		//Serial.print("Y: ");
+		//Serial.println(myIMU.readFloatAccelY());
 
 		udp_osc.beginPacket(server_ip, server_port);
 		send_msg_x.send(udp_osc); // send the bytes to the SLIP stream
 		udp_osc.endPacket(); // mark the end of the OSC Packet
 		send_msg_x.empty(); // free space occupied by message
 
+		udp_osc.beginPacket(server_ip, server_port);
 		send_msg_y.send(udp_osc); // send the bytes to the SLIP stream
 		udp_osc.endPacket(); // mark the end of the OSC Packet
 		send_msg_y.empty(); // free space occupied by message
 
+		udp_osc.beginPacket(server_ip, server_port);
 		send_msg_z.send(udp_osc); // send the bytes to the SLIP stream
 		udp_osc.endPacket(); // mark the end of the OSC Packet
 		send_msg_z.empty(); // free space occupied by message

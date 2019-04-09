@@ -50,7 +50,7 @@ class getOSCMessages(QThread):
         msg = args[1]
 
         for rows in range(len(self.TABLE_FORWARDING)):
-            if (self.TABLE_FORWARDING.iloc[rows]['Sensor Address'] == address_client and self.TABLE_FORWARDING.iloc[rows]['Sensor IP']==client_IP):
+            if (self.TABLE_FORWARDING.iloc[rows]['Sensor Address'] == address_client and self.TABLE_FORWARDING.iloc[rows]['Sensor IP'] == client_IP):
                 sensor_range = self.TABLE_FORWARDING.iloc[rows]['Sensor Range'].split("%")
                 actuator_range = self.TABLE_FORWARDING.iloc[rows]['Actuator Range'].split("%")
                 # Map values
