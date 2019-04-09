@@ -147,9 +147,9 @@ void setup() {
 	Serial.println("\nStarting Service Discovery...");
 	mdns.begin(WiFi.localIP(), "arduino_acc");
 
-	uint8_t* s1 = "sensor1=/accelerometer/X:-1%2";
-	uint8_t* s2 = "sensor2=/accelerometer/Y:-1.05%1.11";
-	uint8_t* s3 = "sensor3=/accelerometer/Z:-1%2";
+	char s1[] = "sensor1=/accelerometer/X:-1%2";
+	char s2[] = "sensor2=/accelerometer/Y:-1.05%1.11";
+	char s3[] = "sensor3=/accelerometer/Z:-1%2";
 
 	char txt[100] = { '\0' };
 
@@ -207,12 +207,12 @@ void loop() {
 			if (client.available()) { // if there's bytes to read from the client
 				//Serial.println(client.remoteIP());
 				if (client.remoteIP() != broadcast_ip) {
-					char c = NULL;
+					char c;
 					do {
 						c = client.read();
 						currentLine += c; // add it to the end of the currentLine
 						server_ip_len++;
-					} while (c != -1 || c == "\n");
+					} while (c != -1 || &c == "\n");
 				} else {
 					break;
 				}
