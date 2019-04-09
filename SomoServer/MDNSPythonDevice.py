@@ -35,7 +35,7 @@ if __name__ == '__main__':
         assert sys.argv[1:] == ['--debug']
         logging.getLogger('zeroconf').setLevel(logging.DEBUG)
 
-    desc = {'sensor1': '/light:0-127', 'sensor2': '/accelerometer', 'actuator1': '/sound'}
+    desc = {'sensor1': '/light:0%127', 'sensor2': '/accelerometer', 'actuator1': '/sound'}
 
     info = ServiceInfo(type_="_osc._udp.local.",
                        name="PythonDevice._osc._udp.local.",
@@ -64,8 +64,6 @@ if __name__ == '__main__':
         if not data:
             break
         print("Server IP is: " + str(data.decode()))
-    #print("Closing TCP")
-    #conn.close()
 
     try:
         while True:

@@ -92,7 +92,7 @@ class StartQT5(QtWidgets.QMainWindow):
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
         if Checkbox.isChecked():
-            sensors,sensors_IP,sensors_Port,sensors_Range = str(Checkbox.accessibleName()).split(":")
+            sensors, sensors_IP, sensors_Port, sensors_Range = str(Checkbox.accessibleName()).split(":")
             actuators, actuators_IP, actuators_Port, actuators_Range = str(Checkbox.accessibleDescription()).split(":")
             self.TABLE_FORWARDING.loc[len(self.TABLE_FORWARDING)] =[sensors,sensors_IP,sensors_Port,sensors_Range,actuators, actuators_IP, actuators_Port, actuators_Range]
             print(self.TABLE_FORWARDING)
