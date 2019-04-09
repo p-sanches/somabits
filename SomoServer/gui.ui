@@ -489,6 +489,7 @@
          <widget class="QPushButton" name="save_button">
           <property name="styleSheet">
            <string notr="true">background-color: rgb(124, 124, 124);
+background-color: rgb(0, 85, 127);
 color: rgb(255, 255, 255);</string>
           </property>
           <property name="text">
@@ -546,8 +547,7 @@ font: 63 9pt &quot;Adobe Fan Heiti Std B&quot;;</string>
         <item row="0" column="0" rowspan="2">
          <widget class="QPushButton" name="discover_button">
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(124, 124, 124);
-
+           <string notr="true">background-color: rgb(0, 85, 127);
 color: rgb(255, 255, 255);
 </string>
           </property>
@@ -578,7 +578,6 @@ color: rgb(255, 255, 255);
          <widget class="QPushButton" name="StartOSC">
           <property name="styleSheet">
            <string notr="true">background-color: rgb(170, 255, 127);
-font: 63 10pt &quot;Adobe Fan Heiti Std B&quot;;
 color: rgb(0, 0, 0);</string>
           </property>
           <property name="text">
@@ -589,8 +588,7 @@ color: rgb(0, 0, 0);</string>
         <item row="3" column="0">
          <widget class="QPushButton" name="StopOSCButton">
           <property name="styleSheet">
-           <string notr="true">font: 63 10pt &quot;Adobe Fan Heiti Std B&quot;;
-background-color: rgb(170, 0, 0);
+           <string notr="true">background-color: rgb(170, 0, 0);
 color: rgb(255, 255, 255);</string>
           </property>
           <property name="text">

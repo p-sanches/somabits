@@ -179,6 +179,7 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName("gridLayout")
         self.save_button = QtWidgets.QPushButton(self.tab)
         self.save_button.setStyleSheet("background-color: rgb(124, 124, 124);\n"
+"background-color: rgb(0, 85, 127);\n"
 "color: rgb(255, 255, 255);")
         self.save_button.setObjectName("save_button")
         self.gridLayout.addWidget(self.save_button, 8, 0, 1, 1)
@@ -209,8 +210,7 @@ class Ui_MainWindow(object):
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 6, 0, 1, 1)
         self.discover_button = QtWidgets.QPushButton(self.tab)
-        self.discover_button.setStyleSheet("background-color: rgb(124, 124, 124);\n"
-"\n"
+        self.discover_button.setStyleSheet("background-color: rgb(0, 85, 127);\n"
 "color: rgb(255, 255, 255);\n"
 "")
         self.discover_button.setObjectName("discover_button")
@@ -228,13 +228,11 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.tableView_2, 0, 0, 1, 1)
         self.StartOSC = QtWidgets.QPushButton(self.tab_2)
         self.StartOSC.setStyleSheet("background-color: rgb(170, 255, 127);\n"
-"font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
 "color: rgb(0, 0, 0);")
         self.StartOSC.setObjectName("StartOSC")
         self.gridLayout_3.addWidget(self.StartOSC, 2, 0, 1, 1)
         self.StopOSCButton = QtWidgets.QPushButton(self.tab_2)
-        self.StopOSCButton.setStyleSheet("font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
-"background-color: rgb(170, 0, 0);\n"
+        self.StopOSCButton.setStyleSheet("background-color: rgb(170, 0, 0);\n"
 "color: rgb(255, 255, 255);")
         self.StopOSCButton.setObjectName("StopOSCButton")
         self.gridLayout_3.addWidget(self.StopOSCButton, 3, 0, 1, 1)
