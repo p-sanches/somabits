@@ -98,6 +98,11 @@ void printCurrentNet() {
 }
 
 void setup() {
+	pinMode(2, OUTPUT);
+	pinMode(LED_BUILTIN, OUTPUT);
+
+	digitalWrite(LED_BUILTIN, HIGH);
+
 	//Initialize serial and wait for port to open:
 	Serial.begin(9600);
 	while (!Serial) {
@@ -152,7 +157,6 @@ void setup() {
 	int txt_len = 1;
 	for (uint8_t i = 0; i < strlen(s1); i++) {
 		if (s1[i] != '\0')
-			;
 		{
 			txt[txt_len] = s1[i];
 			txt_len++;
@@ -188,7 +192,9 @@ void setup() {
 	}
 
 	myIMU.begin();
-	pinMode(LED_BUILTIN, OUTPUT);
+	//pinMode(LED_BUILTIN, OUTPUT);
+
+	digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop() {
@@ -199,7 +205,7 @@ void loop() {
 		String currentLine = ""; // make a String to hold incoming data from the client
 		while (client.connected()) {        // loop while the client's connected
 			if (client.available()) { // if there's bytes to read from the client
-				Serial.println(client.remoteIP());
+				//Serial.println(client.remoteIP());
 				if (client.remoteIP() != broadcast_ip) {
 					char c = NULL;
 					do {
@@ -231,16 +237,10 @@ void loop() {
 		OSCMessage send_msg_x("/accelerometer/X");
 		OSCMessage send_msg_y("/accelerometer/Y");
 		OSCMessage send_msg_z("/accelerometer/Z");
-		//OSCMessage recieve_msg("/accelerometer");
 
 		send_msg_x.add(myIMU.readFloatAccelX());
 		send_msg_y.add(myIMU.readFloatAccelY());
 		send_msg_z.add(myIMU.readFloatAccelZ());
-
-//		Serial.print("X: ");
-//		Serial.println(myIMU.readFloatAccelX());
-		//Serial.print("Y: ");
-		//Serial.println(myIMU.readFloatAccelY());
 
 		udp_osc.beginPacket(server_ip, server_port);
 		send_msg_x.send(udp_osc); // send the bytes to the SLIP stream
