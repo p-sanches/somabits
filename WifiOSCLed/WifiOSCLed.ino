@@ -42,14 +42,66 @@ IPAddress broadcast_ip(0, 0, 0, 0);
 const unsigned int server_port = 3333;
 float interval1 = 1000;
 float interval2 = 1000;
-unsigned int ledState1 = LOW;
-unsigned int ledState2 = LOW;
+PinStatus ledState1 = LOW;
+PinStatus ledState2 = LOW;
 unsigned long previousMillis1 = 0;
 unsigned long previousMillis2 = 0;
 unsigned long currentMillis = 0;
 int size = 0;
 
-//OSCMessage recieve_msg("/light");
+void printMacAddress(byte mac[]) {
+	for (int i = 5; i >= 0; i--) {
+		if (mac[i] < 16) {
+			Serial.print("0");
+		}
+		Serial.print(mac[i], HEX);
+		if (i > 0) {
+			Serial.print(":");
+		}
+	}
+	Serial.println();
+}
+
+void printWifiData() {
+	// print your board's IP address:
+	IPAddress ip = WiFi.localIP();
+	Serial.print("Local IP Address: ");
+	Serial.println(ip);
+
+	// print your MAC address:
+	byte mac[6];
+	WiFi.macAddress(mac);
+	Serial.print("MAC address: ");
+	printMacAddress(mac);
+
+	IPAddress gateway_ip = WiFi.gatewayIP();
+	Serial.print("GateWay IP Address: ");
+	Serial.println(gateway_ip);
+
+}
+
+void printCurrentNet() {
+	// print the SSID of the network you're attached to:
+	Serial.print("SSID: ");
+	Serial.println(WiFi.SSID());
+
+	// print the MAC address of the router you're attached to:
+	byte bssid[6];
+	WiFi.BSSID(bssid);
+	Serial.print("BSSID: ");
+	printMacAddress(bssid);
+
+	// print the received signal strength:
+	long rssi = WiFi.RSSI();
+	Serial.print("signal strength (RSSI):");
+	Serial.println(rssi);
+
+	// print the encryption type:
+	byte encryption = WiFi.encryptionType();
+	Serial.print("Encryption Type:");
+	Serial.println(encryption, HEX);
+	Serial.println();
+}
 
 void setup() {
 	pinMode(2, OUTPUT);
@@ -67,8 +119,7 @@ void setup() {
 	if (WiFi.status() == WL_NO_MODULE) {
 		Serial.println("Communication with WiFi module failed!");
 		// don't continue
-		while (true)
-			;
+		while (true);
 	}
 
 	String fv = WiFi.firmwareVersion();
@@ -102,26 +153,26 @@ void setup() {
 
 	mdns.begin(WiFi.localIP(), "arduino_led");
 
-	uint8_t* s1 = "actuator1=/light1:50%1500";
-	char a1[30] = "actuator2=/light2:50%1500";
+	char a1[] = "actuator1=/light1:50%1500";
+	char a2[] = "actuator2=/light2:50%1500";
 
 	char txt[100] = { '\0' };
 
-	txt[0] = (uint8_t) strlen(s1);
+	txt[0] = (uint8_t) strlen(a1);
 	int txt_len = 1;
-	for (uint8_t i = 0; i < strlen(s1); i++) {
-		if (s1[i] != '\0')
+	for (uint8_t i = 0; i < strlen(a1); i++) {
+		if (a1[i] != '\0')
 		{
-			txt[txt_len] = s1[i];
+			txt[txt_len] = a1[i];
 			txt_len++;
 		}
 	}
 
-	txt[txt_len] = (uint8_t) strlen(a1);
+	txt[txt_len] = (uint8_t) strlen(a2);
 	txt_len++;
-	for (uint8_t i = 0; i < strlen(a1); i++) {
-		if (a1[i] != '\0') {
-			txt[txt_len] = a1[i];
+	for (uint8_t i = 0; i < strlen(a2); i++) {
+		if (a2[i] != '\0') {
+			txt[txt_len] = a2[i];
 			txt_len++;
 		}
 	}
@@ -147,8 +198,6 @@ void led1(OSCMessage &msg) {
 
 void led2(OSCMessage &msg) {
 	interval2 = msg.getFloat(0);
-	Serial.println("checking");
-
 }
 
 void loop() {
@@ -160,12 +209,12 @@ void loop() {
 			if (client.available()) { // if there's bytes to read from the client
 				//Serial.println(client.remoteIP());
 				if (client.remoteIP() != broadcast_ip) {
-					char c = NULL;
+					char c;
 					do {
 						c = client.read();
 						currentLine += c; // add it to the end of the currentLine
 						server_ip_len++;
-					} while (c != -1 || c == "\n");
+					} while (c != -1 || &c == "\n");
 				} else {
 					break;
 				}
@@ -246,58 +295,4 @@ void loop() {
 	}
 	mdns.run();
 	delay(10);
-}
-
-void printWifiData() {
-	// print your board's IP address:
-	IPAddress ip = WiFi.localIP();
-	Serial.print("Local IP Address: ");
-	Serial.println(ip);
-
-	// print your MAC address:
-	byte mac[6];
-	WiFi.macAddress(mac);
-	Serial.print("MAC address: ");
-	printMacAddress(mac);
-
-	IPAddress gateway_ip = WiFi.gatewayIP();
-	Serial.print("GateWay IP Address: ");
-	Serial.println(gateway_ip);
-
-}
-
-void printCurrentNet() {
-	// print the SSID of the network you're attached to:
-	Serial.print("SSID: ");
-	Serial.println(WiFi.SSID());
-
-	// print the MAC address of the router you're attached to:
-	byte bssid[6];
-	WiFi.BSSID(bssid);
-	Serial.print("BSSID: ");
-	printMacAddress(bssid);
-
-	// print the received signal strength:
-	long rssi = WiFi.RSSI();
-	Serial.print("signal strength (RSSI):");
-	Serial.println(rssi);
-
-	// print the encryption type:
-	byte encryption = WiFi.encryptionType();
-	Serial.print("Encryption Type:");
-	Serial.println(encryption, HEX);
-	Serial.println();
-}
-
-void printMacAddress(byte mac[]) {
-	for (int i = 5; i >= 0; i--) {
-		if (mac[i] < 16) {
-			Serial.print("0");
-		}
-		Serial.print(mac[i], HEX);
-		if (i > 0) {
-			Serial.print(":");
-		}
-	}
-	Serial.println();
 }
