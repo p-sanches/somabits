@@ -9,14 +9,14 @@ from PyQt5.QtCore import QThread
 
 class getOSCMessages(QThread):
 
-    def __init__(self, IP=None , Port=None,soma=None):
+    def __init__(self, IP=None, Port=None, soma=None):
         QThread.__init__(self)
-        self.IP=IP
+        self.IP = IP
         self.Port = Port
-        self.soma= soma
-        self.TABLE_FORWARDING=soma.TABLE_FORWARDING
+        self.soma = soma
+        self.TABLE_FORWARDING = soma.TABLE_FORWARDING
         self.dispatcher_osc = dispatcher.Dispatcher()
-        self.dispatcher_osc.set_default_handler(self.OSC_handler, True)
+        self.dispatcher_osc.set_default_handler(self.OSC_handler, needs_reply_address=True)
 
         self.server = osc_server.ThreadingOSCUDPServer((self.IP, self.Port), self.dispatcher_osc)
 
@@ -27,30 +27,14 @@ class getOSCMessages(QThread):
         print("Serving on {}".format(self.server.server_address))
         self.server.serve_forever()
 
-    def OSC_stop(self):
-
-        self.soma.ui.StartOSC.setEnabled(True)
-        self.soma.ui.StartOSC.setStyleSheet("background-color: rgb(170, 255, 127);\n"
-                                    "font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
-                                    "color: rgb(0, 0, 0);")
-        self.soma.ui.tableView_2.setEnabled(True)
-        self.soma.ui.tableView.setEnabled(True)
-        self.soma.ui.discover_button.setEnabled(True)
-        self.soma.ui.save_button.setEnabled(True)
-        self.soma.ui.StopOSCButton.setEnabled(False)
-        self.soma.ui.StopOSCButton.setStyleSheet(
-            "background-color: gray;""font: 63 10pt \"Adobe Fan Heiti Std B\";""color: rgb(255, 255, 255);");
-        self.server.server_close()
-        self.terminate()
-
-    def OSC_handler(self,address, *args):
-        client_IP=address[0]
-        client_Port = address[1]
+    def OSC_handler(self, address, *args):
+        client_IP = address[0]
+        #client_Port = address[1]
         address_client = args[0]
         msg = args[1]
 
         for rows in range(len(self.TABLE_FORWARDING)):
-            if (self.TABLE_FORWARDING.iloc[rows]['Sensor Address'] == address_client and self.TABLE_FORWARDING.iloc[rows]['Sensor IP'] == client_IP):
+            if self.TABLE_FORWARDING.iloc[rows]['Sensor Address'] == address_client and self.TABLE_FORWARDING.iloc[rows]['Sensor IP'] == client_IP:
                 sensor_range = self.TABLE_FORWARDING.iloc[rows]['Sensor Range'].split("%")
                 actuator_range = self.TABLE_FORWARDING.iloc[rows]['Actuator Range'].split("%")
                 # Map values

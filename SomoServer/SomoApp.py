@@ -59,7 +59,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
 
     def start_OSC(self):
-        self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(),3333,self)
+        self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(), 3333, self)
         self.get_thread.start()
         self.ui.StartOSC.setEnabled(False)
         self.ui.StartOSC.setStyleSheet("background-color: gray;""color: rgb(255, 255, 255);""font: 63 10pt \"Adobe Fan Heiti Std B\";")
@@ -73,9 +73,23 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.StopOSCButton.setStyleSheet("font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
                                          "background-color: rgb(170, 0, 0);\n"
                                          "color: rgb(255, 255, 255);")
-        self.ui.StopOSCButton.clicked.connect(self.get_thread.OSC_stop)
+        #self.ui.StopOSCButton.clicked.connect(self.get_thread.OSC_stop)
+        self.ui.StopOSCButton.clicked.connect(self.OSC_stop)
 
-
+    def OSC_stop(self):
+        self.ui.StartOSC.setEnabled(True)
+        self.ui.StartOSC.setStyleSheet("background-color: rgb(170, 255, 127);\n"
+                                    "font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
+                                    "color: rgb(0, 0, 0);")
+        self.ui.tableView_2.setEnabled(True)
+        self.ui.tableView.setEnabled(True)
+        self.ui.discover_button.setEnabled(True)
+        self.ui.save_button.setEnabled(True)
+        self.ui.StopOSCButton.setEnabled(False)
+        self.ui.StopOSCButton.setStyleSheet(
+            "background-color: gray;""font: 63 10pt \"Adobe Fan Heiti Std B\";""color: rgb(255, 255, 255);")
+        self.get_thread.server.server_close()
+        self.get_thread.stop()
 
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
@@ -119,7 +133,7 @@ class StartQT5(QtWidgets.QMainWindow):
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
                 if(self.TABLE_INFO.iloc[rows]['isSelected'] == True):
                     # First we send a message to inform the nodes about our IP (as long as the MDNS bug in the Arduinos exists)
-                    if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
+                    if 'sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices]):
                         sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
                         sensors_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
                         sensors_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
