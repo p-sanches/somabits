@@ -168,6 +168,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.ui.tableView_2.setIndexWidget(item, self.Checkbox)
 
         self.ui.tableView_2.setModel(model)
+        self.ui.tabWidget.setCurrentIndex(1)
 
     def resizeEvent(self, event):
         tableSize = self.ui.tableView.width()  # Retrieves your QTableView width
