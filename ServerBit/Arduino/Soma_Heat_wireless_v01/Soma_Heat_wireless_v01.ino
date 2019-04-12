@@ -1,26 +1,26 @@
 /*
 
-  This example connects to an unencrypted WiFi network.
-  Then to a broadcasting OSC server in Processing
-  Then it accepts commands to control LED and vibration patterns using the Adafruit_DRV2605
-  Based on Oscuino
+ This example connects to an unencrypted WiFi network.
+ Then to a broadcasting OSC server in Processing
+ Then it accepts commands to control LED and vibration patterns using the Adafruit_DRV2605
+ Based on Oscuino
 
-  Circuit:
-   WiFi shield attached
+ Circuit:
+ * WiFi shield attached
 
-  Created 2019-02-26
-  by p_sanches
+Created 2019-02-26
+by p_sanches
 
-  Based on tutorials:
-  created 13 July 2010
-  by dlf (Metodo2 srl)
-  modified 31 May 2012
-  by Tom Igoe
-
-
+Based on tutorials:
+ created 13 July 2010
+ by dlf (Metodo2 srl)
+ modified 31 May 2012
+ by Tom Igoe
 
 
-*/
+
+ 
+ */
 #include <SPI.h>
 #include <WiFi101.h>
 #include <WiFiUdp.h>
@@ -37,11 +37,11 @@ uint8_t effect = 1; //Pre-made vibe Effects
 boolean effectMode = false;
 
 
-int vibeIntensityRT = 1;
-int vibeDelayRT = 1;
+int vibeIntensityRT=0;
+int vibeDelayRT=1;
 
 
-#include "arduino_secrets.h"
+#include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
@@ -53,7 +53,7 @@ char packetBuffer[255]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
-const IPAddress serverIp(192, 168, 1, 101);
+const IPAddress serverIp(192,168,1,101);
 const unsigned int serverPort = 32000;
 
 
@@ -68,15 +68,15 @@ void setup() {
   //Initialize actuators
 
   //initialize LED
-  pinMode(LED_BUILTIN, OUTPUT);
-
+  pinMode(LED_BUILTIN, OUTPUT); 
+  
   //initializeVibe
   drv.begin();
   drv.selectLibrary(1);
   drv.useLRA();
-  // I2C trigger by sending 'go' command
+  // I2C trigger by sending 'go' command 
   // default: realtime
-  drv.setMode(DRV2605_MODE_REALTIME);
+  drv.setMode(DRV2605_MODE_REALTIME); 
 
 
   // check for the presence of the shield:
@@ -107,89 +107,89 @@ void setup() {
   // if you get a connection, report back via serial:
   Udp.begin(localPort);
 
-
-
+  
+  
   //register with server
   connectToServer();
   delay(50);
 }
 
 void loop() {
-  //   //if there's data available, read a packet
-  //  int packetSize = Udp.parsePacket();
-  //  if (packetSize)
-  //  {
-  //    Serial.print("Received packet of size ");
-  //    Serial.println(packetSize);
-  //    Serial.print("From ");
-  //    IPAddress remoteIp = Udp.remoteIP();
-  //    Serial.print(remoteIp);
-  //    Serial.print(", port ");
-  //    Serial.println(Udp.remotePort());
-  //
-  //    // read the packet into packetBufffer
-  //    int len = Udp.read(packetBuffer, 255);
-  //    if (len > 0) packetBuffer[len] = 0;
-  //    Serial.println("Contents:");
-  //    Serial.println(packetBuffer);
-  //  }
+//   //if there's data available, read a packet
+//  int packetSize = Udp.parsePacket();
+//  if (packetSize)
+//  {
+//    Serial.print("Received packet of size ");
+//    Serial.println(packetSize);
+//    Serial.print("From ");
+//    IPAddress remoteIp = Udp.remoteIP();
+//    Serial.print(remoteIp);
+//    Serial.print(", port ");
+//    Serial.println(Udp.remotePort());
+//
+//    // read the packet into packetBufffer
+//    int len = Udp.read(packetBuffer, 255);
+//    if (len > 0) packetBuffer[len] = 0;
+//    Serial.println("Contents:");
+//    Serial.println(packetBuffer);
+//  }
 
   char incomingByte = 0;   // for incoming serial data
   if (Serial.available() > 0) {
-    // read the incoming byte:
-    incomingByte = Serial.read();
-    if (incomingByte == 'c') {
-      connectToServer();
-      delay(50);
+        // read the incoming byte:
+        incomingByte = Serial.read();
+        if(incomingByte=='c'){
+          connectToServer();
+          delay(50);
+        }
     }
-  }
 
-  OSCBundle bundleIN;
-  int size;
+   OSCBundle bundleIN;
+   int size;
+ 
+   if( (size = Udp.parsePacket())>0)
+   {
 
-  if ( (size = Udp.parsePacket()) > 0)
-  {
+         while(size--)
+           bundleIN.fill(Udp.read());
+    
+        if(!bundleIN.hasError())
+        {
+            bundleIN.dispatch("/actuator/led", routeLED);
+            bundleIN.dispatch("/actuator/vibeeffect", routeVibeEffect);
+            bundleIN.dispatch("/actuator/vibeintensity", routeVibeIntensityRT);
+            bundleIN.dispatch("/actuator/vibedelay", routeVibeDelayRT);
+        }
+   }
 
-    while (size--)
-      bundleIN.fill(Udp.read());
-
-    if (!bundleIN.hasError())
-    {
-      bundleIN.dispatch("/actuator/led", routeLED);
-      bundleIN.dispatch("/actuator/vibeeffect", routeVibeEffect);
-      bundleIN.dispatch("/actuator/vibeintensity", routeVibeIntensityRT);
-      bundleIN.dispatch("/actuator/vibedelay", routeVibeDelayRT);
-    }
-  }
-
-  //   if(effectMode)
-  //      playVibeEffect();
-  //   else
-  playVibeRT();
+//   if(effectMode)
+//      playVibeEffect();
+//   else
+      playVibeRT();
 }
 
 //called whenever an OSCMessage's address matches "/led/"
-void routeLED(OSCMessage &msg) {
+void routeLED(OSCMessage &msg){
   Serial.println("LED COntrol");
   //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
+  if (msg.isFloat(0)){
     //get that float
     float data = msg.getFloat(0);
 
     Serial.println(data);
 
-    if (data == 0)
+    if (data==0) 
       digitalWrite(LED_BUILTIN, LOW);
-    else if (data == 1) digitalWrite(LED_BUILTIN, HIGH);
+    else if(data==1) digitalWrite(LED_BUILTIN, HIGH);
   }
 }
 
 //called whenever an OSCMessage's address matches "/led/"
-void routeVibeEffect(OSCMessage &msg) {
+void routeVibeEffect(OSCMessage &msg){
   Serial.println("Vibe Effect");
   setEffectMode();
   //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
+  if (msg.isFloat(0)){
     //get that float
     float data = msg.getFloat(0);
 
@@ -198,27 +198,27 @@ void routeVibeEffect(OSCMessage &msg) {
   }
 }
 
-void setEffectMode() {
-  if (!effectMode) {
-    effectMode = true;
-    drv.setMode(DRV2605_MODE_INTTRIG);
+void setEffectMode(){
+  if(!effectMode){
+    effectMode=true;
+    drv.setMode(DRV2605_MODE_INTTRIG); 
   }
 }
 
-void setRTMode() {
+void setRTMode(){
 
-  if (effectMode) {
-    effectMode = false;
-    drv.setMode(DRV2605_MODE_REALTIME);
+  if(effectMode){
+    effectMode=false;
+    drv.setMode(DRV2605_MODE_REALTIME); 
   }
 }
 
 //called whenever an OSCMessage's address matches "/led/"
-void routeVibeIntensityRT(OSCMessage &msg) {
+void routeVibeIntensityRT(OSCMessage &msg){
   Serial.println("Vibe Intensity");
-  setRTMode();
+  setRTMode(); 
   //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
+  if (msg.isFloat(0)){
     //get that float
     float data = msg.getFloat(0);
 
@@ -228,11 +228,11 @@ void routeVibeIntensityRT(OSCMessage &msg) {
 }
 
 //called whenever an OSCMessage's address matches "/led/"
-void routeVibeDelayRT(OSCMessage &msg) {
+void routeVibeDelayRT(OSCMessage &msg){
   Serial.println("Vibe Delay");
   setRTMode();
   //returns true if the data in the first position is a float
-  if (msg.isFloat(0)) {
+  if (msg.isFloat(0)){
     //get that float
     float data = msg.getFloat(0);
 
@@ -241,9 +241,9 @@ void routeVibeDelayRT(OSCMessage &msg) {
   }
 }
 
-void playVibeEffect() {
+void playVibeEffect(){
   // set the effect to play
-  drv.setWaveform(0, effect);  // play effect
+  drv.setWaveform(0, effect);  // play effect 
   drv.setWaveform(1, 0);       // end waveform
 
   // play the effect!
@@ -252,7 +252,7 @@ void playVibeEffect() {
 }
 
 
-void playVibeRT() {
+void playVibeRT(){
   drv.setRealtimeValue(vibeIntensityRT);
   delay(10);
   drv.setRealtimeValue(0);
@@ -262,17 +262,17 @@ void playVibeRT() {
 
 
 
-void connectToServer() {
+void connectToServer(){
 
-  Serial.print("\nConnecting to server bit at ");
-  Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
+    Serial.print("\nConnecting to server bit at ");
+    Serial.print(serverIp);Serial.print(":");Serial.println(serverPort);
 
-  OSCMessage msg("/actuator/startConnection/");
-
-  Udp.beginPacket(serverIp, serverPort);
-  msg.send(Udp); // send the bytes to the SLIP stream
-
-  Udp.endPacket();
+    OSCMessage msg("/actuator/startConnection/");
+  
+    Udp.beginPacket(serverIp, serverPort);
+    msg.send(Udp); // send the bytes to the SLIP stream
+ 
+    Udp.endPacket();
 
   msg.empty(); // free space occupied by message
 }
