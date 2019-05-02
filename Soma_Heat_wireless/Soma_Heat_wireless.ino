@@ -25,8 +25,8 @@
 #include <OSCBundle.h>
 #include <OSCBoards.h>
 
-// If you use the WiFiNINA with the OSC library make sure you remove 
-// "SLIPEncodedSerial.cpp" and "SLIPEncodedSerial.h" from 
+// If you use the WiFiNINA with the OSC library make sure you remove
+// "SLIPEncodedSerial.cpp" and "SLIPEncodedSerial.h" from
 // the arduino --> osc library. (#slavic_warrior_solution)
 
 
@@ -53,16 +53,16 @@ void setup() {
 
 
   //Initialize serial and wait for port to open:
-  
+
   Serial.begin(9600);
   while (!Serial) {
-    
+
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
 
   //Setup Channel A on Motorshield
-  
+
   pinMode(12, OUTPUT);    //Initiates Motor Channel A pin
   pinMode(9, OUTPUT);     //Initiates Brake Channel A pin
 
@@ -76,46 +76,55 @@ void setup() {
 
 
   // check for the presence of the shield:
-  
+
   if (WiFi.status() == WL_NO_SHIELD) {
-        Serial.println("WiFi shield not present");
+    Serial.println("WiFi shield not present");
     //don't continue:
     while (true);
   }
 
 
   // attempt to connect to WiFi network:
-  
+
   while ( status != WL_CONNECTED) {
-        Serial.print("Attempting to connect to WPA SSID: ");
-        Serial.println(ssid);
+    Serial.print("Attempting to connect to WPA SSID: ");
+    Serial.println(ssid);
+
     // Connect to network:
     status = WiFi.begin(ssid);
 
-    // wait 10 seconds for connection:
-    delay(10000);
-    
+
+    // wait 10 seconds while blinking for connection:
+
+    for (int i = 0; i <= 10; i++) {
+      digitalWrite(13, HIGH);
+      delay(500);
+      digitalWrite(13, LOW);
+      delay(500);
+    }
+
+    digitalWrite(13, HIGH);
+    delay(3000);
+    digitalWrite(13, LOW);
+
   }
 
-  digitalWrite(13, HIGH);
-  delay(3000);
-  digitalWrite(13, LOW);
 
   //  you're connected now, so print out the data:
-    Serial.print("You're connected to the network");
-    printCurrentNet();
-    printWiFiData();
+  Serial.print("You're connected to the network");
+  printCurrentNet();
+  printWiFiData();
 
-    Serial.print("\nStarting listening on port:");
-    Serial.print(localPort);
+  Serial.print("\nStarting listening on port:");
+  Serial.print(localPort);
 
-    
+
   //  if you get a connection, report back via serial:
-  
+
   Udp.begin(localPort);
 
   //register with server
-  
+
   connectToServer();
   delay(50);
 }
@@ -134,33 +143,33 @@ void loop() {
 
     if (!bundleIN.hasError())
     {
-      
+
       bundleIN.dispatch("/actuator/heaton", routeHeatOn);
       bundleIN.dispatch("/actuator/heatintensity", routeHeatIntensity);
-      
+
     }
   }
-  
+
   playHeat();
-  
+
 }
 
 
 //called whenever an OSCMessage's address matches "/heaton/"
 
 void routeHeatOn(OSCMessage &msg) {
-    Serial.println("Heat On");
+  Serial.println("Heat On");
 
 
   //returns true if the data in the first position is a float
-  
+
   if (msg.isFloat(0)) {
     //get that float
     float data = msg.getFloat(0);
 
-        Serial.println(data);
+    Serial.println(data);
 
-    heatOn = data;  
+    heatOn = data;
 
   }
 }
@@ -168,18 +177,18 @@ void routeHeatOn(OSCMessage &msg) {
 
 //called whenever an OSCMessage's address matches "/heatintensity/"
 void routeHeatIntensity(OSCMessage &msg) {
-    Serial.println("Heat Intensity");
+  Serial.println("Heat Intensity");
 
   //returns true if the data in the first position is a float.
 
   //RANGE: 0...255
-  
+
   if (msg.isFloat(0)) {
     //get that float
     float data = msg.getFloat(0);
 
     heatIntensity = (int) data;
-    
+
   }
   Serial.println(heatIntensity);
 }
@@ -207,8 +216,8 @@ void playHeat() {
 
 void connectToServer() {
   //
-    Serial.print("\nConnecting to server bit at ");
-    Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
+  Serial.print("\nConnecting to server bit at ");
+  Serial.print(serverIp); Serial.print(":"); Serial.println(serverPort);
 
   OSCMessage msg("/actuator/startConnection/");
 
@@ -223,15 +232,15 @@ void connectToServer() {
 void printWiFiData() {
   // print your WiFi shield's IP address:
   IPAddress ip = WiFi.localIP();
-    Serial.print("IP Address: ");
-    Serial.println(ip);
-    Serial.println(ip);
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+  Serial.println(ip);
 
   // print your MAC address:
   byte mac[6];
   WiFi.macAddress(mac);
-    Serial.print("MAC address: ");
-    printMacAddress(mac);
+  Serial.print("MAC address: ");
+  printMacAddress(mac);
 
 }
 
