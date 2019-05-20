@@ -118,14 +118,19 @@ class StartQT5(QtWidgets.QMainWindow):
 
         for rows in range(len(self.TABLE_INFO)):
             if (self.TABLE_INFO.iloc[rows]['isServer'] == False and self.TABLE_INFO.iloc[rows]['isSelected'] == True):
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP connection
+                print("About to sent the servers IP %s to %s" % (
+                self.discovery.get_local_ip(), self.TABLE_INFO.iloc[rows]['Address']))
                 try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP connection
-                    print("About to sent the servers IP %s to %s" % (self.discovery.get_local_ip(), self.TABLE_INFO.iloc[rows]['Address']))
                     s.connect((self.TABLE_INFO.iloc[rows]['Address'], 5555))
                     msg = str(self.discovery.get_local_ip())
                     s.sendall(msg.encode())
                 except:
-                    print("Nothing exciting happend")
+                    print("Nothing exciting happend. Just trouble connecting to the Arduino.")
+                    print("We try again")
+                    s.connect((self.TABLE_INFO.iloc[rows]['Address'], 5555))
+                    msg = str(self.discovery.get_local_ip())
+                    s.sendall(msg.encode())
                 finally:
                     print("Sent the servers IP")
             for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
