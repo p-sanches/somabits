@@ -21,13 +21,7 @@
 #include <OSCBoards.h>
 #include <Wire.h>
 #include <PneuDuino.h>
-#include <Wire.h>
 
-
-uint8_t effect = 1; //Pre-made vibe Effects
-boolean effectMode = false;
-int vibeIntensityRT = 0;
-int vibeDelayRT = 1;
 
 int inflatePower = 0;
 int deflatePower = 0;
@@ -100,42 +94,25 @@ void setup() {
 
 void loop() {
 
-    p.update();
+    p.update(); //always AND ONLY called in the beginning
 
+
+    char incomingByte = 0;   // for incoming serial data
+    if (Serial.available() > 0) {
+      // read the incoming byte:
+      incomingByte = Serial.read();
+      if (incomingByte == 'c') {
+        connectToServer();
+        delay(50);
+      }
+    }
+      int potentiometer = analogRead(A0);
     // read the actual pressure
     float pressure = p.readPressure(1);
 //    Serial.print("Actual pressure: ");
 //    Serial.print(pressure);
 //    Serial.print("\n");
-  
-  //   //if there's data available, read a packet
-  //  int packetSize = Udp.parsePacket();
-  //  if (packetSize)
-  //  {
-  //    Serial.print("Received packet of size ");
-  //    Serial.println(packetSize);
-  //    Serial.print("From ");
-  //    IPAddress remoteIp = Udp.remoteIP();
-  //    Serial.print(remoteIp);
-  //    Serial.print(", port ");
-  //    Serial.println(Udp.remotePort());
-  //
-  //    // read the packet into packetBufffer
-  //    int len = Udp.read(packetBuffer, 255);
-  //    if (len > 0) packetBuffer[len] = 0;
-  //    Serial.println("Contents:");
-  //    Serial.println(packetBuffer);
-  //  }
-  
-  char incomingByte = 0;   // for incoming serial data
-  if (Serial.available() > 0) {
-    // read the incoming byte:
-    incomingByte = Serial.read();
-    if (incomingByte == 'c') {
-      connectToServer();
-      delay(50);
-    }
-  }
+
   
   OSCBundle bundleIN;
   int size;
@@ -154,17 +131,17 @@ void loop() {
   
   unsigned long currentMillis = millis();
   int powerOn = digitalRead(2);
-  
-  int potentiometer = analogRead(A0);
+ 
   
   if (powerOn == HIGH)
   {
     if(inflate)
     {
+      
       digitalWrite(12, HIGH); //Channel A Direction Forward
       analogWrite(3, inflateSpeed);    //Channel A Speed  
-//      Serial.print("inflateduration:");
-//      Serial.println(inflateDuration);
+//    Serial.print("inflateduration:");
+//    Serial.println(inflateDuration);
       p.in(1, LEFT);
       
     }
@@ -173,11 +150,11 @@ void loop() {
      {
           analogWrite(3, 0); //Channel A Speed 0% 
           p.deflate(1); //open left valve
-       
+          //deflate = false;
       }  
   }
 
-  p.update();
+  
 }
 
 //called whenever an OSCMessage's address matches "/led/"
