@@ -3,6 +3,7 @@ import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal)
 
+
 class PandasModel(QtCore.QAbstractTableModel):
     # parameters: value (bool), ip (str), host (str)
     pandas_signal = QtCore.pyqtSignal(object, object, object)
@@ -10,7 +11,7 @@ class PandasModel(QtCore.QAbstractTableModel):
     def __init__(self, df = pd.DataFrame(), parent=None, checkbox=None, signal_values_of_interest=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._df = df
-        self.checkbox_column = checkbox # The row which has a
+        self.checkbox_column = checkbox # The column which has a checkbox
         self.signal_values_of_interest = signal_values_of_interest
 
         if self.signal_values_of_interest is not None:
@@ -36,19 +37,22 @@ class PandasModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant()
 
     def update(self):
+        print(">> update()")
         print(self._df)
         self.layoutChanged.emit()
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
+        #print(">> data() at index: (%s, %s)" % (index.row(), index.column()))
         if role != QtCore.Qt.DisplayRole:
             return QtCore.QVariant()
 
         if not index.isValid():
             return QtCore.QVariant()
 
-        return QtCore.QVariant(str(self._df.ix[index.row(), index.column()]))
+        return QtCore.QVariant(str(self._df.iloc[index.row(), index.column()]))
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
+        print(">> setData() at index: (%s, %s)" % (index.row(), index.column()))
         row = self._df.index[index.row()]
         col = self._df.columns[index.column()]
         if self.checkbox_column is not None:
@@ -71,6 +75,7 @@ class PandasModel(QtCore.QAbstractTableModel):
         self.layoutChanged.emit()
 
     def dataChanged(self, index, value, role=QtCore.Qt.DisplayRole):
+        print(">> dataChanged() at index: (%s, %s)" % (index.row(), index.column()))
         row = self._df.index[index.row()]
         if self.signal_values_of_interest is not None:
             self.pandas_signal.emit(value, self._df.loc[row, self.signal_values_of_interest[0]], self._df.loc[row, self.signal_values_of_interest[1]])
@@ -116,6 +121,7 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
         Change the data in the model and the state of the checkbox
         if the user presses the left mousebutton and this cell is editable. Otherwise do nothing.
         """
+        print(">> editoEvent() at index: (%s, %s)" % (index.row(), index.column()))
         if not int(index.flags() & QtCore.Qt.ItemIsEditable) > 0:
             return False
 
@@ -126,10 +132,11 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
 
         return False
 
-    def setModelData (self, editor, model, index):
+    def setModelData(self, editor, model, index):
         """
         The user wanted to change the old state in the opposite.
         """
+        print(">> setModelData() at index: (%s, %s)" % (index.row(), index.column()))
         model.setData(index, 1 if int(index.data()) == 0 else 0, QtCore.Qt.EditRole)
 
     def getCheckBoxRect(self, option):

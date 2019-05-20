@@ -17,8 +17,6 @@ from SomoServer.TableModel import PandasModel, CheckBoxDelegate
 from SomoServer.ZeroConf import NeighborDiscovery
 from SomoServer.OSC import getOSCMessages
 
-
-
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 from typing import List
@@ -27,12 +25,12 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
+
 class StartQT5(QtWidgets.QMainWindow):
     def __init__(self):
         super(StartQT5, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         self.ui.save_button.clicked.connect(self.start_forwarding)
@@ -55,8 +53,6 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.hideColumn(10)
         delegate = CheckBoxDelegate(self)
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
-
-
 
     def start_OSC(self):
         self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(), 3333, self)
@@ -101,6 +97,8 @@ class StartQT5(QtWidgets.QMainWindow):
             actuators, actuators_IP, actuators_Port, actuators_Range = str(Checkbox.accessibleDescription()).split(":")
             indexNames = self.TABLE_FORWARDING[(self.TABLE_FORWARDING['Sensor Address'] == sensors) & (self.TABLE_FORWARDING['Sensor IP'] == sensors_IP) & (self.TABLE_FORWARDING['Sensor Port'] == sensors_Port) & (self.TABLE_FORWARDING['Sensor Range'] == sensors_Range) & (self.TABLE_FORWARDING['Actuator Address'] == actuators) & (self.TABLE_FORWARDING['Actuator IP'] == actuators_IP) & (self.TABLE_FORWARDING['Actuator Port'] == actuators_Port) & (self.TABLE_FORWARDING['Actuator Range'] == actuators_Range)].index
             self.TABLE_FORWARDING.drop(indexNames, inplace=True)
+            # TODO: Might need re-indexing
+            # self.TABLE_FORWARDING.reset_index(inplace=True, drop=True)
             print(self.TABLE_FORWARDING)
 
 
@@ -185,6 +183,7 @@ class StartQT5(QtWidgets.QMainWindow):
         super(StartQT5, self).resizeEvent(event)  # Restores the original behaviour of the resize event
 
     def update_view(self):
+        print("update_view()")
         self.model.update()
         for row in range(self.model.rowCount()):
             self.ui.tableView.setRowHidden(row, False)
@@ -192,18 +191,13 @@ class StartQT5(QtWidgets.QMainWindow):
         df = self.TABLE_INFO[self.TABLE_INFO["isServer"] == True]
         rows_to_hide = df.index.values.tolist()
         df = self.TABLE_INFO[self.TABLE_INFO["isTaken"] == True]
-        rows_to_hide.append(df.index.values.tolist())
+        row_to_hide_tmp = df.index.values.tolist()
 
-        comps = []
-        for sublist in rows_to_hide:
-            if type(sublist) is list:
-                for item in sublist:
-                    comps.append(item)
-            else:
-                comps.append(sublist)
+        rows_to_hide = rows_to_hide + list(set(row_to_hide_tmp) - set(rows_to_hide))
+        print(rows_to_hide)
 
-        if len(comps) > 0:
-            for row in comps:
+        if len(rows_to_hide) > 0:
+            for row in rows_to_hide:
                 self.ui.tableView.setRowHidden(row, True)
         self.model.update()
 
@@ -320,6 +314,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isSelected'] = False
                 # Delete the service
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+                self.TABLE_INFO.reset_index(inplace=True, drop=True)
 
             elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
                 # Another server has released a device
@@ -328,11 +323,13 @@ class StartQT5(QtWidgets.QMainWindow):
                     self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
                 # Remove server from TABLE_INFO
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+                self.TABLE_INFO.reset_index(inplace=True, drop=True)
 
             else:
                 # A device has unregistered
                 # Remove server from TABLE_INFO
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+                self.TABLE_INFO.reset_index(inplace=True, drop=True)
                 print("[WARNING] A device has unregistered")
         self.update_view()
 
