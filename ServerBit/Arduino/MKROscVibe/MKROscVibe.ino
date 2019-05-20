@@ -36,9 +36,14 @@ Adafruit_DRV2605 drv;
 uint8_t effect = 1; //Pre-made vibe Effects
 boolean effectMode = false;
 
+unsigned long time_now = 0;
 
-int vibeIntensityRT=0;
-int vibeDelayRT=1;
+int vibeIntensity1=0;
+int vibeIntensity2=0;
+int vibeTime1=1;
+int vibeTime2=1;
+
+boolean vibe1 = true;
 
 
 #include "arduino_secrets.h" 
@@ -156,9 +161,11 @@ void loop() {
         if(!bundleIN.hasError())
         {
             bundleIN.dispatch("/actuator/led", routeLED);
-            bundleIN.dispatch("/actuator/vibeeffect", routeVibeEffect);
-            bundleIN.dispatch("/actuator/vibeintensity", routeVibeIntensityRT);
-            bundleIN.dispatch("/actuator/vibedelay", routeVibeDelayRT);
+            //bundleIN.dispatch("/actuator/vibeeffect", routeVibeEffect);
+            bundleIN.dispatch("/actuator/vibeintensity1", routeVibeIntensity1);
+            bundleIN.dispatch("/actuator/vibeintensity2", routeVibeIntensity2);
+            bundleIN.dispatch("/actuator/vibetime1", routeVibeTime1);
+            bundleIN.dispatch("/actuator/vibetime2", routeVibeTime2);
         }
    }
 
@@ -187,7 +194,7 @@ void routeLED(OSCMessage &msg){
 //called whenever an OSCMessage's address matches "/led/"
 void routeVibeEffect(OSCMessage &msg){
   Serial.println("Vibe Effect");
-  setEffectMode();
+  //setEffectMode();
   //returns true if the data in the first position is a float
   if (msg.isFloat(0)){
     //get that float
@@ -198,12 +205,12 @@ void routeVibeEffect(OSCMessage &msg){
   }
 }
 
-void setEffectMode(){
-  if(!effectMode){
-    effectMode=true;
-    drv.setMode(DRV2605_MODE_INTTRIG); 
-  }
-}
+//void setEffectMode(){
+//  if(!effectMode){
+//    effectMode=true;
+//    drv.setMode(DRV2605_MODE_INTTRIG); 
+//  }
+//}
 
 void setRTMode(){
 
@@ -214,22 +221,36 @@ void setRTMode(){
 }
 
 //called whenever an OSCMessage's address matches "/led/"
-void routeVibeIntensityRT(OSCMessage &msg){
-  Serial.println("Vibe Intensity");
-  setRTMode(); 
+void routeVibeIntensity1(OSCMessage &msg){
+  Serial.println("Vibe Intensity 1");
+  //setRTMode(); 
   //returns true if the data in the first position is a float
   if (msg.isFloat(0)){
     //get that float
     float data = msg.getFloat(0);
 
     Serial.println(data);
-    vibeIntensityRT = data;
+    vibeIntensity1 = data;
   }
 }
 
 //called whenever an OSCMessage's address matches "/led/"
-void routeVibeDelayRT(OSCMessage &msg){
-  Serial.println("Vibe Delay");
+void routeVibeIntensity2(OSCMessage &msg){
+  Serial.println("Vibe Intensity 2");
+  //setRTMode(); 
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)){
+    //get that float
+    float data = msg.getFloat(0);
+
+    Serial.println(data);
+    vibeIntensity2 = data;
+  }
+}
+
+//called whenever an OSCMessage's address matches "/led/"
+void routeVibeTime1(OSCMessage &msg){
+  Serial.println("Time 1");
   setRTMode();
   //returns true if the data in the first position is a float
   if (msg.isFloat(0)){
@@ -237,26 +258,60 @@ void routeVibeDelayRT(OSCMessage &msg){
     float data = msg.getFloat(0);
 
     Serial.println(data);
-    vibeDelayRT = data;
+    vibeTime1 = data;
   }
 }
 
-void playVibeEffect(){
-  // set the effect to play
-  drv.setWaveform(0, effect);  // play effect 
-  drv.setWaveform(1, 0);       // end waveform
+//called whenever an OSCMessage's is meant to change the time off
+void routeVibeTime2(OSCMessage &msg){
+  Serial.println("Time 2");
+  //setRTMode();
+  //returns true if the data in the first position is a float
+  if (msg.isFloat(0)){
+    //get that float
+    float data = msg.getFloat(0);
 
-  // play the effect!
-  drv.go();
-  delay(20);
+    Serial.println(data);
+    vibeTime2 = data;
+  }
 }
+
+//void playVibeEffect(){
+//  // set the effect to play
+//  drv.setWaveform(0, effect);  // play effect 
+//  drv.setWaveform(1, 0);       // end waveform
+//
+//  // play the effect!
+//  drv.go();
+//  delay(20);
+//}
 
 
 void playVibeRT(){
-  drv.setRealtimeValue(vibeIntensityRT);
-  delay(10);
-  drv.setRealtimeValue(0);
-  delay(vibeDelayRT);
+
+  //if 1
+  //if delay is more than delay1
+  //turn 2
+  //else (if 2)
+  //if delay is more than delay2
+  //turn 1
+  
+  
+  if(vibe1){
+    if(millis() > time_now + vibeTime1){
+      time_now = millis();
+      drv.setRealtimeValue(vibeIntensity2);
+      vibe1=false;
+    }
+  }
+  else{ //we're on square 2
+    if(millis() > time_now + vibeTime2){
+      time_now = millis();
+      drv.setRealtimeValue(vibeIntensity1);
+      vibe1=true;
+    }
+    
+  }
 }
 
 

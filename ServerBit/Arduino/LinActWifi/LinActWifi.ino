@@ -55,9 +55,14 @@ const int baseline = 200; //minimum pressure for anything to happen at all, arbi
 void setup() {
   // put your setup code here, to run once:
 
-  pinMode(leftmotorForward, OUTPUT);
-  pinMode(leftmotorBackward, OUTPUT);
-  pinMode(leftmotorspeed, OUTPUT);
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  pinMode(10, OUTPUT);
+
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  
   correction = EEPROMReadInt(0); // reading the last position of motor from EEPROM to later caliberate HallEffect sensor values
   
   Serial.begin(9600);
@@ -190,10 +195,10 @@ void loop() {
    }
   
 
-    if(retract)
-      retractActuator();
-    else 
-      extendActuator();
+//    if(retract)
+//      retractActuator();
+//    else 
+//      extendActuator();
  
   long newPosition = myEnc.read();  //check the encoder to see if the position has changed
   if (newPosition != oldPosition) {
@@ -346,4 +351,3 @@ int EEPROMReadInt(int address)
 // 
 //  
 //}
-

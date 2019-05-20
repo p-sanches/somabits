@@ -19,6 +19,8 @@
  *
  */
  
+ //pavels IP: 107
+ 
 import oscP5.*;
 import netP5.*;
 import java.io.*; 
@@ -47,6 +49,8 @@ String SensorDisconnectPattern = "/sensor/endConnection/";
 String ActuatorConnectPattern = "/actuator/startConnection/";
 String ActuatorDisconnectPattern = "/actuator/endConnection/";
 
+String wekaPattern = "/wek/outputs";
+
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -64,6 +68,7 @@ void draw() {
 }
 
 void oscEvent(OscMessage theOscMessage) {
+  //println("### OSC MESSAGE ARRIVED");
   /* check if the address pattern fits any of our patterns */
   if (theOscMessage.addrPattern().equals(SensorConnectPattern)) {
     connectSensor(theOscMessage.netAddress().address());
@@ -76,6 +81,10 @@ void oscEvent(OscMessage theOscMessage) {
   }
   else if (theOscMessage.addrPattern().equals(ActuatorDisconnectPattern)) {
     disconnectActuator(theOscMessage.netAddress().address());
+  }
+  else if (theOscMessage.addrPattern().equals(wekaPattern)) {
+    //custom code to deal with it (replace function when needed)
+    WekinatorMKRVibe(theOscMessage);
   }
   /**
    * if pattern matching was not successful, then broadcast the incoming
@@ -105,8 +114,32 @@ void oscEvent(OscMessage theOscMessage) {
    // print("## Sending OSC Message directly to Wekinator");
     //printOSCMessage(theOscMessage);
    // trainWekinatorMsg(theOscMessage);
-    
   }
+}
+
+void WekinatorMKRVibe(OscMessage theOscMessage){
+  OscBundle myBundle = new OscBundle();
+  
+  //open wek/outputs
+  OscMessage intensity1Message = new OscMessage("/actuator/vibeintensity1"); 
+  intensity1Message.add(theOscMessage.get(0).floatValue());
+  myBundle.add(intensity1Message);
+   
+  OscMessage intensity2Message = new OscMessage("/actuator/vibeintensity2"); 
+  intensity2Message.add(theOscMessage.get(1).floatValue());
+   myBundle.add(intensity2Message);
+   
+  OscMessage time1Message = new OscMessage("/actuator/vibetime1"); 
+  time1Message.add(theOscMessage.get(2).floatValue());
+  myBundle.add(time1Message);
+  
+  OscMessage time2Message = new OscMessage("/actuator/vibetime2"); 
+  time2Message.add(theOscMessage.get(3).floatValue());
+  myBundle.add(time2Message);
+ 
+  myBundle.setTimetag(myBundle.now() + 10000);
+ 
+  oscP5.send(myBundle, ActuatorNetAddressList);
 }
 
 void sendOneActuatorData(OscMessage theOscMessage){
@@ -179,7 +212,6 @@ void printOSCMessage(OscMessage theOscMessage) {
      }
      println("### currently there are "+SensorNetAddressList.list().size()+" sensors connected.");
  }
-
 
 
 private void disconnectSensor(String theIPaddress) {
