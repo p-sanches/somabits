@@ -46,7 +46,7 @@ class PandasModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
 
-        return QtCore.QVariant(str(self._df.ix[index.row(), index.column()]))
+        return QtCore.QVariant(str(self._df.ix[index.row(), index.column()])) #Most of the errors comes from this line
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         row = self._df.index[index.row()]
