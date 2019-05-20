@@ -34,6 +34,8 @@ int deflatePower = 0;
 boolean inflate = false;
 boolean deflate = false;
 
+int inflateSpeed = 0;
+
 int inflateDuration = 0;
 int deflateDuration = 0;
 
@@ -44,11 +46,12 @@ unsigned long previousMillis = 0;
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
+
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
 unsigned int localPort = 12000;      // local port to listen on
 char packetBuffer[255]; //buffer to hold incoming packet
 WiFiUDP Udp;
-const IPAddress serverIp(192, 168, 1, 103);
+const IPAddress serverIp(192,168,1,8);
 const unsigned int serverPort = 32000;
 PneuDuino p;
 
@@ -73,7 +76,7 @@ void setup() {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to network:
-    status = WiFi.begin(ssid);
+    status = WiFi.begin(ssid, pass);
     // wait 10 seconds for connection:
     delay(10000);
   }
@@ -89,13 +92,22 @@ void setup() {
   connectToServer();
   delay(50);
   Wire.begin();
-  pinMode(12, OUTPUT);    //Channel A Direction Pin Initialize
+  pinMode(12, OUTPUT);    //Channel A Direction Pin Initialize (controlling the motor direction)
   p.begin();
-  pinMode(A0, INPUT);
-  pinMode(2, INPUT);
+  pinMode(A0, INPUT); //potentiometer
+  pinMode(2, INPUT); //power switch
 }
 
 void loop() {
+
+    p.update();
+
+    // read the actual pressure
+    float pressure = p.readPressure(1);
+//    Serial.print("Actual pressure: ");
+//    Serial.print(pressure);
+//    Serial.print("\n");
+  
   //   //if there's data available, read a packet
   //  int packetSize = Udp.parsePacket();
   //  if (packetSize)
@@ -124,6 +136,7 @@ void loop() {
       delay(50);
     }
   }
+  
   OSCBundle bundleIN;
   int size;
   if ( (size = Udp.parsePacket()) > 0)
@@ -134,67 +147,37 @@ void loop() {
     {
       bundleIN.dispatch("/actuator/inflate", routeInflate);
       bundleIN.dispatch("/actuator/deflate", routeDeflate);
-      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur);
-      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
+//      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur);
+//      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
     }
   }
   
   unsigned long currentMillis = millis();
-  int reading2 = digitalRead(2);
-  int readingA0 = analogRead(A0);
+  int powerOn = digitalRead(2);
   
-  if (reading2 == HIGH)
+  int potentiometer = analogRead(A0);
+  
+  if (powerOn == HIGH)
   {
-    if(inflatePower == 1)
+    if(inflate)
     {
-     
-      p.update();
       digitalWrite(12, HIGH); //Channel A Direction Forward
-      analogWrite(3, 255);    //Channel A Speed 100%
-      Serial.print("inflateduration:");
-      Serial.println(inflateDuration);
+      analogWrite(3, inflateSpeed);    //Channel A Speed  
+//      Serial.print("inflateduration:");
+//      Serial.println(inflateDuration);
       p.in(1, LEFT);
-      p.update();
-    }
-    else
       
-      analogWrite(3, 0);
+    }
    
-    
- if (deflatePower == 1)
- {
-      p.out(1, LEFT);
-      Serial.print("deflateduration:");
-      Serial.println(deflateDuration);
-      p.update();
-      
-    }  
-    else
-    {
-    p.in(1, LEFT);
-    p.update();
-    }
-    //delay(1000);            //1 Second Delay
-    //
-    //readingA0 = analogRead(A0);
-    //mult = map(readingA0, 1023, 0, 1, 10);
-    //motor.brake(0);                 // brake
-    //delay(mult*1000);
-    //readingA0 = analogRead(A0);
-    //mult = map(readingA0, 1023, 0, 1, 10);
-    //f p.out(1, LEFT);
-    // f p.update();
-    //fuck delay(mult*1000);
-    //readingA0 = analogRead(A0);
-    //mult = map(readingA0, 1023, 0, 1, 10);
-    //motor.stop(0);                  // stop
-    //fuck delay(mult*1000);
-    // }
-    //  else
-    //   {
-    //motor.stop(0);
-    //      }
+     if (deflate)
+     {
+          analogWrite(3, 0); //Channel A Speed 0% 
+          p.deflate(1); //open left valve
+       
+      }  
   }
+
+  p.update();
 }
 
 //called whenever an OSCMessage's address matches "/led/"
@@ -205,21 +188,33 @@ void routeInflate(OSCMessage &msg) {
     //get that float
     float data = msg.getFloat(0);
     Serial.println(data);
-    inflatePower = (int) data;
+    inflateSpeed = (int) data;
     inflate = true;
   }
 }
 
 //called whenever an OSCMessage's address matches "/led/"
 void routeDeflate(OSCMessage &msg) {
-  Serial.println("Deflate");
+  
   //returns true if the data in the first position is a float
   if (msg.isFloat(0)) {
     //get that float
     float data = msg.getFloat(0);
     Serial.println(data);
-    deflatePower = (int) data;
-    deflate = true;
+
+    //deflate
+    if((int) data == 1){ 
+      Serial.println("Valve control Open");
+      deflate = true;
+      inflate = false;
+    }
+    
+    else if((int) data == 0){
+      //inflate = false;
+      deflate = false;
+      inflate = true;
+      Serial.println("Valve control Closed");
+    }
   }
 }
 
