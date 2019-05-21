@@ -63,8 +63,8 @@ void setup() {
 
 void draw() {
   //background(0);
-  //if(sensorInputs.size()>0)
-  //  trainWekinatorWithAllSensors();
+  if(sensorInputs.size()>0)
+    trainWekinatorWithAllSensors();
 }
 
 void oscEvent(OscMessage theOscMessage) {
@@ -125,7 +125,7 @@ void addSensorValuetoHashMap(OscMessage theOscMessage){
   address[0]=theOscMessage.netAddress().address();
   address[1]=theOscMessage.addrPattern();
   
-  sensorInputs.put(join(address,"/"), theOscMessage.arguments());
+  sensorInputs.put(join(address,""), theOscMessage.arguments());
   
 }
 
