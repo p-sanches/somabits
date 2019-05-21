@@ -1,7 +1,4 @@
 /*
-  This example connects to an unencrypted WiFi network.
-  Then to a broadcasting OSC server in Processing
-  Based on Oscuino
   Circuit:
    WiFi shield attached
   Created 2019-02-26
@@ -22,19 +19,14 @@
 #include <Wire.h>
 #include <PneuDuino.h>
 
+#define I2CPneuAddress 1 //CHANGE THIS VALUE DEPENDING ON HOW YOU WIRED THE PNEUDUINO
 
-int inflatePower = 0;
-int deflatePower = 0;
 boolean inflate = false;
 boolean deflate = false;
 
 int inflateSpeed = 0;
 
-int inflateDuration = 0;
-int deflateDuration = 0;
-
-unsigned long currentMillis = 0;    
-unsigned long previousMillis = 0;
+boolean wasOff = false; //used to establish connection to server
 
 #include "arduino_secrets.h"
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
@@ -45,9 +37,21 @@ int status = WL_IDLE_STATUS;     // the WiFi radio's status
 unsigned int localPort = 12000;      // local port to listen on
 char packetBuffer[255]; //buffer to hold incoming packet
 WiFiUDP Udp;
-const IPAddress serverIp(192,168,1,8);
+
+
+const IPAddress serverIp(192,168,1,4);
 const unsigned int serverPort = 32000;
+
 PneuDuino p;
+
+float pressure;
+
+//DEPRECATED VARIABLES --------------------------------------------------
+int inflateDuration = 0;
+int deflateDuration = 0;
+unsigned long currentMillis = 0;    
+unsigned long previousMillis = 0;
+//DEPRECATED VARIABLES END --------------------------------------------------
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -55,6 +59,9 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+
+  p.setAddressMode(PNEUDUINO_ADDRESS_VIRTUAL);
+  
   //Initialize actuators
   //initialize LED
   pinMode(LED_BUILTIN, OUTPUT);
@@ -71,8 +78,8 @@ void setup() {
     Serial.println(ssid);
     // Connect to network:
     status = WiFi.begin(ssid, pass);
-    // wait 10 seconds for connection:
-    delay(10000);
+    // wait 5 seconds for connection:
+    delay(5000);
   }
   // you're connected now, so print out the data:
   Serial.print("You're connected to the network");
@@ -94,26 +101,58 @@ void setup() {
 
 void loop() {
 
-    p.update(); //always AND ONLY called in the beginning
-
-
-    char incomingByte = 0;   // for incoming serial data
-    if (Serial.available() > 0) {
-      // read the incoming byte:
-      incomingByte = Serial.read();
-      if (incomingByte == 'c') {
-        connectToServer();
-        delay(50);
-      }
-    }
-      int potentiometer = analogRead(A0);
-    // read the actual pressure
-    float pressure = p.readPressure(1);
-//    Serial.print("Actual pressure: ");
-//    Serial.print(pressure);
-//    Serial.print("\n");
-
+  p.update(); //always AND ONLY called in the beginning
+     
+  parseSerialCommands(); //read and parse any commands from serial (e.g. "c" = connect to server)
+  readOSCMessage(); //read and parse any possible incoming OSC message from server
   
+  int powerOn = digitalRead(2); //see if power is on. only inflate/deflate if power is on
+  
+  pressure = map(p.readPressure(I2CPneuAddress), 60, 90, 0, 30); //read the pressure value from pneuduino. The original range (60-90) is mapped to 1-30
+  //Serial.println(pressure); //DEBUG
+  sendOSCPressure(); //send it to server
+  
+  int potentiometer = analogRead(A0); //read value from potentiometer: CURRENTLY NOT DOING ANYTHING WITH IT
+ 
+  if (powerOn == HIGH)
+  {
+    if(wasOff){
+      connectToServer();
+      wasOff = false;
+    }
+    
+    if(inflate)
+    {
+      inflatePump(inflateSpeed);       
+    }
+    if (deflate)
+    {
+      deflatePump();
+    }  
+  }
+  else wasOff = true;
+}
+
+void inflatePump(int inflateSpeed){
+
+  digitalWrite(12, HIGH); //Channel A Direction Forward
+  analogWrite(3, inflateSpeed);    //Channel A Speed 100%
+   
+   p.inflate(I2CPneuAddress); //method 1
+  // p.in(1, LEFT); //method 2
+}
+
+void deflatePump(){
+
+   analogWrite(3, 0); //Channel A Speed 0% 
+   
+   p.deflate(I2CPneuAddress); //method 1
+  // p.out(1, LEFT); //method 2
+}
+
+//OSC MESSAGE HANDLING FUNCTIONS -----------------------------------------------------------------------------
+
+void readOSCMessage(){
   OSCBundle bundleIN;
   int size;
   if ( (size = Udp.parsePacket()) > 0)
@@ -124,40 +163,27 @@ void loop() {
     {
       bundleIN.dispatch("/actuator/inflate", routeInflate);
       bundleIN.dispatch("/actuator/deflate", routeDeflate);
-//      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur);
+//      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur); //DEPRECATED
 //      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
     }
   }
-  
-  unsigned long currentMillis = millis();
-  int powerOn = digitalRead(2);
- 
-  
-  if (powerOn == HIGH)
-  {
-    if(inflate)
-    {
-      
-      digitalWrite(12, HIGH); //Channel A Direction Forward
-      analogWrite(3, inflateSpeed);    //Channel A Speed  
-//    Serial.print("inflateduration:");
-//    Serial.println(inflateDuration);
-      p.in(1, LEFT);
-      
-    }
-   
-     if (deflate)
-     {
-          analogWrite(3, 0); //Channel A Speed 0% 
-          p.deflate(1); //open left valve
-          //deflate = false;
-      }  
-  }
-
-  
 }
 
-//called whenever an OSCMessage's address matches "/led/"
+void sendOSCPressure(){
+  //the message wants an OSC address as first argument
+  OSCMessage msg("/sensor/pressure");
+  msg.add(pressure);
+  
+  Udp.beginPacket(serverIp, serverPort);
+    msg.send(Udp); // send the bytes to the SLIP stream
+  Udp.endPacket(); // mark the end of the OSC Packet
+  msg.empty(); // free space occupied by message
+
+  delay(20);
+}
+
+
+//called whenever an OSCMessage's address matches "/inflate/": It sets the "inflate" boolean to true and the "inflateSpeed"
 void routeInflate(OSCMessage &msg) {
   Serial.println("Inflate");
   //returns true if the data in the first position is a float
@@ -167,10 +193,11 @@ void routeInflate(OSCMessage &msg) {
     Serial.println(data);
     inflateSpeed = (int) data;
     inflate = true;
+    deflate = false;
   }
 }
 
-//called whenever an OSCMessage's address matches "/led/"
+//called whenever an OSCMessage's address matches "/deflate/": opens and closes the valve
 void routeDeflate(OSCMessage &msg) {
   
   //returns true if the data in the first position is a float
@@ -186,7 +213,7 @@ void routeDeflate(OSCMessage &msg) {
       inflate = false;
     }
     
-    else if((int) data == 0){
+    else if((int) data == 0){ 
       //inflate = false;
       deflate = false;
       inflate = true;
@@ -195,6 +222,7 @@ void routeDeflate(OSCMessage &msg) {
   }
 }
 
+//DEPRECATED FUNCTION: LEFT HERE IN CASE PAVEL WANTS IT LATER
 void routeInflateDur(OSCMessage &msg) {
   Serial.println("Inflate Duration");
   //returns true if the data in the first position is a float
@@ -207,6 +235,7 @@ void routeInflateDur(OSCMessage &msg) {
   }
 }
 
+//DEPRECATED FUNCTION: LEFT HERE IN CASE PAVEL WANTS IT LATER
 void routeDeflateDur(OSCMessage &msg) {
   Serial.println("Deflate Duration");
   //returns true if the data in the first position is a float
@@ -217,6 +246,20 @@ void routeDeflateDur(OSCMessage &msg) {
     deflateDuration = (int) data;
     //deflate = true;
   }
+}
+
+//UTILITY FUNCTIONS ---------------------------------------------------------------------------------------------------------------
+
+void parseSerialCommands(){
+   char incomingByte = 0;   // for incoming serial data
+    if (Serial.available() > 0) {
+      // read the incoming byte:
+      incomingByte = Serial.read();
+      if (incomingByte == 'c') {
+        connectToServer();
+        delay(50);
+      }
+    }
 }
 
 void connectToServer() {

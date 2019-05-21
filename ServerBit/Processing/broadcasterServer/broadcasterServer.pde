@@ -63,8 +63,8 @@ void setup() {
 
 void draw() {
   //background(0);
-  if(sensorInputs.size()>0)
-    trainWekinatorWithAllSensors();
+  //if(sensorInputs.size()>0)
+  //  trainWekinatorWithAllSensors();
 }
 
 void oscEvent(OscMessage theOscMessage) {
@@ -95,7 +95,8 @@ void oscEvent(OscMessage theOscMessage) {
   else if(theOscMessage.addrPattern().contains("/sensor")){
     
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
-    sensorInputs.put(theOscMessage.addrPattern(), theOscMessage.arguments());
+    addSensorValuetoHashMap(theOscMessage);
+    
     //printAllSensorInputs();
    
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
@@ -115,6 +116,17 @@ void oscEvent(OscMessage theOscMessage) {
     //printOSCMessage(theOscMessage);
    // trainWekinatorMsg(theOscMessage);
   }
+}
+
+void addSensorValuetoHashMap(OscMessage theOscMessage){
+  
+  String[] address = new String[2];
+  
+  address[0]=theOscMessage.netAddress().address();
+  address[1]=theOscMessage.addrPattern();
+  
+  sensorInputs.put(join(address,"/"), theOscMessage.arguments());
+  
 }
 
 void WekinatorMKRVibe(OscMessage theOscMessage){
@@ -151,7 +163,6 @@ void sendOneActuatorData(OscMessage theOscMessage){
   myBundle.setTimetag(myBundle.now() + 10000);
   /* send the osc bundle, containing 1 osc messages, to all actuators. */
   oscP5.send(myBundle, ActuatorNetAddressList);
-  
 }
 
 void sendAllRawSensorData(){
