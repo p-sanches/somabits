@@ -9,10 +9,12 @@ import socket
 import ifaddr
 import sys
 from time import sleep
+import numpy as np
+
+from pythonosc import udp_client
 
 from zeroconf import ServiceInfo, Zeroconf
 from typing import List
-
 
 def get_all_addresses() -> List[str]:
     return list(set(
@@ -29,25 +31,52 @@ def get_local_ip(starts_with="192"):
     return local_ip[0]
 
 
+def send_sensor_values(sensor_state_, sensor_direction_, server):
+    sensor_state = sensor_state_
+    sensor_direction = sensor_direction_
+
+    while True:
+        if sensor_state is 0:
+            sensor_direction = 1
+        elif sensor_state is 100:
+            sensor_direction = 0
+
+        if sensor_direction is 0:
+            # not pressed
+            sensor_state -=1
+        else:
+            # pressed
+            sensor_state += 1
+
+        client = udp_client.SimpleUDPClient(server, int(5555))
+        client.send_message("/pressure", sensor_state)
+        print("Value = %s" % sensor_state)
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     if len(sys.argv) > 1:
         assert sys.argv[1:] == ['--debug']
         logging.getLogger('zeroconf').setLevel(logging.DEBUG)
 
-    desc = {'sensor1': '/light:0%127', 'sensor2': '/accelerometer', 'actuator1': '/sound'}
+    initial_sensor_state = np.random.random_integers(0, 100)
+    print("Initial sensor state: %s" % initial_sensor_state)
+    sensor_direction = np.random.random_integers(0,1)
+    print("Initial sensor direction: %s" % sensor_direction)
+
+    desc = {'sensor1': '/pressure:0%100'}
 
     info = ServiceInfo(type_="_osc._udp.local.",
-                       name="PythonDevice._osc._udp.local.",
+                       name="PythonSensor._osc._udp.local.",
                        address=socket.inet_aton(get_local_ip()),
                        port=3335,
                        weight=0,
                        priority=0,
                        properties=desc,
-                       server="PythonDevice.local.")
+                       server="PythonSensor.local.")
 
     zeroconf = Zeroconf()
-    print("Registration of a service, press Ctrl-C to exit...")
+    print("Registration of a service PythonSensor")
     zeroconf.register_service(info)
 
     print("Opening a TCP connection")
@@ -64,6 +93,8 @@ if __name__ == '__main__':
         if not data:
             break
         print("Server IP is: " + str(data.decode()))
+
+    send_sensor_values(initial_sensor_state, sensor_direction, str(data.decode()))
 
     try:
         while True:
