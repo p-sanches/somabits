@@ -270,6 +270,13 @@ void connectToServer() {
   msg.send(Udp); // send the bytes to the SLIP stream
   Udp.endPacket();
   msg.empty(); // free space occupied by message
+
+  //must also send a sensorconnect message in case it intends to be a sensor
+//  OSCMessage msg("/sensor/startConnection/");
+//  Udp.beginPacket(serverIp, serverPort);
+//  msg.send(Udp); // send the bytes to the SLIP stream
+//  Udp.endPacket();
+//  msg.empty(); // free space occupied by message
 }
 
 void printWiFiData() {

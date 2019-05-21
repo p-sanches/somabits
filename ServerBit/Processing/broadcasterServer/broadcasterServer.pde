@@ -25,11 +25,15 @@ import oscP5.*;
 import netP5.*;
 import java.io.*; 
 import java.util.*; 
+//import org.apache.commons.collections4.*;
 
 
 OscP5 oscP5;
 NetAddressList SensorNetAddressList = new NetAddressList();
 NetAddressList ActuatorNetAddressList = new NetAddressList();
+
+int indexIP = 0;
+HashMap<String, Integer> DeviceIPs = new HashMap<String, Integer>();
 
 NetAddress wekinator;
 
@@ -63,8 +67,8 @@ void setup() {
 
 void draw() {
   //background(0);
-  if(sensorInputs.size()>0)
-    trainWekinatorWithAllSensors();
+  //if(sensorInputs.size()>0)
+  //  printAllSensorInputs();
 }
 
 void oscEvent(OscMessage theOscMessage) {
@@ -97,8 +101,8 @@ void oscEvent(OscMessage theOscMessage) {
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     addSensorValuetoHashMap(theOscMessage);
     
-    //printAllSensorInputs();
-   
+    printAllSensorInputs();
+    
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
     //trainWekinatorMsg(theOscMessage);
     //trainWekinatorWithAllSensors();
@@ -108,7 +112,17 @@ void oscEvent(OscMessage theOscMessage) {
     //sendAllSensorData();
   }
   else if(theOscMessage.addrPattern().contains("/actuator")){
-    sendOneActuatorData(theOscMessage);
+    
+    int id = messageContainsID(theOscMessage);
+    
+    if(id == -1)
+      sendToAllActuators(theOscMessage);
+    else{
+      //TODO: must edit the address in the message to remove the ID
+      theOscMessage.setAddrPattern(cleanActuatorPattern(theOscMessage));
+      sendToOneActuator(theOscMessage,id);
+    }
+    
     printOSCMessage(theOscMessage);
   }
   else{
@@ -118,43 +132,119 @@ void oscEvent(OscMessage theOscMessage) {
   }
 }
 
+private int messageContainsID(OscMessage theOscMessage){
+  
+  String[] addrComponents = theOscMessage.addrPattern().split("/");
+  //"_/[actuator]/[id]"
+  
+    try 
+    { 
+            // checking valid integer using parseInt() method 
+            return Integer.parseInt(addrComponents[2]); 
+    }  
+    catch (Exception e) //this means that it is not an integer and then it is meant for all actuators 
+    { 
+       return -1;
+    } 
+
+}
+
+private String cleanActuatorPattern(OscMessage theOscMessage){
+  
+  String[] addrComponents = theOscMessage.addrPattern().split("/");
+  String[] newAddress = new String[addrComponents.length-1];
+  //"_/[actuator]/[id]"
+  
+    try 
+    { 
+            // checking valid integer using parseInt() method 
+            Integer.parseInt(addrComponents[2]); 
+            
+            for(int i=0, j=0;i<newAddress.length;i++,j++){
+              if(i==2) i++;
+              newAddress[j] = addrComponents[i];
+            }
+            
+            return join(newAddress,"/");
+    }  
+    catch (Exception e) //this means that it is not an integer and then it is meant for all actuators 
+    { 
+       return theOscMessage.addrPattern();
+    } 
+
+}
+
+
+// /sensor/x becomes /[id]/sensor/x
 void addSensorValuetoHashMap(OscMessage theOscMessage){
   
-  String[] address = new String[2];
+  int id = getDeviceId(theOscMessage.netAddress());
+  if(id == -1)
+    id = connectSensor(theOscMessage.netAddress().address());
   
-  address[0]=theOscMessage.netAddress().address();
-  address[1]=theOscMessage.addrPattern();
+  //remove the "/sensor" part
+  String[] addrComponents = theOscMessage.addrPattern().split("/");
   
-  sensorInputs.put(join(address,""), theOscMessage.arguments());
+  //System.out.println("## PRINTING addrComponents"); 
+  //for (String a : addrComponents) 
+  //          System.out.println(a); 
+   
+  String[] address = new String[addrComponents.length-1];
   
+  address[0] = Integer.toString(id);
+  
+  for(int i=2;i<addrComponents.length; i++){ //i starts at 2 to jump past the initial blankspace "" and the word "sensor"
+    address[i-1] = addrComponents[i];
+  }
+  sensorInputs.put(join(address,"/"), theOscMessage.arguments());
 }
 
-void WekinatorMKRVibe(OscMessage theOscMessage){
+int getDeviceId(NetAddress address){
+ Integer id = DeviceIPs.get(address.address());
+ if(id==null) return -1;
+ else return id;
+}
+
+String getDeviceAddress(int id){
+
+   for (HashMap.Entry<String, Integer> entry : DeviceIPs.entrySet()) {
+            if (entry.getValue().equals(id)) {
+                return(entry.getKey());
+            }
+        }
+    return null;
+}
+
+
+void sendToOneActuator(OscMessage theOscMessage, int id){
+  
+  System.out.println("## Sending to one actuator with ID "+ id);
+  
+  String addr = getDeviceAddress(id);
+  if(addr==null){
+    System.out.println("## ERROR: Actuator with ID "+ id+ " not found");
+    return;
+  }
+  
+  NetAddress actuatorNetAddress = ActuatorNetAddressList.get(addr,myBroadcastPort);
+  if(actuatorNetAddress==null){
+    System.out.println("## ERROR: Actuator with ID "+ id+ " not found");
+    return;
+  }
+    
+  /* create an osc bundle */
   OscBundle myBundle = new OscBundle();
-  
-  //open wek/outputs
-  OscMessage intensity1Message = new OscMessage("/actuator/vibeintensity1"); 
-  intensity1Message.add(theOscMessage.get(0).floatValue());
-  myBundle.add(intensity1Message);
-   
-  OscMessage intensity2Message = new OscMessage("/actuator/vibeintensity2"); 
-  intensity2Message.add(theOscMessage.get(1).floatValue());
-   myBundle.add(intensity2Message);
-   
-  OscMessage time1Message = new OscMessage("/actuator/vibetime1"); 
-  time1Message.add(theOscMessage.get(2).floatValue());
-  myBundle.add(time1Message);
-  
-  OscMessage time2Message = new OscMessage("/actuator/vibetime2"); 
-  time2Message.add(theOscMessage.get(3).floatValue());
-  myBundle.add(time2Message);
+  myBundle.add(theOscMessage);
  
   myBundle.setTimetag(myBundle.now() + 10000);
- 
-  oscP5.send(myBundle, ActuatorNetAddressList);
+  /* send the osc bundle, containing 1 osc messages, to all actuators. */
+  oscP5.send(myBundle, actuatorNetAddress);
 }
 
-void sendOneActuatorData(OscMessage theOscMessage){
+void sendToAllActuators(OscMessage theOscMessage){
+  
+    System.out.println("## Sending to ALL actuators");
+
   
     /* create an osc bundle */
   OscBundle myBundle = new OscBundle();
@@ -214,16 +304,31 @@ void printOSCMessage(OscMessage theOscMessage) {
    println(" ## Ending of message");
 }
 
- private void connectSensor(String theIPaddress) {
+private int connectSensor(String theIPaddress) {
+  int id = addIPAddress(theIPaddress);
      if (!SensorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
        SensorNetAddressList.add(new NetAddress(theIPaddress, myBroadcastPort));
-       println("### adding "+theIPaddress+" to the sensor list.");
+       println("### adding "+theIPaddress+" to the sensor list. The ID is "+id);
      } else {
-       println("### Sensor "+theIPaddress+" is already connected.");
+       println("### Sensor "+theIPaddress+" is already connected. The ID is "+id);
      }
      println("### currently there are "+SensorNetAddressList.list().size()+" sensors connected.");
+     
+     return id;
  }
 
+private int addIPAddress(String IPAddress){
+  //HashMap<String, Integer>
+  Integer id = DeviceIPs.putIfAbsent(IPAddress, new Integer(indexIP));
+  
+  if(id==null){ //it is new!
+    id= DeviceIPs.get(IPAddress);
+    indexIP++;
+  }
+        
+  return id;
+
+}
 
 private void disconnectSensor(String theIPaddress) {
 if (SensorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
@@ -236,14 +341,16 @@ if (SensorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
  }
  
  
-private void connectActuator(String theIPaddress) {
+private int connectActuator(String theIPaddress) {
+     int id = addIPAddress(theIPaddress);
      if (!ActuatorNetAddressList.contains(theIPaddress, myBroadcastPort)) {
        ActuatorNetAddressList.add(new NetAddress(theIPaddress, myBroadcastPort));
-       println("### adding "+theIPaddress+" to the actuator list.");
+       println("### adding "+theIPaddress+" to the actuator list. The ID is "+id);
      } else {
-       println("### Actuator "+theIPaddress+" is already connected.");
+       println("### Actuator "+theIPaddress+" is already connected. The ID is "+id);
      }
      println("### currently there are "+ActuatorNetAddressList.list().size()+" actuators connected.");
+     return id;
  }
 
 
@@ -317,4 +424,29 @@ void trainWekinatorMsg(OscMessage msg) {
   printOSCMessage(wekaMsg);
  
   oscP5.send(wekaMsg, wekinator);
+}
+
+void WekinatorMKRVibe(OscMessage theOscMessage){
+  OscBundle myBundle = new OscBundle();
+  
+  //open wek/outputs
+  OscMessage intensity1Message = new OscMessage("/actuator/vibeintensity1"); 
+  intensity1Message.add(theOscMessage.get(0).floatValue());
+  myBundle.add(intensity1Message);
+   
+  OscMessage intensity2Message = new OscMessage("/actuator/vibeintensity2"); 
+  intensity2Message.add(theOscMessage.get(1).floatValue());
+   myBundle.add(intensity2Message);
+   
+  OscMessage time1Message = new OscMessage("/actuator/vibetime1"); 
+  time1Message.add(theOscMessage.get(2).floatValue());
+  myBundle.add(time1Message);
+  
+  OscMessage time2Message = new OscMessage("/actuator/vibetime2"); 
+  time2Message.add(theOscMessage.get(3).floatValue());
+  myBundle.add(time2Message);
+ 
+  myBundle.setTimetag(myBundle.now() + 10000);
+ 
+  oscP5.send(myBundle, ActuatorNetAddressList);
 }
