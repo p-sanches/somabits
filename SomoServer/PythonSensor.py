@@ -35,22 +35,24 @@ def send_sensor_values(sensor_state_, sensor_direction_, server):
     sensor_state = sensor_state_
     sensor_direction = sensor_direction_
 
+    client = udp_client.SimpleUDPClient(server, int(3333))
+
     while True:
-        if sensor_state is 0:
+        if sensor_state == 0:
             sensor_direction = 1
-        elif sensor_state is 100:
+        elif sensor_state == 100:
             sensor_direction = 0
 
-        if sensor_direction is 0:
+        if sensor_direction == 0:
             # not pressed
-            sensor_state -=1
+            sensor_state -= 1
         else:
             # pressed
             sensor_state += 1
 
-        client = udp_client.SimpleUDPClient(server, int(5555))
-        client.send_message("/pressure", sensor_state)
-        print("Value = %s" % sensor_state)
+        client.send_message("/pressure", float(sensor_state))
+        print("Value = %s, Direction = %s" % (sensor_state, sensor_direction))
+        sleep(0.1)
 
 
 if __name__ == '__main__':
@@ -88,13 +90,19 @@ if __name__ == '__main__':
     conn, addr = s.accept()
     print("Connection address:  " + str(addr))
 
+    server_ip = ""
     while True:
         data = conn.recv(20)
         if not data:
             break
+        server_ip = str(data.decode())
         print("Server IP is: " + str(data.decode()))
 
-    send_sensor_values(initial_sensor_state, sensor_direction, str(data.decode()))
+    while True:
+        try:
+            send_sensor_values(initial_sensor_state, sensor_direction, server_ip)
+        except:
+            pass
 
     try:
         while True:
