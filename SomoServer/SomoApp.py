@@ -33,7 +33,10 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
+        #if checkbox is checked:
         self.ui.save_button.clicked.connect(self.start_forwarding)
+        #else:
+        #    self.ui.save_button.clicked.connect(self.application_forwarding)
         self.ui.StartOSC.clicked.connect(self.start_OSC)
         self.ui.StopOSCButton.setEnabled(False)
         self.ui.StopOSCButton.setStyleSheet(

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 "https://github.com/jstasiak/python-zeroconf/blob/master/examples/registration.py"
+from multiprocessing import Process
 
 """ Example of announcing a service (in this case, a fake HTTP server) """
 
@@ -10,12 +11,23 @@ import ifaddr
 import sys
 from time import sleep
 import numpy as np
+import matplotlib
+matplotlib.use('Qt5Agg')
+import matplotlib.pyplot as plt
+
+from matplotlib import animation
+
+print(plt.get_backend())
+
 
 from zeroconf import ServiceInfo, Zeroconf
 from typing import List
+from multiprocessing import Process, Manager
 
-from pythonosc import dispatcher
-from pythonosc import osc_server
+#with Manager() as manager:
+motor_values = Manager().list()
+#motor_values = []
+
 
 def get_all_addresses() -> List[str]:
     return list(set(
@@ -32,8 +44,32 @@ def get_local_ip(starts_with="192"):
     return local_ip[0]
 
 
-def show_actuation(unused_addr, args, motor):
-    print(motor)
+def save_motor_value(unused_addr, args, motor):
+    args[1].append(motor)
+
+
+def get_motor_value():
+    if len(motor_values) > 1:
+        return motor_values.pop(0)
+    else:
+        return motor_values[0]
+
+
+def animate(frameno, p1):
+    p1[0].set_height(get_motor_value())
+    return p1
+
+
+def run_OSC(motor_values_):
+    from pythonosc import dispatcher
+    from pythonosc import osc_server
+
+    dispatcher = dispatcher.Dispatcher()
+    dispatcher.map("/motor", save_motor_value, "Motor", motor_values_)
+    server = osc_server.ThreadingOSCUDPServer((server_ip, 3335), dispatcher)
+
+    print("Serving OSC on {}".format(server.server_address))
+    server.serve_forever()
 
 
 if __name__ == '__main__':
@@ -42,10 +78,11 @@ if __name__ == '__main__':
         assert sys.argv[1:] == ['--debug']
         logging.getLogger('zeroconf').setLevel(logging.DEBUG)
 
+
+
     initial_motor_state = np.random.random_integers(0, 100)
     print("Initial motor state: %s" % initial_motor_state)
-    motor_direction = np.random.random_integers(0, 1)
-    print("Initial motor direction: %s" % motor_direction)
+    save_motor_value(None, [None, motor_values], initial_motor_state)
 
     desc = {'actuator1': '/motor:0%100'}
 
@@ -59,7 +96,7 @@ if __name__ == '__main__':
                        server="PythonActuator.local.")
 
     zeroconf = Zeroconf()
-    print("Registration of a service, press Ctrl-C to exit...")
+    print("Registration of a service PythonActuator")
     zeroconf.register_service(info)
 
     print("Opening a TCP connection")
@@ -78,15 +115,19 @@ if __name__ == '__main__':
         server_ip = str(data.decode())
         print("Server IP is: " + server_ip)
 
-    dispatcher = dispatcher.Dispatcher()
-    dispatcher.map("/motor", show_actuation, "Motor")
-    server = osc_server.ThreadingOSCUDPServer((server_ip, 5555), dispatcher)
-    print("Serving on {}".format(server.server_address))
-    server.serve_forever()
+    P1 = Process(target=run_OSC, args=[motor_values])
+    P1.start()
+
+    fig, ax = plt.subplots()
+    p1 = plt.bar(0, initial_motor_state, color='b')
+    ax.set_ylim(0, 100)
+
+    anim = animation.FuncAnimation(fig, animate, interval=0, frames=None, fargs=[p1], repeat=False, blit=True)
+    plt.show()
 
     try:
         while True:
-            sleep(0.1)
+            pass
     except KeyboardInterrupt:
         pass
     finally:
