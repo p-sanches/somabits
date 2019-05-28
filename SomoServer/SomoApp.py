@@ -9,8 +9,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal, QModelIndex)
 
 # TODO: Fix the checkbox color
-# TODO: Clean close of zeroconf when closing the GUI
-# TODO: Clean close of the check_service thread
 
 from SomoServer.gui import Ui_MainWindow
 from SomoServer.TableModel import PandasModel, CheckBoxDelegate
@@ -20,6 +18,7 @@ from SomoServer.OSC import getOSCMessages
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 from typing import List
+from time import sleep
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -56,6 +55,9 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.tableView.hideColumn(10)
         delegate = CheckBoxDelegate(self)
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
+
+        self.check_service_timer = threading.Timer(5.0, self.check_services)
+        self.check_service_timer.start()
 
     def start_OSC(self):
         self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(), 3333, self)
@@ -204,7 +206,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.ui.tableView.setRowHidden(row, True)
         self.model.update()
 
-    def check_services(self):
+    def check_services(self, close=False):
         #threading.Timer(5.0, self.check_services).start()
         for rows in range(len(self.TABLE_INFO)):
             print("Checking \n")
@@ -273,7 +275,6 @@ class StartQT5(QtWidgets.QMainWindow):
                 # It is a message from another server
                 # Check if service already exists (happens if two users click on the same device at the same time)
                 if info.server in self.TABLE_INFO['Host Name'].to_list():
-                    #self.discovery.unregister_service(device_ip, info.server)
                     self.ui.plainTextEdit.appendPlainText(
                         "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
                 else:
@@ -357,6 +358,22 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.discover_button.setStyleSheet("background-color: gray;""color: rgb(204, 204, 204);")
         self.check_services()
 
+    def on_close(self):
+        #self.check_services(close=True)
+        print("Disable service detection....")
+        self.check_service_timer.cancel()
+
+        # Unregister all services
+        print("Unregistering services...")
+        for rows in range(len(self.TABLE_INFO)):
+            self.discovery.unregister_service(self.TABLE_INFO.iloc[rows]['Address'], self.TABLE_INFO.iloc[rows]['ServiceName'])
+
+        # Close zeroconf
+        print("Closing Zeroconf...")
+        self.discovery.browser.cancel()
+        self.discovery.zeroconf.close()
+
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -368,5 +385,5 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     myapp = StartQT5()
     myapp.show()
+    app.aboutToQuit.connect(myapp.on_close)
     sys.exit(app.exec_())
-    #sys.exit(myapp.close(app))
