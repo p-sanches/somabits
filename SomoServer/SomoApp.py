@@ -22,10 +22,10 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-# TODO: Rename "Forwarding" Tab to "Mapping"?
-# TODO: Remove the "For Debugging only" Console and write text to terminal?
 
-# TODO: Add Button "Soma Mattress" to Applications Tab
+
+
+
 # TODO: In Control Tab: Add Checkbock "Application"
 
 # If "Application" checked
