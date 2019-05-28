@@ -19,6 +19,10 @@
 #include <Wire.h>
 #include <PneuDuino.h>
 
+// If you use the WiFiNINA with the OSC library make sure you remove
+// "SLIPEncodedSerial.cpp" and "SLIPEncodedSerial.h" from
+// the arduino --> osc library. (#slavic_warrior_solution)
+
 #define I2CPneuAddress 1 //CHANGE THIS VALUE DEPENDING ON HOW YOU WIRED THE PNEUDUINO
 
 boolean inflate = false;
@@ -32,14 +36,14 @@ boolean wasOff = false; //used to establish connection to server
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
-
 int status = WL_IDLE_STATUS;     // the WiFi radio's status
+
 unsigned int localPort = 12000;      // local port to listen on
 char packetBuffer[255]; //buffer to hold incoming packet
 WiFiUDP Udp;
 
 
-const IPAddress serverIp(192,168,1,4);
+const IPAddress serverIp(192, 168, 1, 105);
 const unsigned int serverPort = 32000;
 
 PneuDuino p;
@@ -49,7 +53,7 @@ float pressure;
 //DEPRECATED VARIABLES --------------------------------------------------
 int inflateDuration = 0;
 int deflateDuration = 0;
-unsigned long currentMillis = 0;    
+unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
 //DEPRECATED VARIABLES END --------------------------------------------------
 
@@ -61,7 +65,7 @@ void setup() {
   }
 
   p.setAddressMode(PNEUDUINO_ADDRESS_VIRTUAL);
-  
+
   //Initialize actuators
   //initialize LED
   pinMode(LED_BUILTIN, OUTPUT);
@@ -72,15 +76,35 @@ void setup() {
     // don't continue:
     while (true);
   }
+
   // attempt to connect to WiFi network:
   while ( status != WL_CONNECTED) {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to network:
-    status = WiFi.begin(ssid, pass);
-    // wait 5 seconds for connection:
-    delay(5000);
+    status = WiFi.begin(ssid);
+
+    // wait 10 seconds and blink while trying to connect
+
+    for (int i = 0; i <= 10; i++) {
+      digitalWrite(13, HIGH);
+      delay(500);
+      digitalWrite(13, LOW);
+      delay(500);
+    }
+
+    digitalWrite(13, HIGH);
+    delay(3000);
+    digitalWrite(13, LOW);
+
   }
+
+  // wait 10 seconds and blink while trying to connect
+  digitalWrite(13, HIGH);
+  delay(3000);
+  digitalWrite(13, LOW);
+
+
   // you're connected now, so print out the data:
   Serial.print("You're connected to the network");
   printCurrentNet();
@@ -89,6 +113,7 @@ void setup() {
   Serial.print(localPort);
   // if you get a connection, report back via serial:
   Udp.begin(localPort);
+
   //register with server
   connectToServer();
   delay(50);
@@ -101,58 +126,60 @@ void setup() {
 
 void loop() {
 
+  //loop specifically for Pneuduino.
+
   p.update(); //always AND ONLY called in the beginning
-     
+
   parseSerialCommands(); //read and parse any commands from serial (e.g. "c" = connect to server)
   readOSCMessage(); //read and parse any possible incoming OSC message from server
-  
+
   int powerOn = digitalRead(2); //see if power is on. only inflate/deflate if power is on
-  
+
   pressure = map(p.readPressure(I2CPneuAddress), 60, 90, 0, 30); //read the pressure value from pneuduino. The original range (60-90) is mapped to 1-30
   //Serial.println(pressure); //DEBUG
   sendOSCPressure(); //send it to server
-  
+
   int potentiometer = analogRead(A0); //read value from potentiometer: CURRENTLY NOT DOING ANYTHING WITH IT
- 
+
   if (powerOn == HIGH)
   {
-    if(wasOff){
+    if (wasOff) {
       connectToServer();
       wasOff = false;
     }
-    
-    if(inflate)
+
+    if (inflate)
     {
-      inflatePump(inflateSpeed);       
+      inflatePump(inflateSpeed);
     }
     if (deflate)
     {
       deflatePump();
-    }  
+    }
   }
   else wasOff = true;
 }
 
-void inflatePump(int inflateSpeed){
+void inflatePump(int inflateSpeed) {
 
   digitalWrite(12, HIGH); //Channel A Direction Forward
   analogWrite(3, inflateSpeed);    //Channel A Speed 100%
-   
-   p.inflate(I2CPneuAddress); //method 1
+
+  p.inflate(I2CPneuAddress); //method 1
   // p.in(1, LEFT); //method 2
 }
 
-void deflatePump(){
+void deflatePump() {
 
-   analogWrite(3, 0); //Channel A Speed 0% 
-   
-   p.deflate(I2CPneuAddress); //method 1
+  analogWrite(3, 0); //Channel A Speed 0%
+
+  p.deflate(I2CPneuAddress); //method 1
   // p.out(1, LEFT); //method 2
 }
 
 //OSC MESSAGE HANDLING FUNCTIONS -----------------------------------------------------------------------------
 
-void readOSCMessage(){
+void readOSCMessage() {
   OSCBundle bundleIN;
   int size;
   if ( (size = Udp.parsePacket()) > 0)
@@ -163,19 +190,19 @@ void readOSCMessage(){
     {
       bundleIN.dispatch("/actuator/inflate", routeInflate);
       bundleIN.dispatch("/actuator/deflate", routeDeflate);
-//      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur); //DEPRECATED
-//      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
+      //      bundleIN.dispatch("/actuator/inflatedur", routeInflateDur); //DEPRECATED
+      //      bundleIN.dispatch("/actuator/deflatedur", routeDeflateDur);
     }
   }
 }
 
-void sendOSCPressure(){
+void sendOSCPressure() {
   //the message wants an OSC address as first argument
   OSCMessage msg("/sensor/pressure");
   msg.add(pressure);
-  
+
   Udp.beginPacket(serverIp, serverPort);
-    msg.send(Udp); // send the bytes to the SLIP stream
+  msg.send(Udp); // send the bytes to the SLIP stream
   Udp.endPacket(); // mark the end of the OSC Packet
   msg.empty(); // free space occupied by message
 
@@ -191,7 +218,7 @@ void routeInflate(OSCMessage &msg) {
     //get that float
     float data = msg.getFloat(0);
     Serial.println(data);
-    inflateSpeed = (int) data;
+    inflateSpeed = (int) data;  //message needs to between 0 and 255
     inflate = true;
     deflate = false;
   }
@@ -199,7 +226,7 @@ void routeInflate(OSCMessage &msg) {
 
 //called whenever an OSCMessage's address matches "/deflate/": opens and closes the valve
 void routeDeflate(OSCMessage &msg) {
-  
+
   //returns true if the data in the first position is a float
   if (msg.isFloat(0)) {
     //get that float
@@ -207,13 +234,13 @@ void routeDeflate(OSCMessage &msg) {
     Serial.println(data);
 
     //deflate
-    if((int) data == 1){ 
+    if ((int) data == 1) {
       Serial.println("Valve control Open");
       deflate = true;
       inflate = false;
     }
-    
-    else if((int) data == 0){ 
+
+    else if ((int) data == 0) {
       //inflate = false;
       deflate = false;
       inflate = true;
@@ -250,16 +277,16 @@ void routeDeflateDur(OSCMessage &msg) {
 
 //UTILITY FUNCTIONS ---------------------------------------------------------------------------------------------------------------
 
-void parseSerialCommands(){
-   char incomingByte = 0;   // for incoming serial data
-    if (Serial.available() > 0) {
-      // read the incoming byte:
-      incomingByte = Serial.read();
-      if (incomingByte == 'c') {
-        connectToServer();
-        delay(50);
-      }
+void parseSerialCommands() {
+  char incomingByte = 0;   // for incoming serial data
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    incomingByte = Serial.read();
+    if (incomingByte == 'c') {
+      connectToServer();
+      delay(50);
     }
+  }
 }
 
 void connectToServer() {
@@ -272,11 +299,11 @@ void connectToServer() {
   msg.empty(); // free space occupied by message
 
   //must also send a sensorconnect message in case it intends to be a sensor
-//  OSCMessage msg("/sensor/startConnection/");
-//  Udp.beginPacket(serverIp, serverPort);
-//  msg.send(Udp); // send the bytes to the SLIP stream
-//  Udp.endPacket();
-//  msg.empty(); // free space occupied by message
+  //  OSCMessage msg("/sensor/startConnection/");
+  //  Udp.beginPacket(serverIp, serverPort);
+  //  msg.send(Udp); // send the bytes to the SLIP stream
+  //  Udp.endPacket();
+  //  msg.empty(); // free space occupied by message
 }
 
 void printWiFiData() {
