@@ -46,9 +46,10 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         #if checkbox is checked:
-        self.ui.save_button.clicked.connect(self.start_forwarding)
-        #else:
-        #    self.ui.save_button.clicked.connect(self.application_forwarding)
+        if self.ui.application_checkBox.isChecked():
+           self.ui.save_button.clicked.connect(self.start_forwarding)
+        else:
+            self.ui.save_button.clicked.connect(self.application_forwarding)
         self.ui.StartOSC.clicked.connect(self.start_OSC)
         self.ui.StopOSCButton.setEnabled(False)
         self.ui.StopOSCButton.setStyleSheet(
@@ -188,6 +189,9 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.tableView_2.setModel(model)
         self.ui.tabWidget.setCurrentIndex(1)
+
+    def application_forwarding(self):
+        self.ui.tabWidget.setCurrentIndex(2)
 
     def resizeEvent(self, event):
         tableSize = self.ui.tableView.width()  # Retrieves your QTableView width
