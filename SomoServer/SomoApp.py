@@ -387,8 +387,11 @@ class StartQT5(QtWidgets.QMainWindow):
 
         # Close zeroconf
         print("Closing Zeroconf...")
-        self.discovery.browser.cancel()
-        self.discovery.zeroconf.close()
+        if self.ui.discover_button.isEnabled():
+            print("Have not started Zeroconf. Nothing to Close.")
+        else:
+            self.discovery.browser.cancel()
+            self.discovery.zeroconf.close()
 
 
 
