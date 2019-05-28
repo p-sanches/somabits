@@ -8,8 +8,6 @@ import threading
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal, QModelIndex)
 
-# TODO: Fix the checkbox color
-
 from SomoServer.gui import Ui_MainWindow
 from SomoServer.TableModel import PandasModel, CheckBoxDelegate
 from SomoServer.ZeroConf import NeighborDiscovery
@@ -23,6 +21,21 @@ from time import sleep
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
+
+# TODO: Rename "Forwarding" Tab to "Mapping"?
+# TODO: Remove the "For Debugging only" Console and write text to terminal?
+
+# TODO: Add Button "Soma Mattress" to Applications Tab
+# TODO: In Control Tab: Add Checkbock "Application"
+
+# If "Application" checked
+# TODO: Jump to Applications Tab
+# TODO
+
+
+
+# TODO: Fix the checkbox color
+
 
 
 class StartQT5(QtWidgets.QMainWindow):
