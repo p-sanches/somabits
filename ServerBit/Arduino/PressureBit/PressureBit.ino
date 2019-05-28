@@ -218,7 +218,7 @@ void routeInflate(OSCMessage &msg) {
     //get that float
     float data = msg.getFloat(0);
     Serial.println(data);
-    inflateSpeed = (int) data;
+    inflateSpeed = (int) data;  //message needs to between 0 and 255
     inflate = true;
     deflate = false;
   }
