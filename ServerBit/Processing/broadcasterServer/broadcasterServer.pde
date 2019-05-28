@@ -25,7 +25,11 @@ import oscP5.*;
 import netP5.*;
 import java.io.*; 
 import java.util.*; 
+import controlP5.*;
+
 //import org.apache.commons.collections4.*;
+
+boolean fileStarted=false;
 
 
 OscP5 oscP5;
@@ -41,6 +45,9 @@ NetAddress wekinator;
 //data structure to hold all sensor data
 HashMap<String,Object[]> sensorInputs = new HashMap<String,Object[]>();
 
+HashMap<String,Object[]> actuatorInputs = new HashMap<String,Object[]>();
+
+
 
 /* listeningPort is the port the server is listening for incoming messages */
 int myListeningPort = 32000;
@@ -55,6 +62,14 @@ String ActuatorDisconnectPattern = "/actuator/endConnection/";
 
 String wekaPattern = "/wek/outputs";
 
+ControlP5 cp5;
+PrintWriter output;
+
+int myColor = color(255);
+int c1,c2;
+
+float n,n1;
+
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -62,10 +77,97 @@ void setup() {
   
   connectActuator("127.0.0.1");
   
+  size(400,600);
+  noStroke();
+  cp5 = new ControlP5(this);
+  
+  // create a new button with name 'buttonA'
+  cp5.addButton("Write")
+     .setValue(0)
+     .setPosition(100,100)
+     .setSize(200,99)
+     ;
+  
+  // and add another 2 buttons
+  cp5.addButton("EndFile")
+     .setValue(100)
+     .setPosition(100,200)
+     .setSize(200,99)
+     ;
+  
   frameRate(25);
 }
 
+// function Start will receive changes from 
+// controller with name Start
+public void Write(int theValue) {
+  
+  //checks if there are sensors
+  if(!sensorInputs.isEmpty()){
+    
+    String filename= "sensors"+System.currentTimeMillis()+".txt";
+    
+    output = createWriter(filename); 
+    
+    output.print("millis"+"\t");
+    
+    //writes headers of files
+    Set<String> keys = sensorInputs.keySet();
+    for(String key: keys){
+        output.print(key+"\t"); // Write the header to the file
+        //text(key+"\t", 10, 10, 70, 80);  // Text wraps within text box
+    }
+    Set<String> keys2 = actuatorInputs.keySet();
+    for(String key: keys2){
+        output.print(key+"\t"); // Write the header to the file
+        //text(key+"\t", 10, 10, 70, 80);  // Text wraps within text box
+    }
+    output.print("\n");
+    
+    println("Starting writing to file: "+filename);
+    c1 = c2;
+    c2 = color(0,160,100);
+    fileStarted=true;
+  }
+  else println("There are no sensor inputs for now.");
+}
+
+// function End will receive changes from 
+// controller with name End
+public void EndFile(int theValue) {
+  
+  if(fileStarted){
+     println("Ending file");
+    output.flush(); // Writes the remaining data to the file
+    output.close(); // Finishes the file
+    c1 = c2;
+    c2 = color(150,0,0);
+    fileStarted=false;
+  }
+  
+ 
+}
+
 void draw() {
+  background(myColor);
+  myColor = lerpColor(c1,c2,n);
+  n += (1-n)* 0.1; 
+  
+  if(fileStarted){
+    
+     output.print(millis()+"\t");
+    
+      //writes headers of files
+      Set<String> keys = sensorInputs.keySet();
+      for(String key: keys){
+          output.print(sensorInputs.get(key)[0]+"\t"); // Write the header to the file
+      }
+      Set<String> keys2 = actuatorInputs.keySet();
+      for(String key: keys2){
+          output.print(actuatorInputs.get(key)[0]+"\t"); // Write the header to the file
+      }
+      output.print("\n");
+  }
   //background(0);
   //if(sensorInputs.size()>0)
   //  printAllSensorInputs();
@@ -101,7 +203,7 @@ void oscEvent(OscMessage theOscMessage) {
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     addSensorValuetoHashMap(theOscMessage);
     
-    printAllSensorInputs();
+   // printAllSensorInputs();
     
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
     //trainWekinatorMsg(theOscMessage);
@@ -118,11 +220,10 @@ void oscEvent(OscMessage theOscMessage) {
     if(id == -1)
       sendToAllActuators(theOscMessage);
     else{
-      //TODO: must edit the address in the message to remove the ID
       theOscMessage.setAddrPattern(cleanActuatorPattern(theOscMessage));
       sendToOneActuator(theOscMessage,id);
     }
-    
+    addToActuatorInputs(theOscMessage.addrPattern(),theOscMessage.arguments()); //put it in the actuator input history
     printOSCMessage(theOscMessage);
   }
   else{
@@ -132,10 +233,24 @@ void oscEvent(OscMessage theOscMessage) {
   }
 }
 
+private void addToActuatorInputs(String osckey, Object[] values){
+  if(actuatorInputs.put(osckey,values) == null && fileStarted){
+    println("Received a new actuator: ENDING FILE PREMATURELY");
+    EndFile(0);
+  }
+}
+
+private void addToSensorInputs(String osckey, Object[] values){
+  if(sensorInputs.put(osckey,values) == null && fileStarted){
+    println("Received a new sensor: ENDING FILE PREMATURELY");
+    EndFile(0);
+  }
+}
+
 private int messageContainsID(OscMessage theOscMessage){
   
   String[] addrComponents = theOscMessage.addrPattern().split("/");
-  //"_/[actuator]/[id]"
+  //"_/[actuator]/[id]"s
   
     try 
     { 
@@ -146,7 +261,6 @@ private int messageContainsID(OscMessage theOscMessage){
     { 
        return -1;
     } 
-
 }
 
 private String cleanActuatorPattern(OscMessage theOscMessage){
@@ -196,7 +310,8 @@ void addSensorValuetoHashMap(OscMessage theOscMessage){
   for(int i=2;i<addrComponents.length; i++){ //i starts at 2 to jump past the initial blankspace "" and the word "sensor"
     address[i-1] = addrComponents[i];
   }
-  sensorInputs.put(join(address,"/"), theOscMessage.arguments());
+
+  addToSensorInputs(join(address,"/"), theOscMessage.arguments());
 }
 
 int getDeviceId(NetAddress address){
