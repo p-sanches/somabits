@@ -25,15 +25,6 @@ pd.set_option('display.width', 1000)
 
 
 
-
-# TODO: In Control Tab: Add Checkbock "Application"
-
-# If "Application" checked
-# TODO: Jump to Applications Tab
-# TODO
-
-
-
 # TODO: Fix the checkbox color
 
 
