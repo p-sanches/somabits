@@ -46,10 +46,9 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
         #if checkbox is checked:
-        if self.ui.application_checkBox.isChecked():
-           self.ui.save_button.clicked.connect(self.application_forwarding)
-        else:
-            self.ui.save_button.clicked.connect(self.start_forwarding)
+
+        self.ui.save_button.clicked.connect(self.checking_application)
+
         self.ui.StartOSC.clicked.connect(self.start_OSC)
         self.ui.StopOSCButton.setEnabled(False)
         self.ui.StopOSCButton.setStyleSheet(
@@ -72,6 +71,12 @@ class StartQT5(QtWidgets.QMainWindow):
 
         self.check_service_timer = threading.Timer(5.0, self.check_services)
         self.check_service_timer.start()
+
+    def checking_application(self):
+        if self.ui.application_checkBox.isChecked():
+           self.application_forwarding()
+        else:
+           self.start_forwarding()
 
     def start_OSC(self):
         self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(), 3333, self)
