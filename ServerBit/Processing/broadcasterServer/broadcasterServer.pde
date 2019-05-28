@@ -70,6 +70,8 @@ int c1,c2;
 
 float n,n1;
 
+int framefile= 0;
+
 
 void setup() {
   oscP5 = new OscP5(this, myListeningPort);
@@ -95,21 +97,21 @@ void setup() {
      .setSize(200,99)
      ;
   
-  frameRate(25);
+  frameRate(60);
 }
 
 // function Start will receive changes from 
 // controller with name Start
 public void Write(int theValue) {
   
-  //checks if there are sensors
-  if(!sensorInputs.isEmpty()){
+  //checks if there are sensors or actuators
+  if(!sensorInputs.isEmpty() || !actuatorInputs.isEmpty()){
     
-    String filename= "sensors"+System.currentTimeMillis()+".txt";
+    String filename= "output"+System.currentTimeMillis()+".txt";
     
     output = createWriter(filename); 
     
-    output.print("millis"+"\t");
+    output.print("frame"+"\t");
     
     //writes headers of files
     Set<String> keys = sensorInputs.keySet();
@@ -143,9 +145,8 @@ public void EndFile(int theValue) {
     c1 = c2;
     c2 = color(150,0,0);
     fileStarted=false;
+    framefile=0;
   }
-  
- 
 }
 
 void draw() {
@@ -155,7 +156,7 @@ void draw() {
   
   if(fileStarted){
     
-     output.print(millis()+"\t");
+     output.print(++framefile+"\t");
     
       //writes headers of files
       Set<String> keys = sensorInputs.keySet();
