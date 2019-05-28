@@ -1,0 +1,1 @@
+1/gravity/z	1/gravity/y	1/gravity/x	
