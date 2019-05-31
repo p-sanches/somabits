@@ -118,7 +118,6 @@ class StartQT5(QtWidgets.QMainWindow):
 
 
     def start_forwarding(self):
-
         sensors = []
         sensors_IP = []
         sensors_Port = []
