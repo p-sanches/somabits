@@ -239,17 +239,22 @@ class StartQT5(QtWidgets.QMainWindow):
 
         device_ip = socket.inet_ntoa(cast(bytes, info.address))
 
-        self.ui.plainTextEdit.appendPlainText(
-            "  Address: %s:%d" % (device_ip, cast(int, info.port)))
-        self.ui.plainTextEdit.appendPlainText(
-            "  Weight: %d, priority: %d" % (info.weight, info.priority))
-        self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server))
+        #self.ui.plainTextEdit.appendPlainText(
+        #    "  Address: %s:%d" % (device_ip, cast(int, info.port)))
+        print("  Address: %s:%d" % (device_ip, cast(int, info.port)))
+        #self.ui.plainTextEdit.appendPlainText(
+        #    "  Weight: %d, priority: %d" % (info.weight, info.priority))
+        print("  Weight: %d, priority: %d" % (info.weight, info.priority))
+        #self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server))
+        print("  Server: %s" % (info.server))
 
         if info.properties:
-            self.ui.plainTextEdit.appendPlainText("  Properties are:")
+            #self.ui.plainTextEdit.appendPlainText("  Properties are:")
+            print("  Properties are:")
 
             for key, value in info.properties.items():
-                self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
+                #self.ui.plainTextEdit.appendPlainText("    %s: %s" % (key, value))
+                print("    %s: %s" % (key, value))
                 key_str = str(key).split("'")[1]
                 device_type.append(key_str)
                 if ":" in str(value):
@@ -264,7 +269,9 @@ class StartQT5(QtWidgets.QMainWindow):
                     device_range.append('0%1')
         else:
             self.ui.plainTextEdit.appendPlainText("  No properties")
-        self.ui.plainTextEdit.appendPlainText('\n')
+            print("  No properties")
+        #self.ui.plainTextEdit.appendPlainText('\n')
+        print()
 
         if device_ip not in self.TABLE_INFO["Address"].to_list() or name not in self.TABLE_INFO["ServiceName"].to_list():
             # The IP is not in TABLE_INFO yet
@@ -350,8 +357,9 @@ class StartQT5(QtWidgets.QMainWindow):
         self.update_view()
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
-        self.ui.plainTextEdit.appendPlainText(
-            "Service %s of type %s state changed: %s" % (name, service_type, state_change))
+        #self.ui.plainTextEdit.appendPlainText(
+        #    "Service %s of type %s state changed: %s" % (name, service_type, state_change))
+        print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
 
         if state_change is ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
