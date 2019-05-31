@@ -165,10 +165,10 @@ void loop() {
     if (!bundleIN.hasError())
     {
       
-      bundleIN.dispatch("/actuator/coldonA", routeColdOn_A);
-      bundleIN.dispatch("/actuator/coldintensityA", routeColdIntensity_A);
-      bundleIN.dispatch("/actuator/coldonB", routeColdOn_B);
-      bundleIN.dispatch("/actuator/coldintensityB", routeColdIntensity_B);
+      bundleIN.dispatch("/actuator/coldona", routeColdOn_A);
+      bundleIN.dispatch("/actuator/coldintensitya", routeColdIntensity_A);
+      bundleIN.dispatch("/actuator/coldonb", routeColdOn_B);
+      bundleIN.dispatch("/actuator/coldintensityb", routeColdIntensity_B);
       
     }
   }
