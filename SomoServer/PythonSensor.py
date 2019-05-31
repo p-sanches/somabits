@@ -16,6 +16,7 @@ from pythonosc import udp_client
 from zeroconf import ServiceInfo, Zeroconf
 from typing import List
 
+
 def get_all_addresses() -> List[str]:
     return list(set(
         addr.ip

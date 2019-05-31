@@ -19,7 +19,6 @@ from matplotlib import animation
 
 print(plt.get_backend())
 
-
 from zeroconf import ServiceInfo, Zeroconf
 from typing import List
 from multiprocessing import Process, Manager
