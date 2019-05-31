@@ -62,3 +62,7 @@ class NeighborDiscovery(QtCore.QThread):
         list_ip = self.get_all_addresses()
         local_ip = [i for i in list_ip if i.startswith(starts_with)]
         return local_ip[0]
+
+    @staticmethod
+    def get_soma_type():
+        return TYPE

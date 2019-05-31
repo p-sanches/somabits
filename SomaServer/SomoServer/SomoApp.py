@@ -3,21 +3,31 @@ import sys
 import socket
 import numpy as np
 import pandas as pd
+import threading
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal, QModelIndex)
-
 
 from SomoServer.gui import Ui_MainWindow
 from SomoServer.TableModel import PandasModel, CheckBoxDelegate
 from SomoServer.ZeroConf import NeighborDiscovery
+from SomoServer.OSC import getOSCMessages
 
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf
 from typing import List
+from time import sleep
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
+
+
+
+
+# TODO: Fix the checkbox color
+
+
 
 class StartQT5(QtWidgets.QMainWindow):
     def __init__(self):
@@ -26,7 +36,15 @@ class StartQT5(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         self.ui.discover_button.clicked.connect(self.zeroconf_start)
-        self.ui.save_button.clicked.connect(self.start_forwarding)
+        #if checkbox is checked:
+
+        self.ui.save_button.clicked.connect(self.checking_application)
+
+        self.ui.StartOSC.clicked.connect(self.start_OSC)
+        self.ui.StopOSCButton.setEnabled(False)
+        self.ui.StopOSCButton.setStyleSheet(
+            "background-color: gray;""color: rgb(255, 255, 255);");
+
         self.TABLE_INFO = pd.DataFrame(columns=['Address', 'Port', 'Host Name', 'Device Count', 'Device Type', 'Device Address', 'Device Range', 'ServiceName','isSelected','isServer', 'isTaken', '*'])
         self.TABLE_INFO_CHECKBOX = 11
         self.TABLE_FORWARDING = pd.DataFrame(columns=['Sensor Address', 'Sensor IP', 'Sensor Port', 'Sensor Range', 'Actuator Address', 'Actuator IP', 'Actuator Port','Actuator Range'])
@@ -42,10 +60,50 @@ class StartQT5(QtWidgets.QMainWindow):
         delegate = CheckBoxDelegate(self)
         self.ui.tableView.setItemDelegateForColumn(self.TABLE_INFO_CHECKBOX, delegate)
 
+        self.check_service_timer = threading.Timer(5.0, self.check_services)
+        self.check_service_timer.start()
+
+    def checking_application(self):
+        if self.ui.application_checkBox.isChecked():
+           self.application_forwarding()
+        else:
+           self.start_forwarding()
+
+    def start_OSC(self):
+        self.get_thread = getOSCMessages(NeighborDiscovery().get_local_ip(), 3333, self)
+        self.get_thread.start()
+        self.ui.StartOSC.setEnabled(False)
+        self.ui.StartOSC.setStyleSheet("background-color: gray;""color: rgb(255, 255, 255);")
+        self.ui.tableView_2.setEnabled(False)
+        self.ui.tableView.setEnabled(False)
+        self.ui.discover_button.setEnabled(False)
+        self.ui.discover_button.setStyleSheet("background-color: gray;""color: rgb(255, 255, 255);")
+        self.ui.save_button.setEnabled(False)
+        self.ui.save_button.setStyleSheet("background-color: gray;\n""color: rgb(255, 255, 255);""font: 63 10pt \"Adobe Fan Heiti Std B\";")
+        self.ui.StopOSCButton.setEnabled(True)
+        self.ui.StopOSCButton.setStyleSheet(
+                                         "background-color: rgb(170, 0, 0);\n"
+                                         "color: rgb(255, 255, 255);")
+        self.ui.StopOSCButton.clicked.connect(self.OSC_stop)
+
+    def OSC_stop(self):
+        self.ui.StartOSC.setEnabled(True)
+        self.ui.StartOSC.setStyleSheet("background-color: rgb(170, 255, 127);\n"
+                                    "font: 63 10pt \"Adobe Fan Heiti Std B\";\n"
+                                    "color: rgb(0, 0, 0);")
+        self.ui.tableView_2.setEnabled(True)
+        self.ui.tableView.setEnabled(True)
+        self.ui.discover_button.setEnabled(True)
+        self.ui.save_button.setEnabled(True)
+        self.ui.StopOSCButton.setEnabled(False)
+        self.ui.StopOSCButton.setStyleSheet(
+            "background-color: gray;""color: rgb(255, 255, 255);")
+        self.get_thread.server.server_close()
+
     def ForwardCheckboxClicked(self):
         Checkbox = QtWidgets.qApp.focusWidget()
         if Checkbox.isChecked():
-            sensors,sensors_IP,sensors_Port,sensors_Range = str(Checkbox.accessibleName()).split(":")
+            sensors, sensors_IP, sensors_Port, sensors_Range = str(Checkbox.accessibleName()).split(":")
             actuators, actuators_IP, actuators_Port, actuators_Range = str(Checkbox.accessibleDescription()).split(":")
             self.TABLE_FORWARDING.loc[len(self.TABLE_FORWARDING)] =[sensors,sensors_IP,sensors_Port,sensors_Range,actuators, actuators_IP, actuators_Port, actuators_Range]
             print(self.TABLE_FORWARDING)
@@ -54,11 +112,12 @@ class StartQT5(QtWidgets.QMainWindow):
             actuators, actuators_IP, actuators_Port, actuators_Range = str(Checkbox.accessibleDescription()).split(":")
             indexNames = self.TABLE_FORWARDING[(self.TABLE_FORWARDING['Sensor Address'] == sensors) & (self.TABLE_FORWARDING['Sensor IP'] == sensors_IP) & (self.TABLE_FORWARDING['Sensor Port'] == sensors_Port) & (self.TABLE_FORWARDING['Sensor Range'] == sensors_Range) & (self.TABLE_FORWARDING['Actuator Address'] == actuators) & (self.TABLE_FORWARDING['Actuator IP'] == actuators_IP) & (self.TABLE_FORWARDING['Actuator Port'] == actuators_Port) & (self.TABLE_FORWARDING['Actuator Range'] == actuators_Range)].index
             self.TABLE_FORWARDING.drop(indexNames, inplace=True)
+            # TODO: Might need re-indexing
+            # self.TABLE_FORWARDING.reset_index(inplace=True, drop=True)
             print(self.TABLE_FORWARDING)
 
 
     def start_forwarding(self):
-
         sensors = []
         sensors_IP = []
         sensors_Port = []
@@ -67,12 +126,29 @@ class StartQT5(QtWidgets.QMainWindow):
         actuators_IP = []
         actuators_Port = []
         actuators_Range = []
-        forward_table=pd.DataFrame()
-        for rows in range(len(self.TABLE_INFO)):
-            for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
+        forward_table = pd.DataFrame()
 
-                if(self.TABLE_INFO.iloc[rows]['isSelected']==True):
-                    if('sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices])):
+        for rows in range(len(self.TABLE_INFO)):
+            if (self.TABLE_INFO.iloc[rows]['isServer'] == False and self.TABLE_INFO.iloc[rows]['isSelected'] == True):
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP connection
+                print("About to sent the servers IP %s to %s" % (
+                self.discovery.get_local_ip(), self.TABLE_INFO.iloc[rows]['Address']))
+                try:
+                    s.connect((self.TABLE_INFO.iloc[rows]['Address'], 5555))
+                    msg = str(self.discovery.get_local_ip())
+                    s.sendall(msg.encode())
+                except:
+                    print("Nothing exciting happend. Just trouble connecting to the Arduino.")
+                    print("We try again")
+                    s.connect((self.TABLE_INFO.iloc[rows]['Address'], 5555))
+                    msg = str(self.discovery.get_local_ip())
+                    s.sendall(msg.encode())
+                finally:
+                    print("Sent the servers IP")
+            for devices in range(self.TABLE_INFO.iloc[rows]['Device Count']):
+                if(self.TABLE_INFO.iloc[rows]['isSelected'] == True):
+                    # First we send a message to inform the nodes about our IP (as long as the MDNS bug in the Arduinos exists)
+                    if 'sensor' in str(self.TABLE_INFO.iloc[rows]['Device Type'][devices]):
                         sensors.append(self.TABLE_INFO.iloc[rows]['Device Address'][devices])
                         sensors_IP.append(self.TABLE_INFO.iloc[rows]['Address'])
                         sensors_Port.append(self.TABLE_INFO.iloc[rows]['Port'])
@@ -84,7 +160,7 @@ class StartQT5(QtWidgets.QMainWindow):
                         actuators_Range.append(self.TABLE_INFO.iloc[rows]['Device Range'][devices])
 
         forward_table = pd.DataFrame(index=sensors,columns=actuators)
-        model=PandasModel(forward_table)
+        model = PandasModel(forward_table)
         self.ui.tableView_2.setModel(model)
 
         for rows in range(model.rowCount()):
@@ -107,6 +183,10 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.ui.tableView_2.setIndexWidget(item, self.Checkbox)
 
         self.ui.tableView_2.setModel(model)
+        self.ui.tabWidget.setCurrentIndex(1)
+
+    def application_forwarding(self):
+        self.ui.tabWidget.setCurrentIndex(2)
 
     def resizeEvent(self, event):
         tableSize = self.ui.tableView.width()  # Retrieves your QTableView width
@@ -120,6 +200,7 @@ class StartQT5(QtWidgets.QMainWindow):
         super(StartQT5, self).resizeEvent(event)  # Restores the original behaviour of the resize event
 
     def update_view(self):
+        print("update_view()")
         self.model.update()
         for row in range(self.model.rowCount()):
             self.ui.tableView.setRowHidden(row, False)
@@ -127,20 +208,25 @@ class StartQT5(QtWidgets.QMainWindow):
         df = self.TABLE_INFO[self.TABLE_INFO["isServer"] == True]
         rows_to_hide = df.index.values.tolist()
         df = self.TABLE_INFO[self.TABLE_INFO["isTaken"] == True]
-        rows_to_hide.append(df.index.values.tolist())
+        row_to_hide_tmp = df.index.values.tolist()
 
-        comps = []
-        for sublist in rows_to_hide:
-            if type(sublist) is list:
-                for item in sublist:
-                    comps.append(item)
-            else:
-                comps.append(sublist)
+        rows_to_hide = rows_to_hide + list(set(row_to_hide_tmp) - set(rows_to_hide))
+        print(rows_to_hide)
 
-        if len(comps) > 0:
-            for row in comps:
+        if len(rows_to_hide) > 0:
+            for row in rows_to_hide:
                 self.ui.tableView.setRowHidden(row, True)
         self.model.update()
+
+    def check_services(self, close=False):
+        #threading.Timer(5.0, self.check_services).start()
+        for rows in range(len(self.TABLE_INFO)):
+            print("Checking \n")
+            print(self.TABLE_INFO)
+            info = self.discovery.zeroconf.get_service_info(self.discovery.get_soma_type(), self.TABLE_INFO.iloc[rows]['ServiceName'])
+            if info is None:
+                self.handleServiceRemoved(self.TABLE_INFO.iloc[rows]['ServiceName'])
+                self.update_view()
 
     def handleCheckboxClicked(self, value, ip, host):
         if value is 1:
@@ -159,7 +245,7 @@ class StartQT5(QtWidgets.QMainWindow):
             "  Address: %s:%d" % (device_ip, cast(int, info.port)))
         self.ui.plainTextEdit.appendPlainText(
             "  Weight: %d, priority: %d" % (info.weight, info.priority))
-        self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server,))
+        self.ui.plainTextEdit.appendPlainText("  Server: %s" % (info.server))
 
         if info.properties:
             self.ui.plainTextEdit.appendPlainText("  Properties are:")
@@ -177,6 +263,7 @@ class StartQT5(QtWidgets.QMainWindow):
                     # the device does not have sensor values
                     value_str = str(value).split("'")[1]
                     device_address.append(value_str)
+                    device_range.append('0%1')
         else:
             self.ui.plainTextEdit.appendPlainText("  No properties")
         self.ui.plainTextEdit.appendPlainText('\n')
@@ -188,7 +275,6 @@ class StartQT5(QtWidgets.QMainWindow):
                 # Check if service already exists (happens if two users click on the same device at the same time)
                 if info.server in self.TABLE_INFO['Host Name'].to_list():
                     # This should not have happend. We have two services with the same name
-                    #self.discovery.unregister_service(device_ip, info.server)
                     self.ui.plainTextEdit.appendPlainText(
                         "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
                 else:
@@ -201,7 +287,6 @@ class StartQT5(QtWidgets.QMainWindow):
                 # It is a message from another server
                 # Check if service already exists (happens if two users click on the same device at the same time)
                 if info.server in self.TABLE_INFO['Host Name'].to_list():
-                    #self.discovery.unregister_service(device_ip, info.server)
                     self.ui.plainTextEdit.appendPlainText(
                         "[INFO] Sorry, another server with IP %s has allocated the device" % (device_ip))
                 else:
@@ -247,6 +332,7 @@ class StartQT5(QtWidgets.QMainWindow):
                 self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isSelected'] = False
                 # Delete the service
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+                self.TABLE_INFO.reset_index(inplace=True, drop=True)
 
             elif df["Address"].to_list()[0] != NeighborDiscovery().get_local_ip() and 'Server' in name:
                 # Another server has released a device
@@ -255,11 +341,14 @@ class StartQT5(QtWidgets.QMainWindow):
                     self.TABLE_INFO.at[self.TABLE_INFO.index[self.TABLE_INFO["Address"].isin([device_to_free[1]])], 'isTaken'] = False
                 # Remove server from TABLE_INFO
                 self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+                self.TABLE_INFO.reset_index(inplace=True, drop=True)
 
             else:
                 # A device has unregistered
+                # Remove server from TABLE_INFO
+                self.TABLE_INFO.drop(self.TABLE_INFO.loc[self.TABLE_INFO['ServiceName'] == name].index, inplace=True)
+                self.TABLE_INFO.reset_index(inplace=True, drop=True)
                 print("[WARNING] A device has unregistered")
-                #pass
         self.update_view()
 
     def on_device_found(self, zeroconf, service_type, name, state_change):
@@ -268,6 +357,7 @@ class StartQT5(QtWidgets.QMainWindow):
 
         if state_change is ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
+
             if info:
                 self.handleServiceAdded(info, name)
         elif state_change is ServiceStateChange.Removed:
@@ -276,6 +366,28 @@ class StartQT5(QtWidgets.QMainWindow):
     def zeroconf_start(self):
         self.discovery = NeighborDiscovery()
         self.discovery.neighbor_signal.connect(self.on_device_found)
+        self.ui.discover_button.setEnabled(False)
+        self.ui.discover_button.setStyleSheet("background-color: gray;""color: rgb(204, 204, 204);")
+        self.check_services()
+
+    def on_close(self):
+        #self.check_services(close=True)
+        print("Disable service detection....")
+        self.check_service_timer.cancel()
+
+        # Unregister all services
+        print("Unregistering services...")
+        for rows in range(len(self.TABLE_INFO)):
+            self.discovery.unregister_service(self.TABLE_INFO.iloc[rows]['Address'], self.TABLE_INFO.iloc[rows]['ServiceName'])
+
+        # Close zeroconf
+        print("Closing Zeroconf...")
+        if self.ui.discover_button.isEnabled():
+            print("Have not started Zeroconf. Nothing to Close.")
+        else:
+            self.discovery.browser.cancel()
+            self.discovery.zeroconf.close()
+
 
 
 if __name__ == "__main__":
@@ -288,5 +400,5 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     myapp = StartQT5()
     myapp.show()
+    app.aboutToQuit.connect(myapp.on_close)
     sys.exit(app.exec_())
-    #sys.exit(myapp.close(app))

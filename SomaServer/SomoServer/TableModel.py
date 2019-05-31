@@ -7,8 +7,6 @@ class PandasModel(QtCore.QAbstractTableModel):
     # parameters: value (bool), ip (str), host (str)
     pandas_signal = QtCore.pyqtSignal(object, object, object)
 
-    # TODO: Mark rows as hidden
-
     def __init__(self, df = pd.DataFrame(), parent=None, checkbox=None, signal_values_of_interest=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._df = df
@@ -48,7 +46,7 @@ class PandasModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
 
-        return QtCore.QVariant(str(self._df.ix[index.row(), index.column()]))
+        return QtCore.QVariant(str(self._df.ix[index.row(), index.column()])) #Most of the errors comes from this line
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         row = self._df.index[index.row()]
@@ -71,18 +69,6 @@ class PandasModel(QtCore.QAbstractTableModel):
         self._df.sort_values(colname, ascending= order == QtCore.Qt.AscendingOrder, inplace=True)
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
-
-    # def insertRows(self, ds):
-    #     self.layoutAboutToBeChanged.emit()
-    #     #self._df.append(ds, ignore_index=True)
-    #     #self._df.reset_index(inplace=True, drop=True)
-    #     self.layoutChanged.emit()
-
-    # def removeRows(self, row):
-    #     self.layoutAboutToBeChanged.emit()
-    #     self._df = self._df[self._df['Address'] != row]
-    #     self._df.reset_index(inplace=True, drop=True)
-    #     self.layoutChanged.emit()
 
     def dataChanged(self, index, value, role=QtCore.Qt.DisplayRole):
         row = self._df.index[index.row()]
@@ -124,9 +110,6 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
         check_box_style_option.rect = self.getCheckBoxRect(option)
 
         self.drawCheck(painter, check_box_style_option, check_box_style_option.rect, QtCore.Qt.Unchecked if int(index.data()) == 0 else QtCore.Qt.Checked)
-        #self.drawCheck(painter, option, option.rect, QtCore.Qt.Unchecked if int(index.data()) == 0 else QtCore.Qt.Checked)
-
-        #self.drawFocus(painter, option, option.rect)
 
     def editorEvent(self, event, model, option, index):
         """
