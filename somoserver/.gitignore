@@ -1,9 +1,3 @@
-OSCServer/.idea/
-OSCServer/venv/
-OSCServer/README.html
-ServerBit/Arduino/MKROscVibe/arduino_secrets.h
-ServerBit/Arduino/MKROscVibe/arduino_secrets.h
-ServerBit/Arduino/PressureBit/arduino_secrets.h
 venv/
 Somo_ZeroConf/.vscode/
 PythonMDNSTest/__pycache__/
