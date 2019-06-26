@@ -1,0 +1,169 @@
+import pandas as pa
+from matplotlib import pyplot
+import numpy as np
+import matplotlib.pyplot as plt
+from pandas import read_csv
+import math
+from keras.preprocessing.sequence import TimeseriesGenerator
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
+
+#get data
+def GetInData(fileName):
+    return pa.read_csv(fileName, header=0, sep="\t", usecols = ["1/gravity/x"])
+
+#get data
+def GetOutData(fileName):
+    return pa.read_csv(fileName, header=0, sep="\t", usecols = ["/actuator/inflate"])
+
+def delta_time_series(data):
+    return data[1:]- data[:-1]
+
+
+def plot_delta(data):
+    plt.plot(delta_time_series(data))
+    plt.ylabel('close')
+    plt.show()    
+
+def get_y_from_generator(gen):
+    '''
+    Get all targets y from a TimeseriesGenerator instance.
+    '''
+    y = None
+    for i in range(len(gen)):
+        batch_y = gen[i][1]
+        if y is None:
+            y = batch_y
+        else:
+            y = np.append(y, batch_y)
+    y = y.reshape((-1,1))
+    print(y.shape)
+    return y
+
+def binary_accuracy(a, b):
+    '''
+    Helper function to compute the match score of two 
+    binary numpy arrays.
+    '''
+    assert len(a) == len(b)
+    return (a == b).sum() / len(a)
+
+#read time series from the exchange.csv file 
+seriesIn = GetInData('intensity_2P_breathing signal.txt')
+seriesOut = GetOutData('intensity_2P_breathing signal.txt')
+
+# dataset_delta = delta_time_series(series)
+# plot_delta(series)
+# plt.plot(series)
+# plt.show()
+
+# print(series.shape)
+
+# dataset = dataset_delta
+datasetIn=seriesIn
+datasetOut=seriesOut
+
+
+# normalize the dataset
+scaler = MinMaxScaler(feature_range=(0, 1))
+datasetIn = scaler.fit_transform(datasetIn)
+datasetOut = scaler.fit_transform(datasetOut)
+
+# split into train and test sets
+train_size = int(len(datasetIn) * 0.40)
+test_size = len(datasetIn) - train_size
+
+trainIn, testIn = datasetIn[0:train_size,:], datasetIn[train_size:len(datasetIn),:]
+
+trainOut, testOut = datasetOut[0:train_size,:], datasetOut[train_size:len(datasetOut),:]
+
+
+look_back = 20
+
+train_data_gen = TimeseriesGenerator(trainIn, trainOut,
+                               length=look_back, sampling_rate=1,stride=1,
+                               batch_size=3)
+
+test_data_gen = TimeseriesGenerator(testIn, testOut,
+                               length=look_back, sampling_rate=1,stride=1,
+                               batch_size=1) 
+                                                           
+model = Sequential()
+model.add(LSTM(4, input_shape=(look_back, 1)))
+model.add(Dense(1))
+model.compile(loss='mse', optimizer='adam')
+
+# from keras.utils import plot_model
+# plot_model(model, to_file='model.png', show_shapes=True)
+# from IPython.display import Image
+# Image(filename='model.png')
+
+
+history = model.fit_generator(train_data_gen, epochs=2).history
+model.save('dji_model.h')
+
+from keras.models import load_model
+model = load_model('dji_model.h')
+
+model.evaluate_generator(test_data_gen)
+
+trainPredict = model.predict_generator(train_data_gen)
+trainPredict.shape
+
+testPredict = model.predict_generator(test_data_gen)
+testPredict.shape
+
+# invert predictions, scale values back to real index/price range.
+trainPredict = scaler.inverse_transform(trainPredict)
+testPredict = scaler.inverse_transform(testPredict)
+
+trainY = get_y_from_generator(train_data_gen)
+testY = get_y_from_generator(test_data_gen)
+
+trainY = scaler.inverse_transform(trainY)
+testY = scaler.inverse_transform(testY)
+
+# calculate root mean squared error
+trainScore = math.sqrt(mean_squared_error(trainY[:,0], trainPredict[:,0]))
+print('Train Score: %.2f RMSE' % (trainScore))
+testScore = math.sqrt(mean_squared_error(testY[:, 0], testPredict[:,0]))
+print('Test Score: %.2f RMSE' % (testScore))
+
+datasetIn = scaler.inverse_transform(datasetIn)
+datasetIn.shape
+datasetOut = scaler.inverse_transform(datasetOut)
+datasetOut.shape
+
+# shift train predictions for plotting
+trainPredictPlot = np.empty_like(datasetIn)
+trainPredictPlot[:, :] = np.nan
+trainPredictPlot[look_back:len(trainPredict)+look_back, :] = trainPredict
+# Delta + previous close
+# trainPredictPlot = trainPredictPlot + series[1:]
+# set empty values
+# trainPredictPlot[0:look_back, :] = np.nan
+# trainPredictPlot[len(trainPredict)+look_back:, :] = np.nan
+
+# shift test predictions for plotting
+testPredictPlot = np.empty_like(datasetIn)
+testPredictPlot[:, :] = np.nan
+testPredictPlot[len(trainPredict)+(look_back*2):len(datasetIn), :] = testPredict
+
+# Delta + previous close
+# testPredictPlot = testPredictPlot + series[1:]
+# set empty values
+# testPredictPlot[0:len(trainPredict)+(look_back*2), :] = np.nan
+# testPredictPlot[len(dataset):, :] = np.nan
+
+# plot baseline and predictions
+plt.plot(seriesOut[1:])
+plt.plot(trainPredictPlot)
+plt.plot(testPredictPlot)
+plt.show()
+
+
+# df['t'] = series.values[:,0]
+
