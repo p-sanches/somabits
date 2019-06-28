@@ -8,12 +8,13 @@ from keras.preprocessing.sequence import TimeseriesGenerator
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
+from keras.layers import Conv1D
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
 #get data
 def GetInData(fileName):
-    return pa.read_csv(fileName, header=0, sep="\t", usecols = ["1/gravity/x"])
+    return pa.read_csv(fileName, header=0, sep="\t", usecols = ["1/gravity/x","1/gravity/y","1/gravity/z"])
 
 #get data
 def GetOutData(fileName):
@@ -52,8 +53,8 @@ def binary_accuracy(a, b):
     return (a == b).sum() / len(a)
 
 #read time series from the exchange.csv file 
-seriesIn = GetInData('intensity_2P_breathing signal.txt')
-seriesOut = GetOutData('intensity_2P_breathing signal.txt')
+seriesIn = GetInData('output1561706008144.txt')
+seriesOut = GetOutData('output1561706008144.txt')
 
 # dataset_delta = delta_time_series(series)
 # plot_delta(series)
@@ -81,7 +82,8 @@ trainIn, testIn = datasetIn[0:train_size,:], datasetIn[train_size:len(datasetIn)
 trainOut, testOut = datasetOut[0:train_size,:], datasetOut[train_size:len(datasetOut),:]
 
 
-look_back = 20
+look_back = 30
+n_inputs= 3
 
 train_data_gen = TimeseriesGenerator(trainIn, trainOut,
                                length=look_back, sampling_rate=1,stride=1,
@@ -92,7 +94,8 @@ test_data_gen = TimeseriesGenerator(testIn, testOut,
                                batch_size=1) 
                                                            
 model = Sequential()
-model.add(LSTM(4, input_shape=(look_back, 1)))
+model.add(LSTM(4, input_shape=(look_back, n_inputs)))
+# model.add(Conv1D(4,10, input_shape=(look_back, 1)))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
 
