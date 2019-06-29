@@ -71,6 +71,9 @@ seriesOut = GetOutData('output1561706008144.txt')
 datasetIn=seriesIn
 datasetOut=seriesOut
 
+print(datasetIn.shape)
+# print(datasetIn)
+
 
 # normalize the dataset
 scaler = MinMaxScaler(feature_range=(0, 1))
@@ -84,6 +87,10 @@ test_size = len(datasetIn) - train_size
 trainIn, testIn = datasetIn[0:train_size,:], datasetIn[train_size:len(datasetIn),:]
 
 trainOut, testOut = datasetOut[0:train_size,:], datasetOut[train_size:len(datasetOut),:]
+
+print(trainIn.shape)
+print(trainIn)
+
 
 look_back = 20 #frame rate of processing = 60;
 n_features=3

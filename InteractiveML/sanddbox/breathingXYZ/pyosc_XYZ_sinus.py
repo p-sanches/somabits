@@ -9,6 +9,7 @@ import time
 import threading
 from input_buffer import InputBuffer
 from collections import deque
+from keras.layers import Dropout
 
 from pythonosc import dispatcher
 from pythonosc import osc_server
@@ -30,20 +31,32 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 from keras.models import load_model
 
+
+
 Fs = 125
 f = 1
-sample = 100
+sample =  400
 x = np.arange(sample)
 y = np.sin(2 * np.pi * f * x / Fs)
 
-sensorX = np.array(sample)
-sensorY = np.array(sample)
-sensorZ = np.array(sample)
+# sensorX = np.array(sample)
+# sensorY = np.array(sample)
+# sensorZ = np.array(sample)
 
 breathing = 0
 
-look_back = 20
+look_back = 30
+n_features=3
 inputXYZ = InputBuffer(look_back)
+
+trainXYZ = np.zeros(shape=(sample,3))
+
+sinus = np.zeros(shape=(sample,2))
+
+
+scalerIn = MinMaxScaler(feature_range=(0, 1))
+scalerOut = MinMaxScaler(feature_range=(0, 1))
+
 
 sX=0
 sY=0
@@ -51,6 +64,8 @@ sZ=0
 server=None
 
 tframe=0
+
+model = None
 
 def print_volume_handler(unused_addr, args, volume):
   print("[{0}] ~ {1}".format(args[0], volume))
@@ -79,35 +94,100 @@ def updateZ(address, *args):
   global sZ
   sZ=args[0]
 
-# def calibrate():
+def calibrate():
 
-#     # time.sleep(1)
-#     while True:
-#         np.append(sensorX, sX)
-#         np.append(sensorY, sY)
-#         np.append(sensorZ, sZ)
-#         inputXYZ.append(sX,sY,sZ)
-#         plt.scatter(x[i], y[i])
-#         plt.pause(0.01)
-#     plt.show()
+    xmax= sample
+    ymin = -1
+    ymax = 1
+    tframe=0
+
+    # plt.xlim(0,xmax)
+    # plt.ylim(ymin,ymax)
+
+    global trainXYZ
+
+  # print(scaler.get_params().keys())
+    
+    # plt.figure(1)
+    # time.sleep(1)
+    for i in range(len(x)):
+        # np.append(sensorX, sX)
+        # np.append(sensorY, sY)
+        # np.append(sensorZ, sZ)
+        
+        plt.scatter(x[i], y[i])
+        # plt.scatter(x[i], sX)
+        plt.pause(0.01)
+        trainXYZ[i]= [sX,sY,sZ]
+        sinus[i]= [x[i], y[i]]
+
+    # plt.show()
+    plt.close()
+    # print(trainXYZ)
+
+    print(trainXYZ)
+
+    trainXYZ = scalerIn.fit_transform(trainXYZ)
+
+    print(trainXYZ)
+    # sinus= scalerOut.fit_transform(sinus)
+
+    train_data_gen = TimeseriesGenerator(trainXYZ, y,
+                               length=look_back, sampling_rate=1,stride=1,
+                               batch_size=3)
+    model = Sequential()
+    model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(look_back, n_features)))
+    model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
+    # model.add(Conv1D(filters=64, kernel_size=1, activation='relu', input_shape=(look_back, n_features)))
+    model.add(Dropout(0.5))
+    model.add(MaxPooling1D(pool_size=2))
+    model.add(Flatten())
+    model.add(Dense(100, activation='relu'))
+    model.add(Dense(1))
+    model.compile(optimizer='adam', loss='mse')
+
+
+    history = model.fit_generator(train_data_gen, epochs=20).history
+    model.save('xyz_model.h')
 
 def plot():
 
-    xmax= 150
-    ymin = 0
-    ymax = 200
+    xmax= sample
+    ymin = -2
+    ymax = 2
     tframe=0
     # time.sleep(1)
+    plt.figure(2)
     plt.xlim(0,xmax)
     plt.ylim(ymin,ymax)
+
+    model = load_model('xyz_model.h')
+
     while True:
-        np.append(sensorX, sX)
-        np.append(sensorY, sY)
-        np.append(sensorZ, sZ)
+        # np.append(sensorX, sX)
+        # np.append(sensorY, sY)
+        # np.append(sensorZ, sZ)
         # print(sX,sY,sZ)
-        plt.scatter(tframe,sX, color="red")
-        plt.scatter(tframe,sY, color="green")
-        plt.scatter(tframe,sZ, color="blue")
+        # plt.scatter(tframe,sX, color="red")
+        # plt.scatter(tframe,sY, color="green")
+        # plt.scatter(tframe,sZ, color="blue")
+
+        inputXYZ.append(sX,sY,sZ)
+
+        if not inputXYZ.isFull():
+          print (inputXYZ.get())
+          continue
+        XYZ= inputXYZ.get()
+        print(XYZ)
+
+        XYZ = scalerIn.transform(XYZ)
+        XYZ = np.array([XYZ])
+        breathing=model.predict(XYZ)
+        print(breathing.shape)
+        print(breathing)
+
+        if breathing > 1.5 or breathing < -1.5:
+          plt.scatter(tframe,0, color="red")
 
         plt.scatter(tframe,breathing, color="black")
 
@@ -120,29 +200,37 @@ def plot():
           plt.ylim(ymin,ymax)
     # plt.show()
 
+
 def get_breathing():
 
-  global breathing
+  # global breathing
 
-  scaler = MinMaxScaler(feature_range=(0, 1))
-  # print(scaler.get_params().keys())
-  scaler.fit(GetSampleOutData())
-
+  global scalerIn
+  global inputXYZ
+  global model
+ 
   # global inputXYZ
-  model = load_model('cnn_control_model.h')
+  model = load_model('xyz_model.h')
 
   while True:
-    time.sleep(0.01)
+    time.sleep(0.05)
     inputXYZ.append(sX,sY,sZ)
     # print(inputXYZ.get().shape)
-    XYZ = np.array([inputXYZ.get()])
+
+    XYZ= inputXYZ.get()
+
+    XYZ = scalerIn.transform(XYZ)
     
     #DEBUG
-    print(XYZ)
+    # print(XYZ)
 
-    breathing=scaler.inverse_transform(model.predict(XYZ))
-    # print(breathing.shape)
-    # print(breathing)
+    XYZ = np.array([XYZ])
+
+    # XYZ= scalerIn.transform(XYZ)
+
+    breathing=200*model.predict(XYZ)
+    print(breathing.shape)
+    print(breathing)
 
 def server():
     from pythonosc import dispatcher
@@ -153,9 +241,9 @@ def server():
                         type=int, default=5006, help="The port to listen on")
     args = parser.parse_args()
     dispatcher = dispatcher.Dispatcher()
-    dispatcher.map("/sensor/gravity/x", updateX)
-    dispatcher.map("/sensor/gravity/y", updateY)
-    dispatcher.map("/sensor/gravity/z", updateZ)
+    dispatcher.map("/sensor/x", updateX)
+    dispatcher.map("/sensor/y", updateY)
+    dispatcher.map("/sensor/z", updateZ)
 
     server = osc_server.ThreadingOSCUDPServer(
     (args.ip, args.port), dispatcher)
@@ -166,8 +254,7 @@ def server():
 
 
 
-thread1 = threading.Thread(target = plot)
-thread1.start()
+
 
   # print("Serving on {}".format(server.server_address))
   # server.serve_forever()
@@ -176,8 +263,12 @@ thread2 = threading.Thread(target = server)
 thread2.start()
 
 
+calibrate()
 
-get_breathing()
+
+# thread1 = threading.Thread(target = get_breathing)
+# thread1.start()
+plot()
 
 # calibrate()
 # thread2.join()

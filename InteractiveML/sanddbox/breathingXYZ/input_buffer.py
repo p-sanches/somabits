@@ -5,6 +5,7 @@ import numpy as np
 class InputBuffer:
 
     cur=0
+    full = False
 
     """ class that implements a not-yet-full buffer """
     def __init__(self,size_max):
@@ -20,6 +21,7 @@ class InputBuffer:
         if self.cur == self.max-1:
             self.data=np.roll(self.data, -1, axis=0)
             self.data[self.cur]=[x,y,z]
+            self.full=True
         else: 
             self.data[self.cur]=[x,y,z]
             self.cur += 1 
@@ -27,3 +29,7 @@ class InputBuffer:
     def get(self):
         """ Return a list of elements from the oldest to the newest. """
         return self.data
+
+    def isFull(self):
+        """ Return a list of elements from the oldest to the newest. """
+        return self.full
