@@ -14,6 +14,8 @@ class InputBuffer:
         self.cur=0
 
    
+    def repeated(self,x,y,z):
+        return self.data[self.cur][0]==x and self.data[self.cur][1]==y and self.data[self.cur][2]==z
 
     def append(self,x,y,z):
         """append an element at the end of the buffer"""
