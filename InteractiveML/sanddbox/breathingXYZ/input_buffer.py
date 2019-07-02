@@ -8,14 +8,14 @@ class InputBuffer:
     full = False
 
     """ class that implements a not-yet-full buffer """
-    def __init__(self,size_max):
+    def __init__(self,size_max, n_features):
         self.max = size_max
-        self.data = np.zeros((size_max,3))
+        self.data = np.zeros((size_max,n_features))
         self.cur=0
 
    
-    def repeated(self,x,y,z):
-        return self.data[self.cur][0]==x and self.data[self.cur][1]==y and self.data[self.cur][2]==z
+    def repeated(self,array):
+        return np.array_equal(self.data,array)
 
     def append(self,x,y,z):
         """append an element at the end of the buffer"""

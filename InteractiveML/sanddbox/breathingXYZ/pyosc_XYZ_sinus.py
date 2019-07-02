@@ -29,6 +29,8 @@ from keras.layers import Conv1D
 from keras.layers import Flatten
 from keras.layers import LSTM
 
+from statsmodels.tsa.arima_model import ARIMA
+
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 from keras.models import load_model
@@ -49,11 +51,11 @@ actY = np.zeros(sample)
 
 breathing = 0
 
-look_back = 50
+look_back = 10
 n_features=3
-inputXYZ = InputBuffer(look_back)
+inputXYZ = InputBuffer(look_back, n_features)
 
-trainXYZ = np.zeros(shape=(sample,3))
+trainXYZ = np.zeros(shape=(sample,n_features))
 
 sinus = np.zeros(shape=(sample,2))
 
@@ -107,7 +109,7 @@ def updateAct(address, *args):
   global act
   act=args[0]
 
-# def calibrate():
+# def calibrateSinus():
 
 #     xmax= sample
 #     ymin = -1
@@ -221,7 +223,7 @@ def calibrateAct():
         # np.append(sensorZ, sZ)
         plt.pause(0.03)
 
-        if trainXYZ[i-1][0]==sX and trainXYZ[i-1][1]==sY and trainXYZ[i-1][2]==sZ:
+        if np.array_equal(trainXYZ[i-1], [sX,sY,sZ]):
           repeated += 1
           print(sX,sY,sZ, repeated)
           if repeated > maxRepeated:
@@ -246,6 +248,7 @@ def calibrateAct():
     # print(trainXYZ)
 
     print(trainXYZ)
+    print(trainXYZ.shape)
 
     trainXYZ = scalerIn.fit_transform(trainXYZ)
 
@@ -254,7 +257,7 @@ def calibrateAct():
 
     train_data_gen = TimeseriesGenerator(trainXYZ, actY,
                                length=look_back, sampling_rate=1,stride=1,
-                               batch_size=3)
+                               batch_size=1)
     model = Sequential()
     # model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(look_back, n_features)))
     # model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
@@ -266,12 +269,13 @@ def calibrateAct():
     # model.add(Dense(1))
     # model.compile(optimizer='adam', loss='mse')
 
-    model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=(look_back, n_features)))
+    model.add(Conv1D(filters=64, kernel_size=2, activation='tanh', input_shape=(look_back, n_features)))
     model.add(MaxPooling1D(pool_size=2))
     model.add(Flatten())
-    model.add(Dense(50, activation='relu'))
+    model.add(Dense(50, activation='softmax'))
+    # model.add(Dropout(0.3))
     model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mse')
+    model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
 
     # model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(look_back, n_features)))
     # model.add(LSTM(50, activation='relu'))
@@ -280,6 +284,11 @@ def calibrateAct():
 
 
     history = model.fit_generator(train_data_gen, epochs=10).history
+
+
+    # model = ARIMA(trainXYZ, order=(look_back,1,0))
+    # model_fit = model.fit(disp=0)
+
     model.save('xyz_model.h')
 
 def plot():
@@ -306,7 +315,7 @@ def plot():
         plt.pause(0.03)
 
      
-        if inputXYZ.repeated(sX,sY,sZ):
+        if inputXYZ.repeated([sX,sY,sZ]):
           repeated += 1
           print(sX,sY,sZ, repeated)
           if repeated > maxRepeated:

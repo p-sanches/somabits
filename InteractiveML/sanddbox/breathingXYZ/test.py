@@ -1,6 +1,7 @@
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import numpy as np
 # import tmp102
 
 # Create figure for plotting
@@ -78,19 +79,4 @@ def animate2(i, xs, ys):
 
     a+=1
 
-
-
-# Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(fig, animate, frames=3, fargs=(xs, ys), interval=200)
-plt.show()
-plt.close()
-print("test")
-
-
-fig2 = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-xs = []
-ys = []
-a=0
-ani2 = animation.FuncAnimation(fig2, animate2, fargs=(xs, ys), interval=200)
-plt.show()
+print(np.array_equal([1,1,2],[1,1,2]))
