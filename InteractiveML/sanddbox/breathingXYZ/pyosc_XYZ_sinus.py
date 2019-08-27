@@ -36,6 +36,10 @@ from sklearn.metrics import mean_squared_error
 from keras.models import load_model
 
 
+from pythonosc import osc_message_builder
+from pythonosc import udp_client
+
+
 
 Fs = 125
 f = 1
@@ -51,7 +55,7 @@ actY = np.zeros(sample)
 
 breathing = 0
 
-look_back = 10
+look_back = 30
 n_features=3
 inputXYZ = InputBuffer(look_back, n_features)
 
@@ -87,6 +91,17 @@ def print_compute_handler(unused_addr, args, volume):
 def GetSampleOutData():
     return pa.read_csv("output1561706008144.txt", header=0, sep="\t", usecols = ["/actuator/inflate"])
 
+def updtouchOSC (address, *args):
+  global sX
+  global sY
+  global sZ
+  # print("touchOCC")
+  # print(args)
+  # if(args[0] == sX): print("same x!!!!!")
+  sX=args[0]
+  sY=args[1]
+  sZ=args[2]
+
 def updateX(address, *args):
   global sX
   # print(args)
@@ -105,9 +120,10 @@ def updateZ(address, *args):
 
 def updateAct(address, *args):
   print("act!")
-  print(args)
+  
   global act
   act=args[0]
+  print(act)
 
 # def calibrateSinus():
 
@@ -201,7 +217,7 @@ def calibrateAct():
 
     xmax= sample
     ymin = -1
-    ymax = 1
+    ymax = 10
     tframe=0
     i=0
 
@@ -232,8 +248,10 @@ def calibrateAct():
           repeated = 0
 
         
-        plt.scatter(x[i], act)
-        # plt.scatter(x[i], sX)
+        # plt.scatter(x[i], act)
+        plt.scatter(x[i], sX)
+        plt.scatter(x[i], sY)
+        plt.scatter(x[i], sZ)
         trainXYZ[i]= [sX,sY,sZ]
         sinus[i]= [x[i], act]
         actY[i] = act
@@ -271,19 +289,20 @@ def calibrateAct():
 
     model.add(Conv1D(filters=64, kernel_size=2, activation='tanh', input_shape=(look_back, n_features)))
     model.add(MaxPooling1D(pool_size=2))
-    model.add(Flatten())
-    model.add(Dense(50, activation='softmax'))
-    # model.add(Dropout(0.3))
-    model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+    # model.add(Flatten())
+    # model.add(Dense(50, activation='tanh'))
+    # model.add(Dropout(0.1))
+    # model.add(Dense(1))
+    model.compile(optimizer='adam', loss='mse')
+    # , metrics=['accuracy'])
 
     # model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(look_back, n_features)))
-    # model.add(LSTM(50, activation='relu'))
+    # model.add(LSTM(50, activation='softmax'))
     # model.add(Dense(1))
     # model.compile(optimizer='adam', loss='mse')
 
 
-    history = model.fit_generator(train_data_gen, epochs=10).history
+    history = model.fit_generator(train_data_gen, epochs=50).history
 
 
     # model = ARIMA(trainXYZ, order=(look_back,1,0))
@@ -295,7 +314,7 @@ def plot():
 
     xmax= sample
     ymin = 0
-    ymax = 1.5
+    ymax = 1
     tframe=0
     # time.sleep(1)
     plt.figure(2)
@@ -303,6 +322,8 @@ def plot():
     plt.ylim(ymin,ymax)
 
     model = load_model('xyz_model.h')
+
+    client = udp_client.SimpleUDPClient("127.0.0.1", 12345)
 
     while True:
         # np.append(sensorX, sX)
@@ -335,7 +356,9 @@ def plot():
         XYZ = np.array([XYZ])
         breathing=model.predict(XYZ)
         print(breathing.shape)
-        print(breathing)
+        print(breathing[0][0])
+
+        client.send_message("/radius", breathing[0][0]*200)
 
         if breathing > 1.1 or breathing < 0:
           plt.scatter(tframe,0, color="red")
@@ -385,29 +408,31 @@ def get_breathing():
 
 def server():
     from pythonosc import dispatcher
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--ip",
-                        default="192.168.1.176", help="The ip to listen on")
-    parser.add_argument("--port",
-                        type=int, default=5006, help="The port to listen on")
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--ip",
+    #                     default="192.168.1.176", help="The ip to listen on")
+    # parser.add_argument("--port",
+    #                     type=int, default=5006, help="The port to listen on")
+    # args = parser.parse_args()
     dispatcher = dispatcher.Dispatcher()
     dispatcher.map("/sensor/x", updateX)
     dispatcher.map("/sensor/y", updateY)
     dispatcher.map("/sensor/z", updateZ)
 
+    dispatcher.map("/accxyz", updtouchOSC)
+
     dispatcher.map("/actuator/a", updateAct)
 
     server = osc_server.ThreadingOSCUDPServer(
-    (args.ip, args.port), dispatcher)
+    ("192.168.1.3", 5006), dispatcher)
     print("Serving on {}".format(server.server_address))
     server.serve_forever()
     if stop():
       server.close()
 
 
-
-
+client = udp_client.SimpleUDPClient("127.0.0.1", 12345)
+client.send_message("/radius", 20.0)
 
   # print("Serving on {}".format(server.server_address))
   # server.serve_forever()
