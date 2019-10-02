@@ -8,10 +8,10 @@ import threading
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, pyqtSignal, QModelIndex)
 
-from SomoServer.gui import Ui_MainWindow
-from SomoServer.TableModel import PandasModel, CheckBoxDelegate
-from SomoServer.ZeroConf import NeighborDiscovery
-from SomoServer.OSC import getOSCMessages
+from gui import Ui_MainWindow
+from TableModel import PandasModel, CheckBoxDelegate
+from ZeroConf import NeighborDiscovery
+from OSC import getOSCMessages
 
 from typing import cast
 from zeroconf import ServiceInfo,ServiceBrowser, ServiceStateChange, Zeroconf

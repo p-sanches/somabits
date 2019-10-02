@@ -26,10 +26,19 @@ import netP5.*;
 import java.io.*; 
 import java.util.*; 
 import controlP5.*;
+import processing.sound.*;
+
+boolean couplingAccSound = false;
+boolean couplingAccInfl = true;
 
 //import org.apache.commons.collections4.*;
 
 boolean fileStarted=false;
+
+//These are variables for doing sound coupling
+SinOsc[] sineWaves; // Array of sines
+float[] sineFreq; // Array of frequencies
+int numSines = 5; // Number of oscillators to use
 
 
 OscP5 oscP5;
@@ -98,6 +107,21 @@ void setup() {
      ;
   
   frameRate(60);
+  
+   //set up sound coupling
+    sineWaves = new SinOsc[numSines]; // Initialize the oscillators
+    sineFreq = new float[numSines]; // Initialize array for Frequencies
+
+  for (int i = 0; i < numSines; i++) {
+    // Calculate the amplitude for each oscillator
+    float sineVolume = (1.0 / numSines) / (i + 1);
+    // Create the oscillators
+    sineWaves[i] = new SinOsc(this);
+    // Start Oscillators
+    sineWaves[i].play();
+    // Set the amplitudes for all oscillators
+    sineWaves[i].amp(sineVolume);
+  }
 }
 
 // function Start will receive changes from 
@@ -172,7 +196,102 @@ void draw() {
   //background(0);
   //if(sensorInputs.size()>0)
   //  printAllSensorInputs();
+  
+  
+  if(couplingAccSound){
+    CoupleACCSineWave();
+  }
+  else if(couplingAccInfl){
+    CoupleACCInflate();
+  }
 }
+
+float last_yoffset = 0;
+float last_detune = 0;
+
+// actuator/[id]/inflate 1 OR actuator/[id]/deflate 1
+void CoupleACCInflate(){
+  float yoffset = 0;
+  float frequency = 0;
+  
+    if(sensorInputs.get("1/x") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        yoffset = (Float) sensorInputs.get("1/x")[0];
+    }
+    
+    // if(yoffset == 0){
+    //  return;
+    //}
+      
+    frequency = yoffset*100 + 150;
+    
+    
+    //Use mouseX mapped from -0.5 to 0.5 as a detune argument
+    
+    //float detune = map(mouseX, 0, width, -0.5, 0.5);
+    float detune = 0;
+    
+    if(sensorInputs.get("1/y") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        detune = (Float) sensorInputs.get("1/y")[0];
+    }
+    
+    
+    if(detune != last_detune || last_yoffset != yoffset){ //it happens that they are the same often since this function is called more times than the sensor data updates
+      
+      
+      for (int i = 0; i < numSines; i++) { 
+        sineFreq[i] = frequency * (i + 1 * detune);
+        // Set the frequencies for all oscillators
+        sineWaves[i].freq(sineFreq[i]);
+      }
+      
+      println("Frequency:", frequency);
+      println("Detune:", detune);
+      println("Diff_detune:", detune-last_detune);
+      println("Diff_yoffset:", yoffset-last_yoffset);
+      
+      last_yoffset = yoffset;
+      last_detune = detune;
+    }
+    
+    
+    
+    
+}
+
+void CoupleACCSineWave(){
+  float yoffset = 0;
+  
+    if(sensorInputs.get("1/x") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        yoffset = (Float) sensorInputs.get("1/x")[0];
+    }
+      
+    
+    //Map mouseY logarithmically to 150 - 1150 to create a base frequency range
+    float frequency = yoffset*100 + 150;
+    
+    println("Frequency:", frequency);
+    //Use mouseX mapped from -0.5 to 0.5 as a detune argument
+    
+    //float detune = map(mouseX, 0, width, -0.5, 0.5);
+    float detune = 0;
+    
+    if(sensorInputs.get("1/y") != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        detune = (Float) sensorInputs.get("1/y")[0];
+    }
+    
+     println("Detune:", detune);
+    
+    for (int i = 0; i < numSines; i++) { 
+      sineFreq[i] = frequency * (i + 1 * detune);
+      // Set the frequencies for all oscillators
+      sineWaves[i].freq(sineFreq[i]);
+    }
+}
+
 
 void oscEvent(OscMessage theOscMessage) {
   //println("### OSC MESSAGE ARRIVED");
@@ -204,7 +323,7 @@ void oscEvent(OscMessage theOscMessage) {
     //add it to a data structure with all known OSC addresses (hashmap: addrPattern, arguments)
     addSensorValuetoHashMap(theOscMessage);
     
-   // printAllSensorInputs();
+    //printAllSensorInputs();
     
     //optionally do something else with it, e.g. wekinator, store data, smart data layer
     //trainWekinatorMsg(theOscMessage);

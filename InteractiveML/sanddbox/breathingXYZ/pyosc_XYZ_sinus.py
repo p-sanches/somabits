@@ -424,7 +424,7 @@ def server():
     dispatcher.map("/actuator/a", updateAct)
 
     server = osc_server.ThreadingOSCUDPServer(
-    ("192.168.1.3", 5006), dispatcher)
+    ("192.168.1.5", 5006), dispatcher)
     print("Serving on {}".format(server.server_address))
     server.serve_forever()
     if stop():

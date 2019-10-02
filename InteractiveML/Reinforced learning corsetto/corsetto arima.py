@@ -94,7 +94,6 @@ def GetSampleOutData():
 
 def respUpd(address, *args):
   
-  
   global resp
   resp=args[0] #http://ismm.ircam.fr/wp-content/uploads/2017/08/BITalino-R-IoT-Programming-Flashing-Guide-v1.1.pdf 
   #print(resp)	
@@ -104,7 +103,7 @@ def pressureUpd(address, *args):
   
   global press
   press=args[0]
-  print(press)
+  #print(press)
 
 
 def listener():
@@ -137,48 +136,58 @@ def listener():
 threadListener = threading.Thread(target = listener)
 threadListener.start()
 
-
 starttime=time.time()
 
-MIN_SAMPLES = 20
+MIN_SAMPLES = 5
 samplenr = 0
-sample_buffer = []
+sample_buffer = [] #must replace with np.roll so I dont run out of memory: https://docs.scipy.org/doc/numpy/reference/generated/numpy.roll.html
 
 prediction  = 0
+last_prediction = 0
+prediction_buffer = []
 
+last_resp = 0
 
 while True:
 
   time.sleep(SECONDS_TO_SLEEP - ((time.time() - starttime) % SECONDS_TO_SLEEP))
-  print ("tick")
+  #print ("tick")
+  
 
   #initializing phase, just to get a few samples before we start making predictions
   if samplenr < MIN_SAMPLES: 
   	print ("INITIAL PHASE:", resp)
-
   	sample_buffer.append(resp)
   	samplenr += 1
   	continue
-
-  print("Prediction=", prediction)
-  print("Actual=", resp)
-  print("Difference=", prediction-resp)
+  	
+  #print("Prediction=", prediction)
+  #print("Actual=", resp)
+  #print("Difference=", prediction-resp)
 
   #after initializing phase, start making predictions
-  model = ARIMA(sample_buffer, order=(5,1,0))
-  model_fit = model.fit(disp=0)
-  output = model_fit.forecast()
-  prediction = output[0]
-  sample_buffer.append(resp)
+  
+  #ARIMA COMMENTED OUT FOR NOW
+  # model = ARIMA(sample_buffer, order=(5,1,0))
+  # model_fit = model.fit(disp=0)
+  # output = model_fit.forecast()
+  # prediction = output[0]
+  # sample_buffer.append(resp)
 
+  # calculate direction of breathing
+  if resp-last_resp == 0.0:
+  	print("")
+  elif resp-last_resp < 0.001:
+  	print("Breathe out:", resp-last_resp)
+  elif resp-last_resp > -0.001:
+  	print("Breahte in:", resp-last_resp)
+
+  last_resp = resp
+  last_prediction = prediction
 
   #transfer function from respiration to volume
-
   samplenr += 1
   
-
-
-
 
 # thread1 = threading.Thread(target = get_breathing)
 # thread1.start()
