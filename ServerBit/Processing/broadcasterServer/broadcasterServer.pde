@@ -34,8 +34,9 @@ import signal.library.*;
    SignalFilter myFilter;
 // -----------------------------------------------------
 
-float filteredSignal;
 
+float minCutoff = 0.05; // decrease this to get rid of slow speed jitter
+float beta      = 7.0;  // increase this to get rid of high speed lag
 
 
 boolean couplingAccSound = false;
@@ -228,6 +229,10 @@ float last_detune = 0;
 void CoupleACCInflate(){
   float yoffset = 0;
   float frequency = 0;
+  
+    // Pass the parameters to the filter
+  myFilter.setMinCutoff(minCutoff);
+  myFilter.setBeta(beta);
   
   //if(firstCouplingSensorId !=0){
   //  println(firstCouplingSensorId);
