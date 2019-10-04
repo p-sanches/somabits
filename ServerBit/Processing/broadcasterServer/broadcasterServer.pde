@@ -214,9 +214,9 @@ void CoupleACCInflate(){
   float yoffset = 0;
   float frequency = 0;
   
-    if(sensorInputs.get("1/x") != null) {
+    if(sensorInputs.get("2/x") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
-        yoffset = (Float) sensorInputs.get("1/x")[0];
+        yoffset = (Float) sensorInputs.get("2/x")[0];
     }
     
     // if(yoffset == 0){
@@ -231,16 +231,14 @@ void CoupleACCInflate(){
     //float detune = map(mouseX, 0, width, -0.5, 0.5);
     float detune = 0;
     
-    if(sensorInputs.get("1/y") != null) {
+    if(sensorInputs.get("2/y") != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
-        detune = (Float) sensorInputs.get("1/y")[0];
+        detune = (Float) sensorInputs.get("2/y")[0];
     }
-    
-    
+        
     if(detune != last_detune || last_yoffset != yoffset){ //it happens that they are the same often since this function is called more times than the sensor data updates
-      
-      
-      for (int i = 0; i < numSines; i++) { 
+
+      for (int i = 0; i < numSines; i++) {
         sineFreq[i] = frequency * (i + 1 * detune);
         // Set the frequencies for all oscillators
         sineWaves[i].freq(sineFreq[i]);
@@ -251,13 +249,24 @@ void CoupleACCInflate(){
       println("Diff_detune:", detune-last_detune);
       println("Diff_yoffset:", yoffset-last_yoffset);
       
+      
+      
+      if(yoffset-last_yoffset < 0){
+        //deflate
+          OscMessage myMessage = new OscMessage("/actuator/deflate");
+          myMessage.add(1.0); 
+          sendToOneActuator(myMessage, 1);
+       }
+       else{
+         //inflate
+         OscMessage myMessage = new OscMessage("/actuator/inflate");
+         myMessage.add(1.0); 
+         sendToOneActuator(myMessage, 1);
+       }
+      
       last_yoffset = yoffset;
       last_detune = detune;
     }
-    
-    
-    
-    
 }
 
 void CoupleACCSineWave(){
@@ -480,7 +489,6 @@ void sendToAllActuators(OscMessage theOscMessage){
   
     System.out.println("## Sending to ALL actuators");
 
-  
     /* create an osc bundle */
   OscBundle myBundle = new OscBundle();
   myBundle.add(theOscMessage);
