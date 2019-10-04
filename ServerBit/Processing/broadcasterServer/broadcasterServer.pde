@@ -27,6 +27,15 @@ import java.io.*;
 import java.util.*; 
 import controlP5.*;
 import processing.sound.*;
+import signal.library.*;
+
+// -----------------------------------------------------
+// Create the filter
+   SignalFilter myFilter;
+// -----------------------------------------------------
+
+float filteredSignal;
+
 
 
 boolean couplingAccSound = false;
@@ -124,6 +133,10 @@ void setup() {
     // Set the amplitudes for all oscillators
     sineWaves[i].amp(sineVolume);
   }
+  
+  
+  myFilter = new SignalFilter(this);
+  
 }
 
 // function Start will receive changes from 
@@ -226,6 +239,8 @@ void CoupleACCInflate(){
       yoffset = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"x"))[0];
 
   }
+  
+  
     
     // if(yoffset == 0){
     //  return;
@@ -245,6 +260,8 @@ void CoupleACCInflate(){
         
     if(detune != last_detune || last_yoffset != yoffset){ //it happens that they are the same often since this function is called more times than the sensor data updates
 
+      yoffset = myFilter.filterUnitFloat( yoffset );
+      
       for (int i = 0; i < numSines; i++) {
         sineFreq[i] = frequency * (i + 1 * detune);
         // Set the frequencies for all oscillators
