@@ -19,7 +19,7 @@
  *
  */
  
- //pavels IP: 107
+ //pavels IP: 140
  
 import oscP5.*;
 import netP5.*;
@@ -30,6 +30,7 @@ import processing.sound.*;
 
 boolean couplingAccSound = false;
 boolean couplingAccInfl = true;
+int firstCouplingSensorId = 0;
 
 //import org.apache.commons.collections4.*;
 
@@ -214,26 +215,31 @@ void CoupleACCInflate(){
   float yoffset = 0;
   float frequency = 0;
   
-    if(sensorInputs.get("2/x") != null) {
-        //float yoffset = map(mouseY, 0, height, 0, 1);
-        yoffset = (Float) sensorInputs.get("2/x")[0];
-    }
+  //if(firstCouplingSensorId !=0){
+  //  println(firstCouplingSensorId);
+  //  println(String.join("/",Integer.toString(firstCouplingSensorId),"x"));
+  //}
+  
+  if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"x")) != null) {
+      //float yoffset = map(mouseY, 0, height, 0, 1);
+      yoffset = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"x"))[0];
+
+  }
     
     // if(yoffset == 0){
     //  return;
     //}
       
     frequency = yoffset*100 + 150;
-    
-    
-    //Use mouseX mapped from -0.5 to 0.5 as a detune argument
-    
+
+    //Use mouseX mapped from -0.5 to 0.5 as a detune argument //OLD CODE
     //float detune = map(mouseX, 0, width, -0.5, 0.5);
+    
     float detune = 0;
     
-    if(sensorInputs.get("2/y") != null) {
+    if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"y")) != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
-        detune = (Float) sensorInputs.get("2/y")[0];
+        detune = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"y"))[0];
     }
         
     if(detune != last_detune || last_yoffset != yoffset){ //it happens that they are the same often since this function is called more times than the sensor data updates
@@ -249,20 +255,21 @@ void CoupleACCInflate(){
       println("Diff_detune:", detune-last_detune);
       println("Diff_yoffset:", yoffset-last_yoffset);
       
-      
+      OscMessage myMessage;
       
       if(yoffset-last_yoffset < 0){
         //deflate
-          OscMessage myMessage = new OscMessage("/actuator/deflate");
+          myMessage = new OscMessage("/actuator/deflate");
           myMessage.add(1.0); 
-          sendToOneActuator(myMessage, 1);
        }
        else{
          //inflate
-         OscMessage myMessage = new OscMessage("/actuator/inflate");
+         myMessage = new OscMessage("/actuator/inflate");
          myMessage.add(1.0); 
-         sendToOneActuator(myMessage, 1);
        }
+       
+       //sendToOneActuator(myMessage, 1);
+       sendToAllActuators(myMessage);
       
       last_yoffset = yoffset;
       last_detune = detune;
@@ -424,6 +431,8 @@ void addSensorValuetoHashMap(OscMessage theOscMessage){
   int id = getDeviceId(theOscMessage.netAddress());
   if(id == -1)
     id = connectSensor(theOscMessage.netAddress().address());
+    
+ 
   
   //remove the "/sensor" part
   String[] addrComponents = theOscMessage.addrPattern().split("/");
@@ -556,6 +565,12 @@ private int connectSensor(String theIPaddress) {
        println("### Sensor "+theIPaddress+" is already connected. The ID is "+id);
      }
      println("### currently there are "+SensorNetAddressList.list().size()+" sensors connected.");
+     
+      //this is hardcoded just for couplings
+      if(SensorNetAddressList.list().size() == 1){
+        firstCouplingSensorId = id;
+        //println(firstCouplingSensorId);
+      }
      
      return id;
  }
