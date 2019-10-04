@@ -28,6 +28,7 @@ import java.util.*;
 import controlP5.*;
 import processing.sound.*;
 
+
 boolean couplingAccSound = false;
 boolean couplingAccInfl = true;
 int firstCouplingSensorId = 0;
@@ -255,21 +256,41 @@ void CoupleACCInflate(){
       println("Diff_detune:", detune-last_detune);
       println("Diff_yoffset:", yoffset-last_yoffset);
       
-      OscMessage myMessage;
+      
       
       if(yoffset-last_yoffset < 0){
         //deflate
-          myMessage = new OscMessage("/actuator/deflate");
-          myMessage.add(1.0); 
+        OscMessage myMessage1;
+          myMessage1 = new OscMessage("/actuator/inflate");
+          myMessage1.add(0.0); 
+          //sendToOneActuator(myMessage, 1);
+           sendToAllActuators(myMessage1);
+           
+          OscMessage myMessage2;
+          myMessage2 = new OscMessage("/actuator/deflate");
+          myMessage2.add(1.0); 
+          //sendToOneActuator(myMessage, 1);
+           sendToAllActuators(myMessage2);
+          
        }
        else{
          //inflate
-         myMessage = new OscMessage("/actuator/inflate");
-         myMessage.add(1.0); 
+         OscMessage myMessage1;
+         myMessage1 = new OscMessage("/actuator/deflate");
+         myMessage1.add(0.0); 
+         //sendToOneActuator(myMessage2, 1);
+           sendToAllActuators(myMessage1);
+           
+           OscMessage myMessage2;
+         myMessage2 = new OscMessage("/actuator/inflate");
+         myMessage2.add(1.0); 
+         //sendToOneActuator(myMessage2, 1);
+           sendToAllActuators(myMessage2);
+       
        }
        
-       //sendToOneActuator(myMessage, 1);
-       sendToAllActuators(myMessage);
+       
+       
       
       last_yoffset = yoffset;
       last_detune = detune;
