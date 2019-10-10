@@ -39,9 +39,12 @@ float minCutoff = 0.05; // decrease this to get rid of slow speed jitter
 float beta      = 7.0;  // increase this to get rid of high speed lag
 
 
+//NEVER SET MORE THAN ONE OF THESE TO TRUE! Each coupling can only be run separately
 boolean couplingAccSound = false;
 boolean couplingAccInfl = false;
 boolean couplingPressureInfl = true;
+//----------------------------------------------Each coupling has to be run separately
+
 
 int firstCouplingSensorId = 0;
 int secondCouplingSensorId = 0;
@@ -229,9 +232,7 @@ void draw() {
   //else 
   if(couplingAccInfl){
     CoupleACCInflate();
-  }
-  
-  if(couplingPressureInfl){
+  }else if(couplingPressureInfl){
     plotPressure();
     CouplePressureInflate();
   }
@@ -270,7 +271,6 @@ void plotPressure(){
 void CouplePressureInflate(){
   float yoffset = 0;
   float frequency = 0;
-  
   
   float minCutoff = 0.02; // decrease this to get rid of slow speed jitter
   float beta      = 8.0;  // increase this to get rid of high speed lag
@@ -316,11 +316,11 @@ void CouplePressureInflate(){
        if(yoffset-last_yoffset < 0){
         //deflate
         println("Deflate!");
-        OscMessage myMessage1;
-          myMessage1 = new OscMessage("/actuator/inflate");
-          myMessage1.add(-50.0); 
-          //sendToOneActuator(myMessage, 1);
-           sendToAllActuators(myMessage1);
+        //OscMessage myMessage1;
+        //  myMessage1 = new OscMessage("/actuator/inflate");
+        //  myMessage1.add(-50.0); 
+        //  //sendToOneActuator(myMessage, 1);
+        //   sendToAllActuators(myMessage1);
            
 
           
@@ -330,11 +330,11 @@ void CouplePressureInflate(){
          
          println("Inflate!");
            
-           OscMessage myMessage2;
-         myMessage2 = new OscMessage("/actuator/inflate");
-         myMessage2.add(20.0); 
-         //sendToOneActuator(myMessage2, 1);
-           sendToAllActuators(myMessage2);
+         //  OscMessage myMessage2;
+         //myMessage2 = new OscMessage("/actuator/inflate");
+         //myMessage2.add(50.0); 
+         ////sendToOneActuator(myMessage2, 1);
+         //  sendToAllActuators(myMessage2);
        
        }
       
