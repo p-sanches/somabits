@@ -42,7 +42,8 @@ float beta      = 7.0;  // increase this to get rid of high speed lag
 //NEVER SET MORE THAN ONE OF THESE TO TRUE! Each coupling can only be run separately
 boolean couplingAccSound = false;
 boolean couplingAccInfl = false;
-boolean couplingPressureInfl = true;
+boolean couplingPressureInfl = false;
+boolean horsePillow = true;
 //----------------------------------------------Each coupling has to be run separately
 
 
@@ -57,7 +58,7 @@ boolean fileStarted=false;
 //These are variables for doing sound coupling
 SinOsc[] sineWaves; // Array of sines
 float[] sineFreq; // Array of frequencies
-int numSines = 5; // Number of oscillators to use
+int numSines = 0; // Number of oscillators to use
 
 
 OscP5 oscP5;
@@ -110,8 +111,7 @@ void setup() {
   connectActuator("127.0.0.1");
   size(800,800);
   smooth();
-  
- 
+   
   noStroke();
   cp5 = new ControlP5(this);
   
@@ -145,8 +145,7 @@ void setup() {
     // Set the amplitudes for all oscillators
     sineWaves[i].amp(sineVolume);
   }
-  
-  
+
   myFilter = new SignalFilter(this);
   
 }
@@ -236,6 +235,109 @@ void draw() {
     plotPressure();
     CouplePressureInflate();
   }
+  else if(horsePillow){
+    runLikeTheWind();
+  }
+}
+
+
+float last_pressure1 = 0;
+float last_pressure2 = 0;
+
+void runLikeTheWind(){
+   // copy everything one value down
+  for (int i=0; i<arrayOfFloats.length-1; i++) {
+    arrayOfFloats[i] = arrayOfFloats[i+1];
+  }
+  
+ float minCutoff = 0.02; // decrease this to get rid of slow speed jitter
+  float beta      = 20.0;  // increase this to get rid of high speed lag
+  
+  // Pass the parameters to the filter
+  myFilter.setMinCutoff(minCutoff);
+  myFilter.setBeta(beta);
+  
+  float pressure1 = 0;//noise(frameCount*0.01)*width;
+  float pressure2 = 0;
+  
+  float difference = 0;
+  
+  //println(newValue);
+  
+  if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure")) != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure1 = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure"))[0];
+        
+       // println("Pressure 1 OK");
+      
+      if(sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure")) != null) {
+          //float yoffset = map(mouseY, 0, height, 0, 1);
+          pressure2 = (Float) sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure"))[0];
+         // println("Pressure 2 OK");
+          difference = pressure1-pressure2; //if pressure1 is bigger, inflate actuator 2, and vice-versa
+          
+          
+         difference= myFilter.filterUnitFloat( difference );
+        
+         
+         if((abs(pressure1-last_pressure1) < 1) && (abs(pressure2-last_pressure2) < 1)){ //no real difference in pressure, probably no one is touching both 
+           return;
+         }
+         else {
+           last_pressure1 = pressure1;
+           last_pressure2 = pressure2;
+         }
+         
+         //difference = difference * (100/abs(difference));
+ 
+         println(pressure1, pressure2, difference);
+         
+         difference = constrain(difference, -100, 100);
+         
+         println(pressure1, pressure2, difference);
+          
+          if(difference > 2){
+              //pressure 1 is higher: deflate 1 at double speed, inflate 2, hope for the best
+              
+              OscMessage myMessage1;
+              myMessage1 = new OscMessage("/actuator/inflate");
+              myMessage1.add(constrain(-difference, -100, 100)); 
+              sendToOneActuator(myMessage1, 1);
+               
+              OscMessage myMessage2;
+              myMessage2 = new OscMessage("/actuator/inflate");
+              myMessage2.add(difference); 
+              sendToOneActuator(myMessage2, 2);
+              
+           }
+           else if(difference < -2){
+               //pressure 2 is higher: inflate 1, deflate 2 at double speed, hope for the best
+              
+              OscMessage myMessage1;
+              myMessage1 = new OscMessage("/actuator/inflate");
+              myMessage1.add(abs(difference)); 
+              sendToOneActuator(myMessage1, 1);
+               
+              OscMessage myMessage2;
+              myMessage2 = new OscMessage("/actuator/inflate");
+              myMessage2.add(constrain(difference, -100, 100)); 
+              sendToOneActuator(myMessage2, 2);
+       
+             }
+      }
+  }
+  
+
+  
+  // set last value to the new value
+  arrayOfFloats[arrayOfFloats.length-1] = (difference*10)+200;
+ 
+  // display all values however you want
+  for (int i=0; i<arrayOfFloats.length; i++) {
+    noStroke();
+    fill(255,0,0,255);
+    ellipse(width*i/arrayOfFloats.length+width/num/2,height-arrayOfFloats[i],width/num,width/num);
+  }
 }
 
 void plotPressure(){
@@ -254,8 +356,7 @@ void plotPressure(){
   }
   
   newValue = (newValue - 1000) * 20;
-  
-   
+     
  
   // set last value to the new value
   arrayOfFloats[arrayOfFloats.length-1] = newValue;
