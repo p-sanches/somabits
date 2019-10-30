@@ -42,13 +42,14 @@ float beta      = 7.0;  // increase this to get rid of high speed lag
 //NEVER SET MORE THAN ONE OF THESE TO TRUE! Each coupling can only be run separately
 boolean couplingAccSound = false;
 boolean couplingAccInfl = false;
-boolean couplingPressureInfl = true;
-boolean horsePillow = false;
+boolean couplingPressureInfl = false;
+boolean horsePillow = true;
 //----------------------------------------------Each coupling has to be run separately
 
 
 int firstCouplingSensorId = 0;
 int secondCouplingSensorId = 0;
+int thirdCouplingSensorId = 0;
 
 int overrideTime;
 boolean overrideCoupling = false;
@@ -71,7 +72,7 @@ boolean fileStarted=false;
 //These are variables for doing sound coupling
 SinOsc[] sineWaves; // Array of sines
 float[] sineFreq; // Array of frequencies
-int numSines = 0; // Number of oscillators to use
+int numSines = 5; // Number of oscillators to use
 
 
 OscP5 oscP5;
@@ -103,6 +104,8 @@ String ActuatorConnectPattern = "/actuator/startConnection/";
 String ActuatorDisconnectPattern = "/actuator/endConnection/";
 
 String wekaPattern = "/wek/outputs";
+
+String riotPattern= "/0/";
 
 ControlP5 cp5;
 PrintWriter output;
@@ -328,7 +331,7 @@ void runLikeTheWind(){
  
          println(pressure1, pressure2, difference);
          
-         difference = constrain(difference, -100, 100);
+         difference = constrain(difference*1.5, -100, 100);
          
          println(pressure1, pressure2, difference);
           
@@ -486,15 +489,15 @@ void CouplePressureInflate(){
        if(yoffset-last_yoffset > 0){
         //deflate
         println("Deflate!", yoffset-last_yoffset);
-        OscMessage myMessage1;
-          myMessage1 = new OscMessage("/actuator/inflate");
-          myMessage1.add(-50.0); 
-          //sendToOneActuator(myMessage, 1);
-           sendToAllActuators(myMessage1);
+        //OscMessage myMessage1;
+        //  myMessage1 = new OscMessage("/actuator/inflate");
+        //  myMessage1.add(-50.0); 
+        //  //sendToOneActuator(myMessage, 1);
+        //   sendToAllActuators(myMessage1);
            
-           //start a timer for actuation
-           onlyActuateTime= millis();
-           onlyActuate = true;
+        //   //start a timer for actuation
+        //   onlyActuateTime= millis();
+        //   onlyActuate = true;
 
           
        }
@@ -503,15 +506,15 @@ void CouplePressureInflate(){
          
          println("Inflate!", yoffset-last_yoffset);
            
-           OscMessage myMessage2;
-         myMessage2 = new OscMessage("/actuator/inflate");
-         myMessage2.add(50.0); 
-         //sendToOneActuator(myMessage2, 1);
-           sendToAllActuators(myMessage2);
+         //  OscMessage myMessage2;
+         //myMessage2 = new OscMessage("/actuator/inflate");
+         //myMessage2.add(50.0); 
+         ////sendToOneActuator(myMessage2, 1);
+         //  sendToAllActuators(myMessage2);
            
-           //start a timer for actuation
-           onlyActuateTime= millis();
-           onlyActuate = true;
+         //  //start a timer for actuation
+         //  onlyActuateTime= millis();
+         //  onlyActuate = true;
        
        }
       
@@ -544,9 +547,9 @@ void CoupleACCInflate(){
   //  println(String.join("/",Integer.toString(firstCouplingSensorId),"x"));
   //}
   
-  if(sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"x")) != null) {
+  if(sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"x")) != null) {
       //float yoffset = map(mouseY, 0, height, 0, 1);
-      yoffset = (Float) sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"x"))[0];
+      yoffset = (Float) sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"x"))[0];
   }
   
   
@@ -564,9 +567,9 @@ void CoupleACCInflate(){
     
     float detune = 0;
     
-    if(sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"y")) != null) {
+    if(sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"y")) != null) {
         //float yoffset = map(mouseY, 0, height, 0, 1);
-        detune = (Float) sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"y"))[0];
+        detune = (Float) sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"y"))[0];
     }
         
     if(detune != last_detune || last_yoffset != yoffset){ //it happens that they are the same often since this function is called more times than the sensor data updates
@@ -677,6 +680,10 @@ void oscEvent(OscMessage theOscMessage) {
   else if (theOscMessage.addrPattern().equals(wekaPattern)) {
     //custom code to deal with it (replace function when needed)
     WekinatorMKRVibe(theOscMessage);
+  }
+  else if (theOscMessage.addrPattern().equals(riotPattern)) {
+    //custom code to deal with it (replace function when needed)
+    println("RIOT is online!");
   }
   /**
    * if pattern matching was not successful, then broadcast the incoming
@@ -930,6 +937,12 @@ private int connectSensor(String theIPaddress) {
        //this is hardcoded just for couplings
       if(SensorNetAddressList.list().size() == 2){
         secondCouplingSensorId = id;
+        //println(firstCouplingSensorId);
+      }
+      
+       //this is hardcoded just for couplings
+      if(SensorNetAddressList.list().size() == 3){
+        thirdCouplingSensorId = id;
         //println(firstCouplingSensorId);
       }
      
