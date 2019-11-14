@@ -42,8 +42,8 @@ float beta      = 7.0;  // increase this to get rid of high speed lag
 //NEVER SET MORE THAN ONE OF THESE TO TRUE! Each coupling can only be run separately
 boolean couplingAccSound = false;
 boolean couplingAccInfl = false;
-boolean couplingPressureInfl = false;
-boolean horsePillow = true;
+boolean couplingPressureInfl = true;
+boolean horsePillow = false;
 //----------------------------------------------Each coupling has to be run separately
 
 
@@ -53,15 +53,15 @@ int thirdCouplingSensorId = 0;
 
 int overrideTime;
 boolean overrideCoupling = false;
-int overrideWait = 2000;
+int overrideWait = 10;
 
 int onlyActuateTime;
 boolean onlyActuate = false;
-int onlyActuateWait = 100;
+int onlyActuateWait = 0;
 
 int waitForPressureTime;
 boolean waitForPressure = false;
-int waitForPressureWait = 500;
+int waitForPressureWait = 0;
 
 
 
@@ -260,23 +260,23 @@ void draw() {
   }
   
   
-  //if(couplingAccSound){
-  //  CoupleACCSineWave();
-  //}
-  //else 
+  if(couplingAccSound){
+    CoupleACCSineWave();
+  }
+  else 
   
-  if(!overrideCoupling){
+  //if(!overrideCoupling){
       if(couplingAccInfl){
         //plotPressure();
         CoupleACCInflate();
       }else if(couplingPressureInfl){
-        //plotPressure();
+        plotPressure();
         CouplePressureInflate();
       }
       else if(horsePillow){
         runLikeTheWind();
       }
-  }
+  //}
 }
 
 
@@ -369,7 +369,7 @@ void runLikeTheWind(){
 
   
   // set last value to the new value
-  arrayOfFloats[arrayOfFloats.length-1] = (difference*10)+200;
+  arrayOfFloats[arrayOfFloats.length-1] = pressure1/2;//(difference*10)+200;
  
   // display all values however you want
   for (int i=0; i<arrayOfFloats.length; i++) {

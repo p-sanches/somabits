@@ -40,6 +40,7 @@ from pythonosc import osc_message_builder
 from pythonosc import udp_client
 
 
+int direct_actuation = 0;
 
 Fs = 125
 f = 1
@@ -120,97 +121,102 @@ def updateZ(address, *args):
 
 def updateAct(address, *args):
   print("act!")
+
+  direct_actuation = 1 #someone is directly controlling the actuator
   
   global act
   act=args[0]
   print(act)
 
-def calibrateSinus():
+# def calibrateSinus():
 
-    xmax= sample
-    ymin = -1
-    ymax = 1
-    tframe=0
-    i=0
+#     xmax= sample
+#     ymin = -1
+#     ymax = 1
+#     tframe=0
+#     i=0
 
-    repeated = 0
+#     repeated = 0
 
 
-    # plt.xlim(0,xmax)
-    # plt.ylim(ymin,ymax)
+#     # plt.xlim(0,xmax)
+#     # plt.ylim(ymin,ymax)
 
-    global trainXYZ
+#     global trainXYZ
 
-  # print(scaler.get_params().keys())
+#   # print(scaler.get_params().keys())
     
-    # plt.figure(1)
-    # time.sleep(1)
-    while True:
-        # np.append(sensorX, sX)
-        # np.append(sensorY, sY)
-        # np.append(sensorZ, sZ)
-        plt.pause(0.03)
+#     # plt.figure(1)
+#     # time.sleep(1)
+#     while True:
+#         # np.append(sensorX, sX)
+#         # np.append(sensorY, sY)
+#         # np.append(sensorZ, sZ)
+#         plt.pause(0.03)
 
-        if trainXYZ[i-1][0]==sX and trainXYZ[i-1][1]==sY and trainXYZ[i-1][2]==sZ:
-          repeated += 1
-          print(sX,sY,sZ, repeated)
-          if repeated > maxRepeated:
-            continue
-        else: 
-          repeated = 0
+#         if trainXYZ[i-1][0]==sX and trainXYZ[i-1][1]==sY and trainXYZ[i-1][2]==sZ:
+#           repeated += 1
+#           print(sX,sY,sZ, repeated)
+#           if repeated > maxRepeated:
+#             continue
+#         else: 
+#           repeated = 0
 
         
-        plt.scatter(x[i], y[i])
-        # plt.scatter(x[i], sX)
-        trainXYZ[i]= [sX,sY,sZ]
-        sinus[i]= [x[i], y[i]]
+#         plt.scatter(x[i], y[i])
+#         # plt.scatter(x[i], sX)
+#         trainXYZ[i]= [sX,sY,sZ]
+#         sinus[i]= [x[i], y[i]]
+
+#         client.send_message("/actuator/inflate", (y[i]*200)-100)
 
 
-        i+=1
+#         i+=1
 
-        if i not in range(len(x)): 
-          break
+#         if i not in range(len(x)): 
+#           break
 
-    # plt.show()
-    plt.close()
-    # print(trainXYZ)
+#     # plt.show()
+#     plt.close()
+#     client.send_message("/actuator/inflate", 0.0)
+#     # print(trainXYZ)
 
-    print(trainXYZ)
+#     print(trainXYZ)
 
-    trainXYZ = scalerIn.fit_transform(trainXYZ)
+#     trainXYZ = scalerIn.fit_transform(trainXYZ)
 
-    print(trainXYZ)
-    # sinus= scalerOut.fit_transform(sinus)
+#     print(trainXYZ)
+#     # sinus= scalerOut.fit_transform(sinus)
 
-    train_data_gen = TimeseriesGenerator(trainXYZ, y,
-                               length=look_back, sampling_rate=1,stride=1,
-                               batch_size=3)
-    model = Sequential()
-    # model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(look_back, n_features)))
-    # model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
-    # # model.add(Conv1D(filters=64, kernel_size=1, activation='relu', input_shape=(look_back, n_features)))
-    # model.add(Dropout(0.5))
-    # model.add(MaxPooling1D(pool_size=2))
-    # model.add(Flatten())
-    # model.add(Dense(100, activation='relu'))
-    # model.add(Dense(1))
-    # model.compile(optimizer='adam', loss='mse')
+#     train_data_gen = TimeseriesGenerator(trainXYZ, y,
+#                                length=look_back, sampling_rate=1,stride=1,
+#                                batch_size=3)
+#     model = Sequential()
+#     # model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(look_back, n_features)))
+#     # model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
+#     # # model.add(Conv1D(filters=64, kernel_size=1, activation='relu', input_shape=(look_back, n_features)))
+#     # model.add(Dropout(0.5))
+#     # model.add(MaxPooling1D(pool_size=2))
+#     # model.add(Flatten())
+#     # model.add(Dense(100, activation='relu'))
+#     # model.add(Dense(1))
+#     # model.compile(optimizer='adam', loss='mse')
 
-    model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=(look_back, n_features)))
-    model.add(MaxPooling1D(pool_size=2))
-    model.add(Flatten())
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mse')
+#     model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=(look_back, n_features)))
+#     model.add(MaxPooling1D(pool_size=2))
+#     model.add(Flatten())
+#     model.add(Dense(50, activation='relu'))
+#     model.add(Dense(1))
+#     model.compile(optimizer='adam', loss='mse')
 
-    # model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(look_back, n_features)))
-    # model.add(LSTM(50, activation='relu'))
-    # model.add(Dense(1))
-    # model.compile(optimizer='adam', loss='mse')
+#     # model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(look_back, n_features)))
+#     # model.add(LSTM(50, activation='relu'))
+#     # model.add(Dense(1))
+#     # model.compile(optimizer='adam', loss='mse')
 
 
-    history = model.fit_generator(train_data_gen, epochs=20).history
-    model.save('xyz_model.h')
+#     history = model.fit_generator(train_data_gen, epochs=20).history
+#     model.save('xyz_model.h')
 
 
 def calibrateAct():
@@ -248,10 +254,11 @@ def calibrateAct():
           repeated = 0
 
         
-        # plt.scatter(x[i], act)
-        plt.scatter(x[i], sX)
-        plt.scatter(x[i], sY)
-        plt.scatter(x[i], sZ)
+        plt.scatter(x[i], act)
+        client.send_message("/actuator/inflate", act*200-100)
+        # plt.scatter(x[i], sX)
+        # plt.scatter(x[i], sY)
+        # plt.scatter(x[i], sZ)
         trainXYZ[i]= [sX,sY,sZ]
         sinus[i]= [x[i], act]
         actY[i] = act
@@ -287,14 +294,14 @@ def calibrateAct():
     # model.add(Dense(1))
     # model.compile(optimizer='adam', loss='mse')
 
-    # model.add(Conv1D(filters=64, kernel_size=2, activation='tanh', input_shape=(look_back, n_features)))
-    # model.add(MaxPooling1D(pool_size=2))
-    # model.add(Flatten())
-    # model.add(Dense(50, activation='tanh'))
-    # model.add(Dropout(0.1))
-    # model.add(Dense(1))
+    model.add(Conv1D(filters=64, kernel_size=2, activation='tanh', input_shape=(look_back, n_features)))
+    model.add(MaxPooling1D(pool_size=2))
+    model.add(Flatten())
+    model.add(Dense(50, activation='tanh'))
+    model.add(Dropout(0.1))
+    model.add(Dense(1))
     model.compile(optimizer='adam', loss='mse')
-    # , metrics=['accuracy'])
+    #,metrics=['accuracy'])
 
     # model.add(LSTM(50, activation='relu', return_sequences=True, input_shape=(look_back, n_features)))
     # model.add(LSTM(50, activation='softmax'))
@@ -310,6 +317,8 @@ def calibrateAct():
 
     model.save('xyz_model.h')
 
+    direct_actuation = 0; #to start predicting when training is over
+
 def plot():
 
     xmax= sample
@@ -323,7 +332,11 @@ def plot():
 
     model = load_model('xyz_model.h')
 
-    client = udp_client.SimpleUDPClient("127.0.0.1", 12345)
+    client = udp_client.SimpleUDPClient("127.0.0.1", 32000)
+
+    nr_samples_retrain = 0
+    in_training= 0
+    trainXYZ
 
     while True:
         # np.append(sensorX, sX)
@@ -354,11 +367,67 @@ def plot():
 
         XYZ = scalerIn.transform(XYZ)
         XYZ = np.array([XYZ])
+
+
+
+
+        #COMMENT ALL THIS UNTIL THE COMMENT BELOW
+
+        if direct_actuation = 1: #if the user touched the actuation button, then we have to go into re-training mode
+        	in_training = 1
+
+
+
+        #IF DIRECT ACTUATION THEN STORE THE ACTUATION AND SENSING VALUES IN A BUFFER UNTIL THE USER STOPS INTERACTING + 5 SAMPLES
+        if in_training == 1:
+        	#send direct control to the Processing server instead of prediction
+        	client.send_message("/actuator/inflate", act*200-100)
+
+        	#if not started yet, start new buffer for re-training
+        	if nr_samples_retrain == 0:
+
+
+
+        	nr_samples_retrain += 1
+        	#save act to training buffer
+        	
+	        # plt.scatter(x[i], sX)
+	        # plt.scatter(x[i], sY)
+	        # plt.scatter(x[i], sZ)
+	        #trainXYZ[i]= [sX,sY,sZ]
+	        #sinus[i]= [x[i], act]
+
+
+	        actY[i] = act
+
+        	i+=1
+
+	        if i not in range(len(x)): 
+	          break
+
+	    if direct_actuation == 1
+	    	in_training = 1
+	    	continue
+
+        #IF NO DIRECT ACTUATION WAS GIVEN, THEN USE PREDICTION
+
+        #COMMENT UNTIL HERE IF YOU WANT THIS TO WORK WITHOUT RE-TRAINING
         breathing=model.predict(XYZ)
+
+
+
+
         print(breathing.shape)
         print(breathing[0][0])
+        print(type(breathing[0][0]))
 
-        client.send_message("/radius", breathing[0][0]*200)
+        value = breathing[0][0]*200 - 100
+
+        # if breathing[0][0] <= 1 and breathing[0][0] >= 0:
+        client.send_message("/actuator/inflate", value)
+        #else:
+        	#client.send_message("/actuator/inflate", 0.0)
+
 
         if breathing > 1.1 or breathing < 0:
           plt.scatter(tframe,0, color="red")
@@ -421,7 +490,7 @@ def server():
 
     dispatcher.map("/accxyz", updtouchOSC)
 
-    dispatcher.map("/actuator/a", updateAct)
+    dispatcher.map("/actuator/1/inflate", updateAct)
 
     server = osc_server.ThreadingOSCUDPServer(
     ("192.168.0.150", 5006), dispatcher)
@@ -431,8 +500,8 @@ def server():
       server.close()
 
 
-client = udp_client.SimpleUDPClient("127.0.0.1", 12345)
-client.send_message("/radius", 20.0)
+client = udp_client.SimpleUDPClient("127.0.0.1", 32000)
+client.send_message("/actuator/inflate", 0.0)
 
   # print("Serving on {}".format(server.server_address))
   # server.serve_forever()
@@ -441,8 +510,8 @@ thread2 = threading.Thread(target = server)
 thread2.start()
 
 
-#calibrateAct()
-calibrateSinus()
+calibrateAct()
+#calibrateSinus()
 
 
 # thread1 = threading.Thread(target = get_breathing)
