@@ -10,6 +10,9 @@ To be able to compile the code for the Arduino Wifi Rev2, you should go to the f
 In Ubuntu, e.g., 
 `/home/martina/.arduino15/packages/arduino/hardware/megaavr/1.6.25/cores/arduino/api`
 
+In Windows, e.g.,
+c:\Users\<<User_Name>>\AppData\Local\Arduino15\packages\arduino\hardware\megaavr\1.8.5\cores\arduino\api\
+
 In the `Udp.h` file, add the following line
 
 ```
