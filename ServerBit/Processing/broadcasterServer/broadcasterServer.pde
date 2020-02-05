@@ -65,7 +65,7 @@ int waitForPressureTime;
 boolean waitForPressure = false;
 int waitForPressureWait = 0;
 
-
+boolean calibrated = false;
 
 //import org.apache.commons.collections4.*;
 
@@ -395,6 +395,7 @@ float pressure1 = 0;
 float pressure2 = 0; 
 float pressure3 = 0;  
 float pressure4 = 0;  
+
   
 
   if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure")) != null) {
@@ -429,16 +430,89 @@ float pressure4 = 0;
        println(pressure4);
   }
 
+/*
+if (calibrated == false)
+{
+OscMessage myMessage1;
+myMessage1 = new OscMessage("/actuator/inflate");
+
+if ( pressure1 < 1200.0){
+print("Bit 1 - Inflate");
+myMessage1.add(100.0);
+sendToOneActuator(myMessage1, 1);
+}
+
+if (pressure1 >= 1200.0){
+print("Bit 1 - Calibrated");
+calibrated = true;
+myMessage1.add(0.0);
+sendToOneActuator(myMessage1, 1);
+}
+} 
 
 
 
 
+if (calibrated == true)
+{
+*/
+
+OscMessage myMessage2;
+myMessage2 = new OscMessage("/actuator/inflate");
+if ( abs (pressure2 - pressure1) < 50.0){
+print("Bit 2 - Standby");
+}
+else if (pressure2 > pressure1){
+myMessage2.add(-50.0);
+print("Bit 2 - Deflate");
+}
+else if (pressure2 < pressure1){
+myMessage2.add(50.0);
+print("Bit 2 - Inflate");
+}  
+
+sendToOneActuator(myMessage2, 2);
+               
+OscMessage myMessage3;
+myMessage3 = new OscMessage("/actuator/inflate");
+if ( abs (pressure3 - pressure1) < 50.0){
+print("Bit 3 - Standby");
+}
+else if (pressure3 > pressure1){
+myMessage3.add(-50.0);
+print("Bit 3 - Deflate");
+}
+else if (pressure3 < pressure1){
+myMessage3.add(50.0);
+print("Bit 3 - Inflate");
+}  
+
+sendToOneActuator(myMessage3, 3);
 
 
 
+               
+OscMessage myMessage4;
+myMessage4 = new OscMessage("/actuator/inflate");
+if ( abs (pressure4 - pressure1) < 50.0){
+  print("Bit 4 - Standby");
+}
+else if (pressure4 > pressure1){
+myMessage4.add(-50.0);
+print("Bit 4 - Deflate");
+}
+else if (pressure4 < pressure1){
+myMessage4.add(50.0);
+print("Bit 4 - Inflate");
+}  
+
+sendToOneActuator(myMessage4, 4);
 
 
 }
+
+
+//}
 
 
 
