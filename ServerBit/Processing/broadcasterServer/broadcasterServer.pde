@@ -42,14 +42,16 @@ float beta      = 7.0;  // increase this to get rid of high speed lag
 //NEVER SET MORE THAN ONE OF THESE TO TRUE! Each coupling can only be run separately
 boolean couplingAccSound = false;
 boolean couplingAccInfl = false;
-boolean couplingPressureInfl = true;
+boolean couplingPressureInfl = false;
 boolean horsePillow = false;
+boolean pressureInterplay = true;
 //----------------------------------------------Each coupling has to be run separately
 
 
 int firstCouplingSensorId = 0;
 int secondCouplingSensorId = 0;
 int thirdCouplingSensorId = 0;
+int fourthCouplingSensorId = 0;
 
 int overrideTime;
 boolean overrideCoupling = false;
@@ -63,7 +65,7 @@ int waitForPressureTime;
 boolean waitForPressure = false;
 int waitForPressureWait = 0;
 
-
+boolean calibrated = false;
 
 //import org.apache.commons.collections4.*;
 
@@ -276,7 +278,9 @@ void draw() {
       else if(horsePillow){
         runLikeTheWind();
       }
-  //}
+      else if(pressureInterplay){
+        MaintainPressure();
+      }
 }
 
 
@@ -378,6 +382,141 @@ void runLikeTheWind(){
     ellipse(width*i/arrayOfFloats.length+width/num/2,height-arrayOfFloats[i],width/num,width/num);
   }
 }
+
+
+void MaintainPressure(){
+  
+//for (int i=0; i<arrayOfFloats.length-1; i++) {
+//    arrayOfFloats[i] = arrayOfFloats[i+1];
+//  }  
+  
+  
+float pressure1 = 0;
+float pressure2 = 0; 
+float pressure3 = 0;  
+float pressure4 = 0;  
+
+  
+
+  if(sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure")) != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure1 = (Float) sensorInputs.get(String.join("/",Integer.toString(firstCouplingSensorId),"pressure"))[0];
+        
+       print("Pressure 1: ");
+       println(pressure1);
+  }   
+      if(sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure")) != null) {
+          //float yoffset = map(mouseY, 0, height, 0, 1);
+          pressure2 = (Float) sensorInputs.get(String.join("/",Integer.toString(secondCouplingSensorId),"pressure"))[0];
+        print("Pressure 2: ");
+        println(pressure2);
+      
+    }
+
+
+  if(sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"pressure")) != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure3 = (Float) sensorInputs.get(String.join("/",Integer.toString(thirdCouplingSensorId),"pressure"))[0];
+        
+       print("Pressure 3: ");
+       println(pressure3);
+  }
+  
+    if(sensorInputs.get(String.join("/",Integer.toString(fourthCouplingSensorId),"pressure")) != null) {
+        //float yoffset = map(mouseY, 0, height, 0, 1);
+        pressure4 = (Float) sensorInputs.get(String.join("/",Integer.toString(fourthCouplingSensorId),"pressure"))[0];
+        
+       print("Pressure 4: ");
+       println(pressure4);
+  }
+
+/*
+if (calibrated == false)
+{
+OscMessage myMessage1;
+myMessage1 = new OscMessage("/actuator/inflate");
+
+if ( pressure1 < 1200.0){
+print("Bit 1 - Inflate");
+myMessage1.add(100.0);
+sendToOneActuator(myMessage1, 1);
+}
+
+if (pressure1 >= 1200.0){
+print("Bit 1 - Calibrated");
+calibrated = true;
+myMessage1.add(0.0);
+sendToOneActuator(myMessage1, 1);
+}
+} 
+
+
+
+
+if (calibrated == true)
+{
+*/
+
+OscMessage myMessage2;
+myMessage2 = new OscMessage("/actuator/inflate");
+if ( abs (pressure2 - pressure1) < 50.0){
+print("Bit 2 - Standby");
+}
+else if (pressure2 > pressure1){
+myMessage2.add(-50.0);
+print("Bit 2 - Deflate");
+}
+else if (pressure2 < pressure1){
+myMessage2.add(50.0);
+print("Bit 2 - Inflate");
+}  
+
+sendToOneActuator(myMessage2, 2);
+               
+OscMessage myMessage3;
+myMessage3 = new OscMessage("/actuator/inflate");
+if ( abs (pressure3 - pressure1) < 50.0){
+print("Bit 3 - Standby");
+}
+else if (pressure3 > pressure1){
+myMessage3.add(-50.0);
+print("Bit 3 - Deflate");
+}
+else if (pressure3 < pressure1){
+myMessage3.add(50.0);
+print("Bit 3 - Inflate");
+}  
+
+sendToOneActuator(myMessage3, 3);
+
+
+
+               
+OscMessage myMessage4;
+myMessage4 = new OscMessage("/actuator/inflate");
+if ( abs (pressure4 - pressure1) < 50.0){
+  print("Bit 4 - Standby");
+}
+else if (pressure4 > pressure1){
+myMessage4.add(-50.0);
+print("Bit 4 - Deflate");
+}
+else if (pressure4 < pressure1){
+myMessage4.add(50.0);
+print("Bit 4 - Inflate");
+}  
+
+sendToOneActuator(myMessage4, 4);
+
+
+}
+
+
+//}
+
+
+
+
 
 void plotPressure(){
   
@@ -943,6 +1082,12 @@ private int connectSensor(String theIPaddress) {
        //this is hardcoded just for couplings
       if(SensorNetAddressList.list().size() == 3){
         thirdCouplingSensorId = id;
+        //println(firstCouplingSensorId);
+      }
+      
+      
+       if(SensorNetAddressList.list().size() == 4){
+        fourthCouplingSensorId = id;
         //println(firstCouplingSensorId);
       }
      
