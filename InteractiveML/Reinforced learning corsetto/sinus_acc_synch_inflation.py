@@ -40,7 +40,7 @@ from pythonosc import osc_message_builder
 from pythonosc import udp_client
 
 
-int direct_actuation = 0;
+direct_actuation = 0
 
 Fs = 125
 f = 1
@@ -373,43 +373,43 @@ def plot():
 
         #COMMENT ALL THIS UNTIL THE COMMENT BELOW
 
-        if direct_actuation = 1: #if the user touched the actuation button, then we have to go into re-training mode
-        	in_training = 1
+     #    if direct_actuation = 1: #if the user touched the actuation button, then we have to go into re-training mode
+     #    	in_training = 1
 
 
 
-        #IF DIRECT ACTUATION THEN STORE THE ACTUATION AND SENSING VALUES IN A BUFFER UNTIL THE USER STOPS INTERACTING + 5 SAMPLES
-        if in_training == 1:
-        	#send direct control to the Processing server instead of prediction
-        	client.send_message("/actuator/inflate", act*200-100)
+     #    #IF DIRECT ACTUATION THEN STORE THE ACTUATION AND SENSING VALUES IN A BUFFER UNTIL THE USER STOPS INTERACTING + 5 SAMPLES
+     #    if in_training == 1:
+     #    	#send direct control to the Processing server instead of prediction
+     #    	client.send_message("/actuator/inflate", act*200-100)
 
-        	#if not started yet, start new buffer for re-training
-        	if nr_samples_retrain == 0:
+     #    	#if not started yet, start new buffer for re-training
+     #    	if nr_samples_retrain == 0:
 
 
 
-        	nr_samples_retrain += 1
-        	#save act to training buffer
+     #    	nr_samples_retrain += 1
+     #    	#save act to training buffer
         	
-	        # plt.scatter(x[i], sX)
-	        # plt.scatter(x[i], sY)
-	        # plt.scatter(x[i], sZ)
-	        #trainXYZ[i]= [sX,sY,sZ]
-	        #sinus[i]= [x[i], act]
+	    #     # plt.scatter(x[i], sX)
+	    #     # plt.scatter(x[i], sY)
+	    #     # plt.scatter(x[i], sZ)
+	    #     #trainXYZ[i]= [sX,sY,sZ]
+	    #     #sinus[i]= [x[i], act]
 
 
-	        actY[i] = act
+	    #     actY[i] = act
 
-        	i+=1
+     #    	i+=1
 
-	        if i not in range(len(x)): 
-	          break
+	    #     if i not in range(len(x)): 
+	    #       break
 
-	    if direct_actuation == 1
-	    	in_training = 1
-	    	continue
+	    # if direct_actuation == 1
+	    # 	in_training = 1
+	    # 	continue
 
-        #IF NO DIRECT ACTUATION WAS GIVEN, THEN USE PREDICTION
+     #    #IF NO DIRECT ACTUATION WAS GIVEN, THEN USE PREDICTION
 
         #COMMENT UNTIL HERE IF YOU WANT THIS TO WORK WITHOUT RE-TRAINING
         breathing=model.predict(XYZ)
