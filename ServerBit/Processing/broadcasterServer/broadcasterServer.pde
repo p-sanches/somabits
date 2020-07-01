@@ -1,7 +1,7 @@
-/**
+ /**
  * SOMA BITS broadcasting server 
  * Created 2019-02-26
- * by p_sanches
+ * by p_sanches 
  *
  * /sensor/[sid]/[anypath] [float]
  * /actuator/[sid]/[anypath] [float]
@@ -44,7 +44,7 @@ boolean couplingAccSound = false;
 boolean couplingAccInfl = false;
 boolean couplingPressureInfl = false;
 boolean horsePillow = false;
-boolean pressureInterplay = true;
+boolean pressureInterplay = false;
 //----------------------------------------------Each coupling has to be run separately
 
 
